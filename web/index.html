@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎱 AI 로또 분석기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .lotto-ball {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            margin: 2px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .ball-1-10 {
+            background: linear-gradient(135deg, #fcd34d, #f59e0b);
+        }
+
+        .ball-11-20 {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+        }
+
+        .ball-21-30 {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+        }
+
+        .ball-31-40 {
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+        }
+
+        .ball-41-45 {
+            background: linear-gradient(135deg, #34d399, #10b981);
+        }
+
+        .matched {
+            box-shadow: 0 0 0 4px #22c55e, 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning {
+            animation: spin 0.5s linear infinite;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .pop-in {
+            animation: pop 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">🎱 AI 로또 분석기</h1>
+            <p class="text-gray-400">Transformer 모델 기반 번호 생성 (엔터테인먼트 목적)</p>
+        </header>
+
+        <!-- Warning -->
+        <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-6 text-center text-sm">
+            ⚠️ <strong>면책:</strong> 이 도구는 학습/엔터테인먼트 목적입니다. 당첨을 보장하지 않습니다.
+        </div>
+
+        <!-- Tab Navigation -->
+        <nav class="flex gap-2 mb-6 bg-white/5 p-1 rounded-xl">
+            <button onclick="switchTab('generator')" id="tab-btn-generator"
+                class="tab-btn flex-1 py-2 px-4 rounded-lg font-bold transition-all text-white bg-purple-600 shadow-lg">
+                🔮 번호 생성
+            </button>
+            <button onclick="switchTab('history')" id="tab-btn-history"
+                class="tab-btn flex-1 py-2 px-4 rounded-lg font-bold transition-all text-gray-400 hover:text-white">
+                🕒 생성 이력
+            </button>
+            <button onclick="switchTab('draws')" id="tab-btn-draws"
+                class="tab-btn flex-1 py-2 px-4 rounded-lg font-bold transition-all text-gray-400 hover:text-white">
+                📊 당첨 데이터
+            </button>
+        </nav>
+
+        <!-- Tab Panels -->
+        <div id="content-generator" class="tab-content">
+            <!-- Generator Section -->
+            <section class="bg-white/10 backdrop-blur rounded-xl p-6 mb-8">
+                <h2 class="text-2xl font-bold mb-4">🔮 번호 생성</h2>
+
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <select id="lotterySelect" onchange="onLotteryChange()"
+                        class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 flex-1 min-w-[200px]">
+                        <option value="korea_645">🇰🇷 한국 로또 6/45</option>
+                        <option value="usa_powerball">🇺🇸 미국 파워볼 (Powerball)</option>
+                        <option value="usa_megamillions">🇺🇸 미국 메가밀리언즈</option>
+                        <option value="canada_649">🇨🇦 캐나다 로또 6/49</option>
+                        <option value="japan_loto6">🇯🇵 일본 로또 6</option>
+                    </select>
+                    <div id="modelButtonContainer" class="flex-[2] flex gap-2 min-w-[300px]">
+                        <button type="button" onclick="selectModel('transformer')" id="btn-transformer"
+                            class="model-btn flex-1 py-2 px-4 rounded-lg border-2 border-purple-500 bg-purple-500/20 text-white font-bold transition-all">
+                            🧠 Transformer
+                        </button>
+                        <button type="button" onclick="selectModel('lstm')" id="btn-lstm"
+                            class="model-btn flex-1 py-2 px-4 rounded-lg border-2 border-gray-700 bg-gray-800 text-gray-400 font-bold transition-all">
+                            📈 LSTM
+                        </button>
+                        <input type="hidden" id="modelSelect" value="transformer">
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="number" id="countInput" value="5" min="1" max="100"
+                            class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 w-24" placeholder="수">
+                        <button id="generateBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 
+                                    rounded-lg px-6 py-2 font-bold transition-all shadow-lg shadow-purple-500/20">
+                            생성하기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Generation Progress -->
+                <div id="progressArea" class="hidden mb-6">
+                    <div class="flex items-center gap-3 text-gray-300">
+                        <div class="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full spinning">
+                        </div>
+                        <span id="progressText">모델 로딩 중...</span>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="resultsArea" class="space-y-4"></div>
+            </section>
+        </div>
+
+        <div id="content-history" class="tab-content hidden">
+            <!-- History Section -->
+            <section class="bg-white/10 backdrop-blur rounded-xl p-6 mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">📋 생성 이력</h2>
+                    <button onclick="loadHistory()" class="text-gray-400 hover:text-white flex items-center gap-2">
+                        <span>🔄</span> 새로고침
+                    </button>
+                </div>
+                <div id="historyArea" class="space-y-4">
+                    <p class="text-gray-400">아직 생성 이력이 없습니다.</p>
+                </div>
+            </section>
+
+            <!-- Comparison Section -->
+            <section id="comparisonSection" class="bg-white/10 backdrop-blur rounded-xl p-6 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">🎯 당첨 비교</h2>
+                    <button onclick="document.getElementById('comparisonSection').classList.add('hidden')"
+                        class="text-gray-400 font-bold">✕</button>
+                </div>
+                <div id="comparisonArea"></div>
+            </section>
+        </div>
+
+        <div id="content-draws" class="tab-content hidden">
+            <!-- Raw Draws Section -->
+            <section class="bg-white/10 backdrop-blur rounded-xl p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">📊 최신 당첨 번호</h2>
+                    <div class="flex gap-2">
+                        <select id="drawLotterySelect" onchange="loadDraws()"
+                            class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm">
+                            <option value="korea_645">🇰🇷 한국 6/45</option>
+                            <option value="usa_powerball">🇺🇸 미국 파워볼</option>
+                            <option value="usa_megamillions">🇺🇸 미국 메가밀리언즈</option>
+                            <option value="canada_649">🇨🇦 캐나다 로또 6/49</option>
+                            <option value="japan_loto6">🇯🇵 일본 로또 6</option>
+                        </select>
+                        <button onclick="loadDraws()" class="text-gray-400 hover:text-white">🔄</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg">
+                    <table class="w-full text-left bg-black/20">
+                        <thead class="bg-black/40 text-gray-400 text-sm uppercase">
+                            <tr>
+                                <th class="p-4">회차 / 날짜</th>
+                                <th class="p-4 text-center">당첨 번호</th>
+                                <th class="p-4 text-center">보너스 / PB</th>
+                                <th class="p-4 text-right">1등 상금</th>
+                                <th class="p-4 text-right">당첨 인원</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drawsTableBody" class="divide-y divide-white/5">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="drawsLoader" class="py-10 text-center hidden">
+                    <div
+                        class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full spinning">
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환 처리
+        function switchTab(tabId) {
+            // 숨기기/보이기
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+
+            // 버튼 스타일
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'shadow-lg', 'text-white');
+                btn.classList.add('text-gray-400');
+            });
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.remove('text-gray-400');
+            activeBtn.classList.add('bg-purple-600', 'shadow-lg', 'text-white');
+
+            // 탭별 로딩
+            if (tabId === 'history') loadHistory();
+            if (tabId === 'draws') loadDraws();
+        }
+
+        // 복권 선택 변경 핸들러
+        function onLotteryChange() {
+            loadHistory();
+            // 동기화를 위해 데이터 탭의 선택도 변경
+            document.getElementById('drawLotterySelect').value = document.getElementById('lotterySelect').value;
+        }
+
+        // 모델 선택 처리
+        function selectModel(type) {
+            document.getElementById('modelSelect').value = type;
+
+            const transBtn = document.getElementById('btn-transformer');
+            const lstmBtn = document.getElementById('btn-lstm');
+
+            if (type === 'transformer') {
+                transBtn.classList.add('border-purple-500', 'bg-purple-500/20', 'text-white');
+                transBtn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
+
+                lstmBtn.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
+                lstmBtn.classList.remove('border-blue-500', 'bg-blue-500/20', 'text-white');
+            } else {
+                lstmBtn.classList.add('border-blue-500', 'bg-blue-500/20', 'text-white');
+                lstmBtn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
+
+                transBtn.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
+                transBtn.classList.remove('border-purple-500', 'bg-purple-500/20', 'text-white');
+            }
+        }
+
+        const API_BASE = '';
+
+        // 공 색상 클래스 결정
+        function getBallClass(num) {
+            if (num <= 10) return 'ball-1-10';
+            if (num <= 20) return 'ball-11-20';
+            if (num <= 30) return 'ball-21-30';
+            if (num <= 40) return 'ball-31-40';
+            return 'ball-41-45';
+        }
+
+        // 로또 공 HTML 생성
+        function renderBalls(numbers, matched = []) {
+            return numbers.map((n, i) => {
+                const isMatched = matched.includes(n);
+                return `<span class="lotto-ball ${getBallClass(n)} ${isMatched ? 'matched' : ''} pop-in" 
+                              style="animation-delay: ${i * 0.1}s">${n}</span>`;
+            }).join('');
+        }
+
+        // 번호 생성
+        async function generateNumbers() {
+            const btn = document.getElementById('generateBtn');
+            const progress = document.getElementById('progressArea');
+            const progressText = document.getElementById('progressText');
+            const results = document.getElementById('resultsArea');
+
+            btn.disabled = true;
+            progress.classList.remove('hidden');
+            results.innerHTML = '';
+
+            try {
+                progressText.textContent = '🤖 AI 모델 분석 중...';
+
+                const res = await fetch(`${API_BASE}/api/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lottery_id: document.getElementById('lotterySelect').value,
+                        count: parseInt(document.getElementById('countInput').value),
+                        model_type: document.getElementById('modelSelect').value
+                    })
+                });
+
+                if (!res.ok) throw new Error('생성 실패');
+
+                const data = await res.json();
+                progressText.textContent = '✨ 번호 생성 완료!';
+
+                // 결과 표시
+                setTimeout(() => {
+                    const lotteryNames = {
+                        'korea_645': '🇰🇷 한국 6/45',
+                        'usa_powerball': '🇺🇸 파워볼',
+                        'usa_megamillions': '🇺🇸 메가밀리언즈',
+                        'canada_649': '🇨🇦 캐나다 6/49',
+                        'japan_loto6': '🇯🇵 일본 ロト6'
+                    };
+                    const lotteryName = lotteryNames[data.lottery_id] || data.lottery_id;
+
+                    results.innerHTML = `
+                        <div class="text-sm text-gray-400 mb-2">
+                            ${lotteryName} | 📅 ${new Date(data.generated_at).toLocaleString('ko-KR')} | 
+                            🎯 ${data.target_draw}회차 대상
+                        </div>
+                        ${data.numbers.map((item, i) => `
+                            <div class="bg-black/30 rounded-lg p-4">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="text-gray-400">#${i + 1}</span>
+                                    ${renderBalls(item.numbers)}
+                                </div>
+                                <div class="text-sm text-gray-400">
+                                    합계: ${item.analysis.sum} | 
+                                    홀짝: ${item.analysis.odd_count}:${item.analysis.even_count} | 
+                                    고저: ${item.analysis.high_count}:${item.analysis.low_count}
+                                </div>
+                            </div>
+                        `).join('')}
+                    `;
+                    progress.classList.add('hidden');
+                    loadHistory();
+                }, 500);
+
+            } catch (err) {
+                progressText.textContent = '❌ 오류: ' + err.message;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 이력 로드
+        async function loadHistory() {
+            const lotteryId = document.getElementById('lotterySelect').value;
+            try {
+                const res = await fetch(`${API_BASE}/api/history?lottery_id=${lotteryId}&limit=10`);
+                const history = await res.json();
+
+                const area = document.getElementById('historyArea');
+
+                if (history.length === 0) {
+                    area.innerHTML = '<p class="text-gray-400">아직 생성 이력이 없습니다.</p>';
+                    return;
+                }
+
+                const lotteryNames = {
+                    'korea_645': '🇰🇷 한국 6/45',
+                    'usa_powerball': '🇺🇸 파워볼',
+                    'usa_megamillions': '🇺🇸 메가밀리언즈',
+                    'canada_649': '🇨🇦 캐나다 6/49',
+                    'japan_loto6': '🇯🇵 일본 ロト6'
+                };
+
+                area.innerHTML = history.map(h => `
+                    <div class="bg-black/30 rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="text-sm text-gray-400">
+                                    #${h.id} | ${lotteryNames[h.lottery_id] || h.lottery_id} | ${new Date(h.generated_at).toLocaleString('ko-KR')} | 
+                                    ${h.target_draw}회차 | 
+                                    <span class="px-2 py-0.5 rounded text-xs ${h.model === 'transformer' ? 'bg-purple-900/50 text-purple-300' : 'bg-blue-900/50 text-blue-300'}">
+                                        ${h.model.toUpperCase()}
+                                    </span>
+                                </span>
+                            </div>
+                            <button onclick="compareHistory('${h.lottery_id}', ${h.id})" 
+                                    class="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded">
+                                비교하기
+                            </button>
+                        </div>
+                        <div class="text-sm">
+                            ${h.numbers.slice(0, 3).map(n =>
+                    `<div class="mb-1">${renderBalls(n.numbers)}</div>`
+                ).join('')}
+                            ${h.numbers.length > 3 ? `<div class="text-gray-500">... 외 ${h.numbers.length - 3}개</div>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error('이력 로드 실패:', err);
+            }
+        }
+
+        // 당첨 비교
+        async function compareHistory(lotteryId, historyId) {
+            const section = document.getElementById('comparisonSection');
+            const area = document.getElementById('comparisonArea');
+
+            section.classList.remove('hidden');
+            area.innerHTML = '<p class="text-gray-400">비교 중...</p>';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/compare/${lotteryId}/${historyId}`);
+                const data = await res.json();
+
+                if (data.status === 'pending') {
+                    area.innerHTML = `
+                        <div class="bg-yellow-500/20 rounded-lg p-4">
+                            ⏳ ${data.message}
+                        </div>
+                    `;
+                    return;
+                }
+
+                area.innerHTML = `
+                    <div class="mb-4">
+                        <div class="text-sm text-gray-400 mb-2">${data.target_draw}회차 (${data.draw_date})</div>
+                        <div class="text-lg font-bold mb-2">당첨 번호:</div>
+                        <div>${renderBalls(data.winning_numbers)} + <span class="lotto-ball ${getBallClass(data.bonus)}">${data.bonus}</span></div>
+                    </div>
+                    <div class="text-lg font-bold mb-2">비교 결과 (최고 일치: ${data.best_match}개):</div>
+                    ${data.comparisons.map((c, i) => `
+                        <div class="bg-black/30 rounded-lg p-3 mb-2">
+                            <div class="flex justify-between items-center">
+                                <div>${renderBalls(c.generated, c.matched_numbers)}</div>
+                                <div class="text-lg font-bold ${c.matched_count >= 3 ? 'text-green-400' : 'text-gray-400'}">
+                                    ${c.matched_count}개 일치
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+
+            } catch (err) {
+                area.innerHTML = `<p class="text-red-400">오류: ${err.message}</p>`;
+            }
+        }
+
+        // 당첨 데이터 로드
+        async function loadDraws() {
+            const lotteryId = document.getElementById('drawLotterySelect').value;
+            const loader = document.getElementById('drawsLoader');
+            const tbody = document.getElementById('drawsTableBody');
+
+            loader.classList.remove('hidden');
+            tbody.classList.add('opacity-30');
+
+            try {
+                const res = await fetch(`${API_BASE}/api/draws/${lotteryId}?limit=50`);
+                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+                const draws = await res.json();
+
+                if (!Array.isArray(draws)) {
+                    throw new Error('데이터 형식이 올바르지 않습니다.');
+                }
+
+                tbody.innerHTML = draws.map(d => {
+                    const isPowerball = lotteryId === 'usa_powerball';
+
+                    // 상금 및 당첨자 포맷팅 (0은 0으로, 없으면 N/A)
+                    const formatValue = (val, unit) => {
+                        if (val === undefined || val === null) return 'N/A';
+                        if (typeof val === 'number') return val.toLocaleString() + unit;
+                        return val;
+                    };
+
+                    const prize = formatValue(d.first_prize_amount, '원');
+                    const winners = formatValue(d.first_prize_winners, '명');
+
+                    return `
+                        <tr>
+                            <td class="p-4">
+                                <div class="font-bold">${d.draw_no}회</div>
+                                <div class="text-xs text-gray-500">${d.draw_date}</div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <div class="flex justify-center gap-1">
+                                    ${d.numbers.map(n => `<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${getBallClass(n)}">${n}</span>`).join('')}
+                                </div>
+                            </td>
+                            <td class="p-4 text-center">
+                                <span class="w-7 h-7 rounded-full inline-flex items-center justify-center text-xs font-bold ${isPowerball ? 'bg-red-600' : getBallClass(d.bonus)}">${d.bonus}</span>
+                            </td>
+                            <td class="p-4 text-right font-medium text-yellow-500">${prize}</td>
+                            <td class="p-4 text-right text-gray-400">${winners}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-red-400">로드 실패: ${err.message}</td></tr>`;
+            } finally {
+                loader.classList.add('hidden');
+                tbody.classList.remove('opacity-30');
+            }
+        }
+
+        // 이벤트 바인딩
+        document.getElementById('generateBtn').addEventListener('click', generateNumbers);
+
+        // 초기 로드
+        loadHistory();
+        // 탭 초기화는 generator 기본 (이미 HTML에 정의됨)
+
+    </script>
+</body>
+
+</html>

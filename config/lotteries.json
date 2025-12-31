@@ -1,0 +1,94 @@
+{
+    "korea_645": {
+        "name": "한국 로또 6/45",
+        "country": "KR",
+        "numbers_count": 6,
+        "number_range": [
+            1,
+            45
+        ],
+        "has_bonus": true,
+        "draw_days": [
+            "saturday"
+        ],
+        "collector": "korea_645",
+        "data_file": "data/korea_645/draws.json"
+    },
+    "usa_powerball": {
+        "name": "Powerball",
+        "country": "US",
+        "numbers_count": 5,
+        "number_range": [
+            1,
+            69
+        ],
+        "special_ball": {
+            "name": "powerball",
+            "range": [
+                1,
+                26
+            ]
+        },
+        "draw_days": [
+            "monday",
+            "wednesday",
+            "saturday"
+        ],
+        "collector": "usa_powerball",
+        "data_file": "data/usa_powerball/draws.json"
+    },
+    "usa_megamillions": {
+        "name": "Mega Millions",
+        "country": "US",
+        "numbers_count": 5,
+        "number_range": [
+            1,
+            70
+        ],
+        "special_ball": {
+            "name": "megaball",
+            "range": [
+                1,
+                25
+            ]
+        },
+        "draw_days": [
+            "tuesday",
+            "friday"
+        ],
+        "collector": "usa_megamillions",
+        "data_file": "data/usa_megamillions/draws.json"
+    },
+    "canada_649": {
+        "name": "Lotto 6/49",
+        "country": "CA",
+        "numbers_count": 6,
+        "number_range": [
+            1,
+            49
+        ],
+        "has_bonus": true,
+        "draw_days": [
+            "wednesday",
+            "saturday"
+        ],
+        "collector": "canada_649",
+        "data_file": "data/canada_649/draws.json"
+    },
+    "japan_loto6": {
+        "name": "ロト6",
+        "country": "JP",
+        "numbers_count": 6,
+        "number_range": [
+            1,
+            43
+        ],
+        "has_bonus": true,
+        "draw_days": [
+            "monday",
+            "thursday"
+        ],
+        "collector": "japan_loto6",
+        "data_file": "data/japan_loto6/draws.json"
+    }
+}
