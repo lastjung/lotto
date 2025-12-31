@@ -2,7 +2,7 @@
 Collectors package for lottery data collection.
 """
 
-from .base import BaseCollector
+from .base import BaseLotteryCollector
 from .korea_645 import Korea645Collector
 from .usa_powerball import USAPowerballCollector
 from .usa_megamillions import USAMegaMillionsCollector
@@ -19,7 +19,7 @@ COLLECTORS = {
 }
 
 
-def get_collector(lottery_id: str, config: dict) -> BaseCollector:
+def get_collector(lottery_id: str, config: dict) -> BaseLotteryCollector:
     """로또 ID로 적절한 수집기를 반환합니다."""
     collector_class = COLLECTORS.get(lottery_id)
     if collector_class is None:

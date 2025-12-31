@@ -9,10 +9,9 @@
 import requests
 import time
 from datetime import datetime
-from .base import BaseCollector
+from .base import BaseLotteryCollector
 
-
-class USAPowerballCollector(BaseCollector):
+class USAPowerballCollector(BaseLotteryCollector):
     """
     미국 파워볼 수집기 (NY Data.gov JSON Source)
     

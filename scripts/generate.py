@@ -42,7 +42,7 @@ def main():
         return
     
     if args.model == "transformer":
-        from lotto_models.transformer.generate import main as transformer_main
+        from models_ai.src.transformer.generate import main as transformer_main
         transformer_main()
     elif args.model == "lstm":
         print("❌ LSTM 모델은 아직 구현되지 않았습니다.")

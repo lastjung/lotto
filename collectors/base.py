@@ -9,7 +9,16 @@ from datetime import datetime
 import json
 
 
-class BaseCollector(ABC):
+from dataclasses import dataclass
+
+@dataclass
+class Draw:
+    draw_no: int
+    draw_date: str
+    numbers: list[int]
+    bonus: int | None = None
+
+class BaseLotteryCollector(ABC):
     """복권 데이터 수집기 기본 클래스"""
     
     def __init__(self, lottery_id: str, config: dict):
@@ -42,10 +51,23 @@ class BaseCollector(ABC):
         data["updated_at"] = datetime.now().isoformat()
         data["lottery_id"] = self.lottery_id
         data["lottery_name"] = self.name
+        
+        # Draw 객체가 있으면 dict로 변환
+        draws = data.get("draws", [])
+        if draws and hasattr(draws[0], "__dict__"):
+            from dataclasses import asdict
+            data["draws"] = [asdict(d) for d in draws]
+            
         data["total_draws"] = len(data.get("draws", []))
         
         with open(self.data_file, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+
+    def save_draws(self, draws: list):
+        """회차 목록만 받아서 저장합니다."""
+        data = self.load_existing_data()
+        data["draws"] = draws
+        self.save_data(data)
     
     def get_last_saved_draw_no(self) -> int:
         """마지막으로 저장된 회차 번호를 반환합니다."""

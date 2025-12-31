@@ -21,6 +21,17 @@ class CanadaLottoCollector(BaseLotteryCollector):
     # SQLite 데이터베이스 경로
     DB_PATH = Path(__file__).parent.parent / "data" / "canada_649" / "db.sqlite3"
     
+    def get_latest_draw_no(self) -> int:
+        """최신 회차 번호 조회"""
+        if not self.DB_PATH.exists():
+            return 0
+        conn = sqlite3.connect(self.DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM draw')
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
     def fetch_draw(self, draw_no: int) -> Draw | None:
         """특정 회차 데이터 조회 (SQLite에서)"""
         if not self.DB_PATH.exists():

@@ -53871,10 +53871,114 @@
         47
       ],
       "bonus": 49
+    },
+    {
+      "draw_no": 4403,
+      "draw_date": "2025-12-03",
+      "numbers": [
+        7,
+        10,
+        16,
+        29,
+        39,
+        44
+      ],
+      "bonus": 40
+    },
+    {
+      "draw_no": 4404,
+      "draw_date": "2025-12-06",
+      "numbers": [
+        1,
+        23,
+        25,
+        30,
+        43,
+        45
+      ],
+      "bonus": 46
+    },
+    {
+      "draw_no": 4405,
+      "draw_date": "2025-12-10",
+      "numbers": [
+        8,
+        14,
+        21,
+        25,
+        43,
+        49
+      ],
+      "bonus": 4
+    },
+    {
+      "draw_no": 4406,
+      "draw_date": "2025-12-13",
+      "numbers": [
+        2,
+        8,
+        23,
+        28,
+        29,
+        36
+      ],
+      "bonus": 13
+    },
+    {
+      "draw_no": 4407,
+      "draw_date": "2025-12-17",
+      "numbers": [
+        2,
+        19,
+        20,
+        22,
+        42,
+        47
+      ],
+      "bonus": 35
+    },
+    {
+      "draw_no": 4408,
+      "draw_date": "2025-12-20",
+      "numbers": [
+        1,
+        5,
+        20,
+        29,
+        36,
+        47
+      ],
+      "bonus": 5
+    },
+    {
+      "draw_no": 4409,
+      "draw_date": "2025-12-24",
+      "numbers": [
+        10,
+        23,
+        30,
+        42,
+        44,
+        46
+      ],
+      "bonus": 14
+    },
+    {
+      "draw_no": 4410,
+      "draw_date": "2025-12-27",
+      "numbers": [
+        26,
+        27,
+        30,
+        38,
+        47,
+        48
+      ],
+      "bonus": 43
     }
   ],
-  "updated_at": "2025-12-30T10:10:58.616511",
+  "updated_at": "2025-12-31T13:56:22.741381",
   "lottery_id": "canada_649",
-  "lottery_name": "Canada Lotto 6/49",
-  "total_draws": 4144
+  "lottery_name": "Lotto 6/49",
+  "total_draws": 4152
 }

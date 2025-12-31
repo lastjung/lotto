@@ -8,11 +8,11 @@ import torch
 from pathlib import Path
 import sys
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from lotto_models.transformer.lotto_transformer import create_model, LottoTransformer
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+from models_ai.src.transformer.lotto_transformer import create_model, LottoTransformer
 
 
-def load_model(model_path: str = "lotto_models/transformer/lotto_model.pt") -> LottoTransformer:
+def load_model(model_path: str = "models_ai/trained/transformer/lotto_model.pt") -> LottoTransformer:
     """저장된 모델 로드"""
     checkpoint = torch.load(model_path, map_location="cpu", weights_only=True)
     
@@ -80,7 +80,7 @@ def main():
     print("=" * 50)
     
     # 모델 로드
-    model_path = Path("lotto_models/transformer/lotto_model.pt")
+    model_path = Path("models_ai/trained/transformer/lotto_model.pt")
     if not model_path.exists():
         print("\n❌ 학습된 모델이 없습니다.")
         print("   먼저 실행: python scripts/train_model.py")

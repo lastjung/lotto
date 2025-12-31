@@ -4,59 +4,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎱 AI 로또 분석기</title>
+    <title>🎱 AI 로또 분석기 V2 - Deep Space</title>
+    <!-- Tailwind CSS with CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'void-navy': '#0f172a',
+                        'midnight-purple': '#2e1065',
+                        'neon-cyan': '#06b6d4',
+                        'vivid-pink': '#ec4899',
+                        'amber-gold': '#f59e0b',
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                        'glow-pink': '0 0 15px rgba(236, 72, 153, 0.5)',
+                        'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.5)',
+                    },
+                    fontFamily: {
+                        'sans': ['Pretendard', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
     <style>
-        .lotto-ball {
-            width: 48px;
-            height: 48px;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 20%, #2e1065 0%, #0f172a 70%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .heading-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .lotto-ball-v2 {
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
+            font-weight: 800;
+            font-size: 16px;
             color: white;
-            margin: 2px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+            box-shadow: inset -2px -2px 6px rgba(0, 0, 0, 0.4), inset 2px 2px 4px rgba(255, 255, 255, 0.3), 0 4px 8px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
+        /* 3D Orb Colors */
         .ball-1-10 {
-            background: linear-gradient(135deg, #fcd34d, #f59e0b);
+            background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b);
         }
 
         .ball-11-20 {
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb);
         }
 
         .ball-21-30 {
-            background: linear-gradient(135deg, #f87171, #ef4444);
+            background: radial-gradient(circle at 30% 30%, #f87171, #dc2626);
         }
 
         .ball-31-40 {
-            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            background: radial-gradient(circle at 30% 30%, gray, #4b5563);
         }
 
         .ball-41-45 {
-            background: linear-gradient(135deg, #34d399, #10b981);
+            background: radial-gradient(circle at 30% 30%, #34d399, #059669);
         }
 
-        .matched {
-            box-shadow: 0 0 0 4px #22c55e, 0 4px 6px rgba(0, 0, 0, 0.3);
+        .btn-glow-primary {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow-primary:hover {
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+            }
+        }
+
+        .pulsing-core {
+            animation: pulse-glow 3s infinite;
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
             100% {
                 transform: rotate(360deg);
             }
         }
 
-        .spinning {
-            animation: spin 0.5s linear infinite;
+        .pop-in {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
         @keyframes pop {
@@ -65,474 +169,661 @@
                 opacity: 0;
             }
 
-            50% {
-                transform: scale(1.2);
-            }
-
             100% {
                 transform: scale(1);
                 opacity: 1;
             }
         }
 
-        .pop-in {
-            animation: pop 0.3s ease-out forwards;
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen text-white">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2">🎱 AI 로또 분석기</h1>
-            <p class="text-gray-400">Transformer 모델 기반 번호 생성 (엔터테인먼트 목적)</p>
-        </header>
+<body class="min-h-screen text-gray-300 overflow-x-hidden bg-[#0f172a]">
+    <!-- Background Gradient -->
+    <div
+        class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0f172a] to-[#0f172a]">
+    </div>
 
-        <!-- Warning -->
-        <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-6 text-center text-sm">
-            ⚠️ <strong>면책:</strong> 이 도구는 학습/엔터테인먼트 목적입니다. 당첨을 보장하지 않습니다.
-        </div>
+    <!-- MAIN LAYOUT WRAPPER -->
+    <div class="flex h-screen overflow-hidden">
 
-        <!-- Tab Navigation -->
-        <nav class="flex gap-2 mb-6 bg-white/5 p-1 rounded-xl">
-            <button onclick="switchTab('generator')" id="tab-btn-generator"
-                class="tab-btn flex-1 py-2 px-4 rounded-lg font-bold transition-all text-white bg-purple-600 shadow-lg">
-                🔮 번호 생성
-            </button>
-            <button onclick="switchTab('history')" id="tab-btn-history"
-                class="tab-btn flex-1 py-2 px-4 rounded-lg font-bold transition-all text-gray-400 hover:text-white">
-                🕒 생성 이력
-            </button>
-            <button onclick="switchTab('draws')" id="tab-btn-draws"
-                class="tab-btn flex-1 py-2 px-4 rounded-lg font-bold transition-all text-gray-400 hover:text-white">
-                📊 당첨 데이터
-            </button>
-        </nav>
+        <!-- SIDEBAR (Desktop Only) -->
+        <aside class="hidden md:flex w-64 flex-col bg-[#1e293b]/50 backdrop-blur-xl border-r border-white/5">
+            <div class="p-6 pb-2 flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <span class="text-white text-lg">🧬</span>
+                </div>
+                <h1 class="font-bold text-xl text-white tracking-tight">LottoQuant<span class="text-blue-400">AI</span>
+                </h1>
+            </div>
 
-        <!-- Tab Panels -->
-        <div id="content-generator" class="tab-content">
-            <!-- Generator Section -->
-            <section class="bg-white/10 backdrop-blur rounded-xl p-6 mb-8">
-                <h2 class="text-2xl font-bold mb-4">🔮 번호 생성</h2>
-
-                <div class="flex flex-wrap gap-4 mb-6">
-                    <select id="lotterySelect" onchange="onLotteryChange()"
-                        class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 flex-1 min-w-[200px]">
-                        <option value="korea_645">🇰🇷 한국 로또 6/45</option>
-                        <option value="usa_powerball">🇺🇸 미국 파워볼 (Powerball)</option>
-                        <option value="usa_megamillions">🇺🇸 미국 메가밀리언즈</option>
-                        <option value="canada_649">🇨🇦 캐나다 로또 6/49</option>
-                        <option value="japan_loto6">🇯🇵 일본 로또 6</option>
+            <!-- LOTTERY SELECTOR (Desktop Sidebar) -->
+            <div class="px-4 mb-6 mt-4">
+                <div class="relative group">
+                    <select id="lotterySelectDesktop" onchange="onLotteryChange(this.value)"
+                        class="w-full bg-[#0f172a] border border-blue-500/30 text-white text-sm font-bold rounded-xl px-4 py-3 appearance-none cursor-pointer hover:border-blue-400 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <option value="korea_645">🇰🇷 Korea Lotto 6/45</option>
+                        <option value="usa_powerball">🇺🇸 USA Powerball</option>
+                        <option value="usa_megamillions">🇺🇸 USA Mega Millions</option>
+                        <option value="canada_649">🇨🇦 Canada 6/49</option>
                     </select>
-                    <div id="modelButtonContainer" class="flex-[2] flex gap-2 min-w-[300px]">
-                        <button type="button" onclick="selectModel('transformer')" id="btn-transformer"
-                            class="model-btn flex-1 py-2 px-4 rounded-lg border-2 border-purple-500 bg-purple-500/20 text-white font-bold transition-all">
-                            🧠 Transformer
-                        </button>
-                        <button type="button" onclick="selectModel('lstm')" id="btn-lstm"
-                            class="model-btn flex-1 py-2 px-4 rounded-lg border-2 border-gray-700 bg-gray-800 text-gray-400 font-bold transition-all">
-                            📈 LSTM
-                        </button>
-                        <input type="hidden" id="modelSelect" value="transformer">
+                    <span
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-blue-400 pointer-events-none">▼</span>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 py-2 space-y-2">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all hover:bg-blue-600/20">
+                    <span class="text-lg">📊</span>
+                    <span class="font-medium">Dashboard</span>
+                </button>
+                <button onclick="switchTab('history')" id="nav-history"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                    <span class="text-lg">📂</span>
+                    <span class="font-medium">History Data</span>
+                </button>
+                <button onclick="switchTab('settings')" id="nav-settings"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                    <span class="text-lg">⚙️</span>
+                    <span class="font-medium">System</span>
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-white/5">
+                <div class="bg-black/20 rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-xs font-bold text-green-400 uppercase">System Online</span>
                     </div>
-                    <div class="flex gap-2">
-                        <input type="number" id="countInput" value="5" min="1" max="100"
-                            class="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 w-24" placeholder="수">
-                        <button id="generateBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 
-                                    rounded-lg px-6 py-2 font-bold transition-all shadow-lg shadow-purple-500/20">
-                            생성하기
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Generation Progress -->
-                <div id="progressArea" class="hidden mb-6">
-                    <div class="flex items-center gap-3 text-gray-300">
-                        <div class="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full spinning">
-                        </div>
-                        <span id="progressText">모델 로딩 중...</span>
-                    </div>
-                </div>
-
-                <!-- Results -->
-                <div id="resultsArea" class="space-y-4"></div>
-            </section>
-        </div>
-
-        <div id="content-history" class="tab-content hidden">
-            <!-- History Section -->
-            <section class="bg-white/10 backdrop-blur rounded-xl p-6 mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold">📋 생성 이력</h2>
-                    <button onclick="loadHistory()" class="text-gray-400 hover:text-white flex items-center gap-2">
-                        <span>🔄</span> 새로고침
-                    </button>
-                </div>
-                <div id="historyArea" class="space-y-4">
-                    <p class="text-gray-400">아직 생성 이력이 없습니다.</p>
-                </div>
-            </section>
-
-            <!-- Comparison Section -->
-            <section id="comparisonSection" class="bg-white/10 backdrop-blur rounded-xl p-6 hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold">🎯 당첨 비교</h2>
-                    <button onclick="document.getElementById('comparisonSection').classList.add('hidden')"
-                        class="text-gray-400 font-bold">✕</button>
-                </div>
-                <div id="comparisonArea"></div>
-            </section>
-        </div>
-
-        <div id="content-draws" class="tab-content hidden">
-            <!-- Raw Draws Section -->
-            <section class="bg-white/10 backdrop-blur rounded-xl p-6 mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">📊 최신 당첨 번호</h2>
-                    <div class="flex gap-2">
-                        <select id="drawLotterySelect" onchange="loadDraws()"
-                            class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm">
-                            <option value="korea_645">🇰🇷 한국 6/45</option>
-                            <option value="usa_powerball">🇺🇸 미국 파워볼</option>
-                            <option value="usa_megamillions">🇺🇸 미국 메가밀리언즈</option>
-                            <option value="canada_649">🇨🇦 캐나다 로또 6/49</option>
-                            <option value="japan_loto6">🇯🇵 일본 로또 6</option>
-                        </select>
-                        <button onclick="loadDraws()" class="text-gray-400 hover:text-white">🔄</button>
+                    <div class="text-[10px] text-gray-500">
+                        Engine: <span class="text-gray-300">v2.1.0 (ONNX)</span><br>
+                        Agent: <span class="text-gray-300">Connected</span>
                     </div>
                 </div>
+            </div>
+        </aside>
 
-                <div class="overflow-x-auto rounded-lg">
-                    <table class="w-full text-left bg-black/20">
-                        <thead class="bg-black/40 text-gray-400 text-sm uppercase">
-                            <tr>
-                                <th class="p-4">회차 / 날짜</th>
-                                <th class="p-4 text-center">당첨 번호</th>
-                                <th class="p-4 text-center">보너스 / PB</th>
-                                <th class="p-4 text-right">1등 상금</th>
-                                <th class="p-4 text-right">당첨 인원</th>
-                            </tr>
-                        </thead>
-                        <tbody id="drawsTableBody" class="divide-y divide-white/5">
-                            <!-- Data will be loaded here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="drawsLoader" class="py-10 text-center hidden">
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+            <!-- TOP HEADER (Mobile Only) -->
+            <header
+                class="md:hidden h-16 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-md flex items-center justify-between px-4 z-20">
+                <!-- Mobile Logo -->
+                <div class="flex items-center gap-2">
                     <div
-                        class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full spinning">
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <span class="text-white">🧬</span>
                     </div>
                 </div>
-            </section>
+
+                <!-- LOTTERY SELECTOR (Mobile) -->
+                <div class="flex-1 flex justify-center px-4">
+                    <div class="relative w-full max-w-[200px]">
+                        <select id="lotterySelectMobile" onchange="onLotteryChange(this.value)"
+                            class="w-full bg-[#1e293b] border border-blue-500/30 text-white text-sm font-bold rounded-xl px-4 py-2 appearance-none cursor-pointer focus:outline-none">
+                            <option value="korea_645">🇰🇷 Korea Lotto</option>
+                            <option value="usa_powerball">🇺🇸 Powerball</option>
+                            <option value="usa_megamillions">🇺🇸 Mega Millions</option>
+                            <option value="canada_649">🇨🇦 Canada 649</option>
+                        </select>
+                        <span
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-400 pointer-events-none">▼</span>
+                    </div>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-3">
+                    <button class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">🔔</button>
+                </div>
+            </header>
+
+            <!-- SCROLLABLE CONTENT -->
+            <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24 md:pb-8 scroll-smooth"
+                id="main-scroll">
+
+                <!-- DASHBOARD VIEW -->
+                <div id="view-dashboard" class="space-y-6 max-w-[1600px] mx-auto">
+
+                    <!-- TOP ROW: VISUALIZATIONS -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Chart 1: Hot Numbers (Bar Chart Style) -->
+                        <div
+                            class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden group">
+                            <div class="flex justify-between items-start z-10">
+                                <div>
+                                    <h3 class="font-bold text-white text-sm tracking-wider flex items-center gap-2">
+                                        <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+                                        HOT NUMBERS (LAST 50)
+                                    </h3>
+                                    <p class="text-[10px] text-gray-500 mt-1">Frequency distribution</p>
+                                </div>
+                                <span class="text-xs font-mono text-green-400 bg-green-900/20 px-2 py-1 rounded">Update:
+                                    Live</span>
+                            </div>
+                            <!-- Bar Chart Visualization -->
+                            <div id="hotNumbersChart" class="flex-1 flex items-end justify-between gap-1 mt-4 px-2">
+                                <!-- Bars injected by JS -->
+                                <div
+                                    class="w-full h-full flex items-center justify-center text-xs text-gray-600 animate-pulse">
+                                    Initializing Visualization...</div>
+                            </div>
+                            <!-- BG Decoration -->
+                            <div
+                                class="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none">
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Sum Distribution (Gaussian Curve) -->
+                        <div
+                            class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden">
+                            <div class="flex justify-between items-start z-10">
+                                <div>
+                                    <h3 class="font-bold text-white text-sm tracking-wider flex items-center gap-2">
+                                        <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
+                                        SUM DISTRIBUTION THEORY
+                                    </h3>
+                                    <p class="text-[10px] text-gray-500 mt-1">Gaussian Normal Distribution</p>
+                                </div>
+                            </div>
+
+                            <!-- Checkbox Filters (Overlay) -->
+                            <div class="absolute top-6 right-6 z-20 flex gap-2">
+                                <span
+                                    class="text-[10px] text-gray-400 bg-black/20 px-2 py-1 rounded border border-white/5">100-175
+                                    (Optimal)</span>
+                            </div>
+
+                            <!-- Curve Visualization (Canvas/SVG) -->
+                            <div class="flex-1 mt-4 relative w-full flex items-end">
+                                <!-- CSS-based Wave -->
+                                <div class="absolute inset-0 flex items-end opacity-50">
+                                    <div class="w-full h-32 bg-gradient-to-t from-purple-500/20 to-transparent"
+                                        style="clip-path: polygon(0% 100%, 10% 80%, 30% 60%, 50% 90%, 70% 40%, 90% 70%, 100% 100%);">
+                                    </div>
+                                </div>
+                                <svg class="w-full h-full" overflow="visible" preserveAspectRatio="none">
+                                    <path
+                                        d="M0,150 C50,140 100,100 150,110 S250,150 300,100 S400,0 600,80 L600,200 L0,200 Z"
+                                        fill="url(#grad1)" fill-opacity="0.3" stroke="none" />
+                                    <path d="M0,150 C50,140 100,100 150,110 S250,150 300,100 S400,0 600,80" fill="none"
+                                        stroke="#a855f7" stroke-width="2" />
+                                    <defs>
+                                        <linearGradient id="grad1" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#1e1b4b;stop-opacity:0" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                        <!-- LEFT COL: CONFIGURATION (Span 4) -->
+                        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+
+                            <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
+                            <div class="mb-8">
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                                    <span class="text-pink-400 text-2xl">🧠</span>
+                                    AI Analysis Engine
+                                </h3>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <!-- Card 1: Transformer -->
+                                    <button onclick="selectModel('transformer'); playRipple(event)"
+                                        id="card-transformer-v3"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-blue-500/30 hover:border-blue-500 hover:bg-blue-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2">
+                                            ⚖️</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">Transformer</div>
+                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Attention-based
+                                                Pattern Recognition</div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan">
+                                        </div>
+                                    </button>
+
+                                    <!-- Card 2: LSTM -->
+                                    <button onclick="selectModel('lstm'); playRipple(event)" id="card-lstm-v3"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2">
+                                            ⚡</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">LSTM</div>
+                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Sequential
+                                                Time-Series Analysis</div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple">
+                                        </div>
+                                    </button>
+
+                                    <!-- Card 3: Physics -->
+                                    <button onclick="selectModel('vector'); playRipple(event)" id="card-physics-v3"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-green-500/30 hover:border-green-500 hover:bg-green-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-green-500/20 text-green-400 flex items-center justify-center text-lg mb-2">
+                                            🎱</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">Physics</div>
+                                            <div class="text-[10px] text-gray-400 mt-1 leading-tight">Vector-based Bias
+                                                Detection</div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-green-500 rounded-full shadow-glow-green">
+                                        </div>
+                                    </button>
+
+                                    <!-- Slot 4: Empty Placeholder -->
+                                    <div
+                                        class="p-4 rounded-xl bg-white/5 border border-dashed border-white/10 flex flex-col items-center justify-center text-center opacity-30">
+                                        <div class="text-xl mb-1">⏳</div>
+                                        <div
+                                            class="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-tight">
+                                            Next Model<br>Coming Soon</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. EXISTING: Statistical Models -->
+                            <div class="mb-8">
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
+                                    <span class="text-blue-400 text-2xl">📊</span>
+                                    Statistical Models
+                                </h3>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <!-- Card 1: Balanced -->
+                                    <button onclick="selectModel('transformer'); playRipple(event)"
+                                        id="card-transformer-stat"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2">
+                                            ⚖️</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">Balanced Mix</div>
+                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Std. Deviation
+                                                Focus</div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan">
+                                        </div>
+                                    </button>
+
+                                    <!-- Card 2: Hot Trend -->
+                                    <button onclick="selectModel('lstm'); playRipple(event)" id="card-lstm-stat"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-purple-500 hover:bg-purple-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2">
+                                            ⚡</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">Hot Trend</div>
+                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Recent Frequency
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple">
+                                        </div>
+                                    </button>
+
+                                    <!-- Card 3: Cold Theory -->
+                                    <button onclick="selectModel('vector');" id="card-cold-stat"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg mb-2">
+                                            🧊</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">Cold Theory</div>
+                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Target Overdue
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-cyan-500 rounded-full shadow-glow-cyan">
+                                        </div>
+                                    </button>
+
+                                    <!-- Card 4: Physics Bias -->
+                                    <button onclick="selectModel('vector');" id="card-physics-stat"
+                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
+                                        <div
+                                            class="w-8 h-8 rounded bg-green-500/20 text-green-400 flex items-center justify-center text-lg mb-2">
+                                            🎱</div>
+                                        <div>
+                                            <div class="font-bold text-white text-sm">Physics Bias</div>
+                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Mechanical
+                                                Imperfections</div>
+                                        </div>
+                                        <div
+                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-green-500 rounded-full shadow-glow-green">
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 3. Analysis Configuration -->
+                            <!-- 3. Analysis Configuration -->
+                            <div class="mb-8 glass-panel p-5 bg-[#1e293b]/40 border border-white/5 rounded-2xl">
+                                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Analysis
+                                    Settings</h3>
+
+                                <div class="space-y-4">
+                                    <!-- Generation Count Row -->
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium text-gray-200">Generation Count</span>
+                                            <span class="text-[10px] text-gray-500">Number of combinations to
+                                                generate</span>
+                                        </div>
+                                        <div class="flex items-center bg-black/40 rounded-lg p-1 border border-white/5">
+                                            <button onclick="adjustCount(-1)"
+                                                class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M20 12H4"></path>
+                                                </svg>
+                                            </button>
+                                            <input type="number" id="countInput" value="5" readonly
+                                                class="w-8 bg-transparent text-center text-sm font-bold text-white border-none focus:ring-0">
+                                            <button onclick="adjustCount(1)"
+                                                class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Start Button -->
+                            <button id="generateBtn"
+                                class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-3 active:scale-95">
+                                <span class="text-xl">▶</span>
+                                Start Multi-Layer Analysis
+                            </button>
+
+                            <!-- Frequency Map (Mini) -->
+                            <div class="glass-panel p-4 bg-[#1e293b]/30 border border-white/5 rounded-xl mt-4">
+                                <h4 class="text-xs font-bold text-gray-400 mb-3">FREQUENCY MAP</h4>
+                                <div id="frequencyBarChart" class="flex items-end gap-1 h-24 px-1">
+                                    <!-- Bars injected via JS -->
+                                    <div class="flex-1 bg-white/5 rounded-t h-[30%]"></div>
+                                    <div class="flex-1 bg-white/5 rounded-t h-[50%]"></div>
+                                    <div class="flex-1 bg-white/5 rounded-t h-[80%]"></div>
+                                    <div class="flex-1 bg-white/5 rounded-t h-[40%]"></div>
+                                    <div class="flex-1 bg-white/5 rounded-t h-[60%]"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT COL: RESULTS (Span 8) -->
+                        <div class="lg:col-span-7 xl:col-span-8">
+                            <div
+                                class="glass-panel h-full min-h-[600px] bg-[#0f172a] border border-white/5 rounded-3xl p-8 relative flex flex-col">
+                                <!-- Background Placeholder -->
+                                <div id="resultsPlaceholder"
+                                    class="absolute inset-0 flex flex-col items-center justify-center text-center opacity-40 pointer-events-none">
+                                    <div class="w-24 h-24 mb-6 text-gray-700">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-2xl font-bold text-gray-500 mb-2">Ready to Analyze</h3>
+                                    <p class="text-gray-600 max-w-xs">Select a strategy on the left and initialize
+                                        the
+                                        Multi-AI Pipeline.</p>
+                                </div>
+
+                                <!-- Results Content -->
+                                <div id="resultsArea" class="relative z-10 space-y-4"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- HISTORY VIEW (Hidden by default) -->
+                <div id="view-history" class="hidden max-w-7xl mx-auto p-4 md:p-8">
+                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <span>📂</span> Generated History
+                    </h2>
+                    <div id="historyArea" class="space-y-4"></div>
+                </div>
+
+                <!-- SYSTEM SETTINGS VIEW (Hidden by default) -->
+                <div id="view-settings" class="hidden max-w-4xl mx-auto p-4 md:p-8">
+                    <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                        <span>⚙️</span> System Configuration
+                    </h2>
+                    <p class="text-gray-500 mb-8 text-sm">Fine-tune the AI Analysis Engine and Theory Modules</p>
+
+                    <div class="glass-panel p-8 bg-[#1e293b]/40 border border-white/10 rounded-3xl space-y-8">
+                        <div>
+                            <h3 class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-6">Theoretical
+                                Analysis Filters</h3>
+
+                            <div class="space-y-6">
+                                <!-- AC Filter Row -->
+                                <div
+                                    class="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-all">
+                                    <div class="flex flex-col">
+                                        <span class="text-base font-semibold text-gray-200">AC Theory Filter</span>
+                                        <span class="text-xs text-gray-500 max-w-md">Enforce pattern complexity (AC ≥
+                                            7). High AC values indicate more random-like numerical distributions.</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="acFilter" class="sr-only peer" checked>
+                                        <div
+                                            class="w-12 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ring-4 ring-transparent peer-checked:ring-blue-500/20">
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="h-px bg-white/5 w-full"></div>
+
+                                <!-- Sum Filter Row -->
+                                <div
+                                    class="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-all">
+                                    <div class="flex flex-col">
+                                        <span class="text-base font-semibold text-gray-200">Sum Range Filter</span>
+                                        <span class="text-xs text-gray-500 max-w-md">Target statistical balance (100 ~
+                                            175). Most winning combinations fall within this Gaussian normal
+                                            range.</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="sumFilter" class="sr-only peer">
+                                        <div
+                                            class="w-12 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 ring-4 ring-transparent peer-checked:ring-purple-500/20">
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div class="h-px bg-white/5 w-full"></div>
+
+                                <!-- Consecutive Filter Row -->
+                                <div
+                                    class="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-all">
+                                    <div class="flex flex-col">
+                                        <span class="text-base font-semibold text-gray-200">Consecutive
+                                            Restriction</span>
+                                        <span class="text-xs text-gray-500 max-w-md">Exclude 3+ consecutive numbers.
+                                            Statistical probability of 3+ sequential numbers is extremely low.</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="consecutiveFilter" class="sr-only peer">
+                                        <div
+                                            class="w-12 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600 ring-4 ring-transparent peer-checked:ring-cyan-500/20">
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/5">
+                            <p class="text-[10px] text-gray-600 leading-relaxed italic">
+                                * These settings influence the AI Post-Processing layer. Combinations that do not meet
+                                these criteria will be automatically discarded before display.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
         </div>
     </div>
 
+    <!-- MOBILE BOTTOM NAVIGATION (Fixed) -->
+    <nav
+        class="md:hidden fixed bottom-0 left-0 w-full bg-[#1e293b]/90 backdrop-blur-xl border-t border-white/10 flex justify-around p-3 z-50 safe-area-bottom">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center gap-1 text-blue-400">
+            <span class="text-xl">📊</span>
+            <span class="text-[10px] font-medium">Dash</span>
+        </button>
+        <button onclick="switchTab('history')" class="flex flex-col items-center gap-1 text-gray-500">
+            <span class="text-xl">🛑</span>
+            <span class="text-[10px] font-medium">History</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-gray-500">
+            <span class="text-xl">👤</span>
+            <span class="text-[10px] font-medium">My</span>
+        </button>
+    </nav>
+
+    <!-- Scripts (Using extracted UI logic + App Logic) -->
+    <script src="js/app.js"></script>
+    <!-- Inline UI Controller for New Layout -->
     <script>
-        // 탭 전환 처리
+        // Tab Switcher for New Layout
         function switchTab(tabId) {
-            // 숨기기/보이기
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            // Hide all views
+            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
 
-            // 버튼 스타일
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-purple-600', 'shadow-lg', 'text-white');
-                btn.classList.add('text-gray-400');
+            // Show selected
+            const view = document.getElementById(`view-${tabId}`);
+            if (view) view.classList.remove('hidden');
+
+            // Update Desktop Nav
+            document.querySelectorAll('aside nav button').forEach(b => {
+                b.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all";
             });
-            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('text-gray-400');
-            activeBtn.classList.add('bg-purple-600', 'shadow-lg', 'text-white');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all";
 
-            // 탭별 로딩
-            if (tabId === 'history') loadHistory();
-            if (tabId === 'draws') loadDraws();
+            // Trigger Loaders
+            if (tabId === 'history' && typeof loadHistory === 'function') loadHistory();
         }
 
-        // 복권 선택 변경 핸들러
-        function onLotteryChange() {
-            loadHistory();
-            // 동기화를 위해 데이터 탭의 선택도 변경
-            document.getElementById('drawLotterySelect').value = document.getElementById('lotterySelect').value;
-        }
+        // Model Selection UI Handler
+        const originalSelectModelUI = window.selectModel;
+        window.selectModel = async function (model) {
+            // Visual Update for Cards
+            document.querySelectorAll('.model-card').forEach(el => {
+                el.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/20');
+                el.classList.add('border-white/5');
+            });
 
-        // 모델 선택 처리
-        function selectModel(type) {
-            document.getElementById('modelSelect').value = type;
-
-            const transBtn = document.getElementById('btn-transformer');
-            const lstmBtn = document.getElementById('btn-lstm');
-
-            if (type === 'transformer') {
-                transBtn.classList.add('border-purple-500', 'bg-purple-500/20', 'text-white');
-                transBtn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
-
-                lstmBtn.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
-                lstmBtn.classList.remove('border-blue-500', 'bg-blue-500/20', 'text-white');
-            } else {
-                lstmBtn.classList.add('border-blue-500', 'bg-blue-500/20', 'text-white');
-                lstmBtn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
-
-                transBtn.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
-                transBtn.classList.remove('border-purple-500', 'bg-purple-500/20', 'text-white');
+            const targetCard = document.getElementById(`card-${model}`);
+            if (targetCard) {
+                targetCard.classList.remove('border-white/5');
+                targetCard.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/20');
             }
+
+            // Call logic
+            if (typeof appSelectModel === 'function') await appSelectModel(model);
+            else if (typeof originalSelectModelUI === 'function') await originalSelectModelUI(model);
         }
 
-        const API_BASE = '';
-
-        // 공 색상 클래스 결정
-        function getBallClass(num) {
-            if (num <= 10) return 'ball-1-10';
-            if (num <= 20) return 'ball-11-20';
-            if (num <= 30) return 'ball-21-30';
-            if (num <= 40) return 'ball-31-40';
-            return 'ball-41-45';
-        }
-
-        // 로또 공 HTML 생성
-        function renderBalls(numbers, matched = []) {
-            return numbers.map((n, i) => {
-                const isMatched = matched.includes(n);
-                return `<span class="lotto-ball ${getBallClass(n)} ${isMatched ? 'matched' : ''} pop-in" 
-                              style="animation-delay: ${i * 0.1}s">${n}</span>`;
-            }).join('');
-        }
-
-        // 번호 생성
-        async function generateNumbers() {
-            const btn = document.getElementById('generateBtn');
-            const progress = document.getElementById('progressArea');
-            const progressText = document.getElementById('progressText');
-            const results = document.getElementById('resultsArea');
-
-            btn.disabled = true;
-            progress.classList.remove('hidden');
-            results.innerHTML = '';
-
-            try {
-                progressText.textContent = '🤖 AI 모델 분석 중...';
-
-                const res = await fetch(`${API_BASE}/api/generate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        lottery_id: document.getElementById('lotterySelect').value,
-                        count: parseInt(document.getElementById('countInput').value),
-                        model_type: document.getElementById('modelSelect').value
-                    })
-                });
-
-                if (!res.ok) throw new Error('생성 실패');
-
-                const data = await res.json();
-                progressText.textContent = '✨ 번호 생성 완료!';
-
-                // 결과 표시
-                setTimeout(() => {
-                    const lotteryNames = {
-                        'korea_645': '🇰🇷 한국 6/45',
-                        'usa_powerball': '🇺🇸 파워볼',
-                        'usa_megamillions': '🇺🇸 메가밀리언즈',
-                        'canada_649': '🇨🇦 캐나다 6/49',
-                        'japan_loto6': '🇯🇵 일본 ロト6'
-                    };
-                    const lotteryName = lotteryNames[data.lottery_id] || data.lottery_id;
-
-                    results.innerHTML = `
-                        <div class="text-sm text-gray-400 mb-2">
-                            ${lotteryName} | 📅 ${new Date(data.generated_at).toLocaleString('ko-KR')} | 
-                            🎯 ${data.target_draw}회차 대상
-                        </div>
-                        ${data.numbers.map((item, i) => `
-                            <div class="bg-black/30 rounded-lg p-4">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-gray-400">#${i + 1}</span>
-                                    ${renderBalls(item.numbers)}
-                                </div>
-                                <div class="text-sm text-gray-400">
-                                    합계: ${item.analysis.sum} | 
-                                    홀짝: ${item.analysis.odd_count}:${item.analysis.even_count} | 
-                                    고저: ${item.analysis.high_count}:${item.analysis.low_count}
-                                </div>
-                            </div>
-                        `).join('')}
-                    `;
-                    progress.classList.add('hidden');
-                    loadHistory();
-                }, 500);
-
-            } catch (err) {
-                progressText.textContent = '❌ 오류: ' + err.message;
-            } finally {
-                btn.disabled = false;
+        // Ripple Effect
+        function playRipple(event) {
+            const button = event.currentTarget;
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+            circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+            circle.classList.add("ripple");
+            const ripple = button.getElementsByClassName("ripple")[0];
+            if (ripple) {
+                ripple.remove();
             }
+            button.appendChild(circle);
         }
 
-        // 이력 로드
-        async function loadHistory() {
-            const lotteryId = document.getElementById('lotterySelect').value;
-            try {
-                const res = await fetch(`${API_BASE}/api/history?lottery_id=${lotteryId}&limit=10`);
-                const history = await res.json();
-
-                const area = document.getElementById('historyArea');
-
-                if (history.length === 0) {
-                    area.innerHTML = '<p class="text-gray-400">아직 생성 이력이 없습니다.</p>';
-                    return;
-                }
-
-                const lotteryNames = {
-                    'korea_645': '🇰🇷 한국 6/45',
-                    'usa_powerball': '🇺🇸 파워볼',
-                    'usa_megamillions': '🇺🇸 메가밀리언즈',
-                    'canada_649': '🇨🇦 캐나다 6/49',
-                    'japan_loto6': '🇯🇵 일본 ロト6'
-                };
-
-                area.innerHTML = history.map(h => `
-                    <div class="bg-black/30 rounded-lg p-4">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-sm text-gray-400">
-                                    #${h.id} | ${lotteryNames[h.lottery_id] || h.lottery_id} | ${new Date(h.generated_at).toLocaleString('ko-KR')} | 
-                                    ${h.target_draw}회차 | 
-                                    <span class="px-2 py-0.5 rounded text-xs ${h.model === 'transformer' ? 'bg-purple-900/50 text-purple-300' : 'bg-blue-900/50 text-blue-300'}">
-                                        ${h.model.toUpperCase()}
-                                    </span>
-                                </span>
-                            </div>
-                            <button onclick="compareHistory('${h.lottery_id}', ${h.id})" 
-                                    class="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded">
-                                비교하기
-                            </button>
-                        </div>
-                        <div class="text-sm">
-                            ${h.numbers.slice(0, 3).map(n =>
-                    `<div class="mb-1">${renderBalls(n.numbers)}</div>`
-                ).join('')}
-                            ${h.numbers.length > 3 ? `<div class="text-gray-500">... 외 ${h.numbers.length - 3}개</div>` : ''}
-                        </div>
-                    </div>
-                `).join('');
-
-            } catch (err) {
-                console.error('이력 로드 실패:', err);
+        // Confidence Bar Animation Hook
+        setInterval(() => {
+            const valSpan = document.getElementById('confidenceValueDisplay');
+            if (valSpan && valSpan.innerText !== '--') {
+                const val = parseInt(valSpan.innerText);
+                const bar = document.getElementById('confidenceBar');
+                if (bar) bar.style.width = val + '%';
             }
-        }
-
-        // 당첨 비교
-        async function compareHistory(lotteryId, historyId) {
-            const section = document.getElementById('comparisonSection');
-            const area = document.getElementById('comparisonArea');
-
-            section.classList.remove('hidden');
-            area.innerHTML = '<p class="text-gray-400">비교 중...</p>';
-
-            try {
-                const res = await fetch(`${API_BASE}/api/compare/${lotteryId}/${historyId}`);
-                const data = await res.json();
-
-                if (data.status === 'pending') {
-                    area.innerHTML = `
-                        <div class="bg-yellow-500/20 rounded-lg p-4">
-                            ⏳ ${data.message}
-                        </div>
-                    `;
-                    return;
-                }
-
-                area.innerHTML = `
-                    <div class="mb-4">
-                        <div class="text-sm text-gray-400 mb-2">${data.target_draw}회차 (${data.draw_date})</div>
-                        <div class="text-lg font-bold mb-2">당첨 번호:</div>
-                        <div>${renderBalls(data.winning_numbers)} + <span class="lotto-ball ${getBallClass(data.bonus)}">${data.bonus}</span></div>
-                    </div>
-                    <div class="text-lg font-bold mb-2">비교 결과 (최고 일치: ${data.best_match}개):</div>
-                    ${data.comparisons.map((c, i) => `
-                        <div class="bg-black/30 rounded-lg p-3 mb-2">
-                            <div class="flex justify-between items-center">
-                                <div>${renderBalls(c.generated, c.matched_numbers)}</div>
-                                <div class="text-lg font-bold ${c.matched_count >= 3 ? 'text-green-400' : 'text-gray-400'}">
-                                    ${c.matched_count}개 일치
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                `;
-
-            } catch (err) {
-                area.innerHTML = `<p class="text-red-400">오류: ${err.message}</p>`;
-            }
-        }
-
-        // 당첨 데이터 로드
-        async function loadDraws() {
-            const lotteryId = document.getElementById('drawLotterySelect').value;
-            const loader = document.getElementById('drawsLoader');
-            const tbody = document.getElementById('drawsTableBody');
-
-            loader.classList.remove('hidden');
-            tbody.classList.add('opacity-30');
-
-            try {
-                const res = await fetch(`${API_BASE}/api/draws/${lotteryId}?limit=50`);
-                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-
-                const draws = await res.json();
-
-                if (!Array.isArray(draws)) {
-                    throw new Error('데이터 형식이 올바르지 않습니다.');
-                }
-
-                tbody.innerHTML = draws.map(d => {
-                    const isPowerball = lotteryId === 'usa_powerball';
-
-                    // 상금 및 당첨자 포맷팅 (0은 0으로, 없으면 N/A)
-                    const formatValue = (val, unit) => {
-                        if (val === undefined || val === null) return 'N/A';
-                        if (typeof val === 'number') return val.toLocaleString() + unit;
-                        return val;
-                    };
-
-                    const prize = formatValue(d.first_prize_amount, '원');
-                    const winners = formatValue(d.first_prize_winners, '명');
-
-                    return `
-                        <tr>
-                            <td class="p-4">
-                                <div class="font-bold">${d.draw_no}회</div>
-                                <div class="text-xs text-gray-500">${d.draw_date}</div>
-                            </td>
-                            <td class="p-4 text-center">
-                                <div class="flex justify-center gap-1">
-                                    ${d.numbers.map(n => `<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${getBallClass(n)}">${n}</span>`).join('')}
-                                </div>
-                            </td>
-                            <td class="p-4 text-center">
-                                <span class="w-7 h-7 rounded-full inline-flex items-center justify-center text-xs font-bold ${isPowerball ? 'bg-red-600' : getBallClass(d.bonus)}">${d.bonus}</span>
-                            </td>
-                            <td class="p-4 text-right font-medium text-yellow-500">${prize}</td>
-                            <td class="p-4 text-right text-gray-400">${winners}</td>
-                        </tr>
-                    `;
-                }).join('');
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-red-400">로드 실패: ${err.message}</td></tr>`;
-            } finally {
-                loader.classList.add('hidden');
-                tbody.classList.remove('opacity-30');
-            }
-        }
-
-        // 이벤트 바인딩
-        document.getElementById('generateBtn').addEventListener('click', generateNumbers);
-
-        // 초기 로드
-        loadHistory();
-        // 탭 초기화는 generator 기본 (이미 HTML에 정의됨)
+        }, 1000);
 
     </script>
+    <style>
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Scrollbar Hide */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+    </style>
+</body>
+
+
 </body>
 
 </html>

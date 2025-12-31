@@ -1,5 +1,5 @@
 """
-로또 LSTM 모델 학습 스크립트
+로또 모델 학습 스크립트
 """
 
 import json
@@ -10,11 +10,10 @@ from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 import numpy as np
 from tqdm import tqdm
-import sys
 
-# 프로젝트 루트 추가
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from lotto_models.lstm.lotto_lstm import create_model
+import sys
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+from models_ai.src.transformer.lotto_transformer import create_model
 
 
 class LottoDataset(Dataset):
@@ -40,9 +39,9 @@ class LottoDataset(Dataset):
     def __getitem__(self, idx):
         input_seq, target = self.sequences[idx]
         
-        # 번호 그대로 유지 (Model 내부에서 Embedding 처리)
-        input_tensor = torch.tensor(input_seq, dtype=torch.long)
-        target_tensor = torch.tensor(target, dtype=torch.long) - 1  # 0-indexed for CrossEntropy
+        # 번호 -> 인덱스 (1~45 -> 0~44)
+        input_tensor = torch.tensor(input_seq, dtype=torch.long) - 1
+        target_tensor = torch.tensor(target, dtype=torch.long) - 1
         
         return input_tensor, target_tensor
 
@@ -61,7 +60,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
         # Forward
         outputs = model(inputs)  # (batch, 6, 45)
         
-        # Loss 계산
+        # Loss 계산 (각 위치별 CrossEntropy)
         loss = 0
         for i in range(6):
             loss += criterion(outputs[:, i, :], targets[:, i])
@@ -77,7 +76,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
 
 
 def evaluate(model, dataloader, device):
-    """평가"""
+    """평가: 정확도 계산"""
     model.eval()
     correct_per_position = [0] * 6
     total = 0
@@ -88,7 +87,7 @@ def evaluate(model, dataloader, device):
             targets = targets.to(device)
             
             outputs = model(inputs)
-            predictions = outputs.argmax(dim=-1)
+            predictions = outputs.argmax(dim=-1)  # (batch, 6)
             
             for i in range(6):
                 correct_per_position[i] += (predictions[:, i] == targets[:, i]).sum().item()
@@ -100,7 +99,7 @@ def evaluate(model, dataloader, device):
 
 def train(
     data_path: str = "data/korea_645/draws.json",
-    model_save_path: str = "lotto_models/lstm/lotto_model.pt",
+    model_save_path: str = "models_ai/trained/transformer/lotto_model.pt",
     seq_length: int = 10,
     batch_size: int = 32,
     epochs: int = 50,
@@ -118,7 +117,7 @@ def train(
     print("데이터 로드 중...")
     dataset = LottoDataset(data_path, seq_length)
     
-    # Train/Val 분리
+    # Train/Val 분리 (80/20)
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
@@ -129,15 +128,7 @@ def train(
     print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}")
     
     # 모델 생성
-    model_config = {
-        "num_numbers": 45,
-        "seq_length": seq_length,
-        "embedding_dim": 64,
-        "hidden_dim": 128,
-        "num_layers": 2,
-        "dropout": 0.2
-    }
-    model = create_model(model_config).to(device)
+    model = create_model({"seq_length": seq_length}).to(device)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"모델 파라미터: {total_params:,}")
     
@@ -157,15 +148,17 @@ def train(
         
         scheduler.step()
         
-        print(f"Epoch {epoch+1}/{epochs} | Loss: {train_loss:.4f} | Avg Val Acc: {avg_acc:.2%}")
+        print(f"Epoch {epoch+1}/{epochs} | Loss: {train_loss:.4f} | Val Acc: {avg_acc:.2%}")
         
         # 최고 모델 저장
         if train_loss < best_loss:
             best_loss = train_loss
-            Path(model_save_path).parent.mkdir(parents=True, exist_ok=True)
             torch.save({
                 "model_state_dict": model.state_dict(),
-                "config": model_config,
+                "config": {
+                    "seq_length": seq_length,
+                    "num_numbers": 45
+                },
                 "epoch": epoch,
                 "loss": train_loss
             }, model_save_path)

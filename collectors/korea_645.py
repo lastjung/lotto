@@ -6,10 +6,9 @@
 
 import requests
 from datetime import datetime
-from .base import BaseCollector
+from .base import BaseLotteryCollector
 
-
-class Korea645Collector(BaseCollector):
+class Korea645Collector(BaseLotteryCollector):
     """한국 로또 6/45 수집기"""
     
     API_URL = "https://www.dhlottery.co.kr/common.do"

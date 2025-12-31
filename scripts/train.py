@@ -72,10 +72,10 @@ def main():
             continue
         
         # 모델 저장 경로 (trained 폴더)
-        model_save_path = PROJECT_ROOT / "lotto_models" / "trained" / args.model / f"{lottery_id}.pt"
+        model_save_path = PROJECT_ROOT / "models_ai" / "trained" / args.model / f"{lottery_id}.pt"
         
         if args.model == "transformer":
-            from lotto_models.src.transformer.train import train as transformer_train
+            from models_ai.src.transformer.train import train as transformer_train
             transformer_train(
                 data_path=str(data_path),
                 model_save_path=str(model_save_path),
@@ -84,7 +84,7 @@ def main():
                 lr=args.lr
             )
         elif args.model == "lstm":
-            from lotto_models.src.lstm.train import train as lstm_train
+            from models_ai.src.lstm.train import train as lstm_train
             lstm_train(
                 data_path=str(data_path),
                 model_save_path=str(model_save_path),

@@ -18,8 +18,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # 모델 관련 임포트
-from lotto_models.src.transformer.lotto_transformer import create_model as create_transformer
-from lotto_models.src.lstm.lotto_lstm import create_model as create_lstm
+from models_ai.src.transformer.lotto_transformer import create_model as create_transformer
+from models_ai.src.lstm.lotto_lstm import create_model as create_lstm
+from models_ai.src.vector.lotto_vector import LottoVectorModel
+from models_stat.ac_analysis import calculate_ac, is_valid_ac, get_ac_rating
+from models_stat.sum_analysis import is_valid_sum
+from models_stat.consecutive_analysis import has_consecutive
 import torch
 
 app = FastAPI(title="로또 AI 분석 API", version="1.0")
@@ -44,14 +48,22 @@ def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
     cache_key = f"{model_type}_{lottery_id}"
     
     if cache_key not in MODELS:
+        # Vector 모델은 실시간 학습 (학습 파일 불필요)
+        if model_type == "vector":
+            draws = load_draws(lottery_id)
+            model = LottoVectorModel(n_clusters=5, n_neighbors=10)
+            model.fit([d["numbers"] for d in draws])  # dict에서 numbers 추출
+            MODELS[cache_key] = model
+            return MODELS[cache_key]
+        
         folder = "transformer" if model_type == "transformer" else "lstm"
         
         # 1. 로또별 모델 파일 찾기 (우선)
-        model_path = PROJECT_ROOT / "lotto_models" / "trained" / folder / f"{lottery_id}.pt"
+        model_path = PROJECT_ROOT / "models_ai" / "trained" / folder / f"{lottery_id}.pt"
         
         # 2. 없으면 레거시 모델 파일 사용 (lotto_model.pt)
         if not model_path.exists():
-            legacy_path = PROJECT_ROOT / "lotto_models" / "trained" / folder / "lotto_model.pt"
+            legacy_path = PROJECT_ROOT / "models_ai" / "trained" / folder / "lotto_model.pt"
             if legacy_path.exists():
                 model_path = legacy_path
                 print(f"⚠️ {lottery_id}용 모델 없음, 레거시 모델 사용: {legacy_path.name}")
@@ -115,6 +127,8 @@ def analyze_numbers(numbers: list) -> dict:
     }
 
 
+
+
 def compare_numbers(generated: list, winning: list) -> dict:
     """생성 번호와 당첨 번호 비교"""
     generated_set = set(generated)
@@ -132,7 +146,11 @@ class GenerateRequest(BaseModel):
     lottery_id: str = "korea_645"
     count: int = 5
     temperature: float = 1.0
-    model_type: str = "transformer"  # transformer or lstm
+    model_type: str = "transformer"  # transformer, lstm, vector
+    # 필터 옵션
+    ac_filter: bool = True          # AC >= 7 필터 (기본 활성화)
+    sum_filter: bool = False        # 합계 100~175 필터
+    consecutive_filter: bool = False # 연속번호 3개 이상 제외
 
 
 class GenerateResponse(BaseModel):
@@ -173,33 +191,75 @@ async def generate_numbers(req: GenerateRequest):
     if len(draws) < 10:
         raise HTTPException(status_code=400, detail="데이터 부족 (최소 10회차 필요)")
     
-    # 최근 10회차 가져오기
-    recent = [d["numbers"] for d in draws[-10:]]
-    input_tensor = torch.tensor([recent], dtype=torch.long)
-    
-    # 번호 생성 (요청 수보다 더 많이 시도, 점점 더 다양하게)
     generated = []
-    seen = set()
-    max_attempts = req.count * 20  # 충분히 많이 시도
     
-    for attempt in range(max_attempts):
-        if len(generated) >= req.count:
-            break
-        
-        # 시도할수록 temperature 증가 (더 다양하게)
-        temp = req.temperature + (attempt * 0.1)
-        prediction = model.predict(input_tensor, temperature=temp, top_k=20)
-        numbers = sorted(prediction[0].tolist())
-        numbers_tuple = tuple(numbers)
-        
-        # 중복 아니고 6개 모두 다른 번호면 추가
-        if len(set(numbers)) == 6 and numbers_tuple not in seen:
-            seen.add(numbers_tuple)
+    # Vector 모델은 별도 처리 (generate() 메서드 사용)
+    if req.model_type == "vector":
+        # Vector가 더 많이 생성하도록 요청 (필터로 걸러질 수 있으므로)
+        results = model.generate(count=req.count * 3, temperature=req.temperature)
+        for r in results:
+            if len(generated) >= req.count:
+                break
+            
+            numbers = r['numbers']
+            
+            # 합계 필터 (100~175)
+            if req.sum_filter and not is_valid_sum(numbers):
+                continue
+            
+            # 연속번호 필터 (3개 이상 연속 제외)
+            if req.consecutive_filter and has_consecutive(numbers):
+                continue
+            
             analysis = analyze_numbers(numbers)
+            analysis["ac_value"] = r['ac_value']
+            analysis["ac_rating"] = get_ac_rating(numbers)
+            analysis["similarity"] = r['similarity']
+            analysis["cluster"] = r['cluster']
             generated.append({
                 "numbers": numbers,
                 "analysis": analysis
             })
+    else:
+        # Transformer/LSTM: predict() 메서드 사용
+        recent = [d["numbers"] for d in draws[-10:]]
+        input_tensor = torch.tensor([recent], dtype=torch.long)
+        
+        seen = set()
+        max_attempts = req.count * 20
+        
+        for attempt in range(max_attempts):
+            if len(generated) >= req.count:
+                break
+            
+            temp = req.temperature + (attempt * 0.1)
+            prediction = model.predict(input_tensor, temperature=temp, top_k=20)
+            numbers = sorted(prediction[0].tolist())
+            numbers_tuple = tuple(numbers)
+            
+            if len(set(numbers)) == 6 and numbers_tuple not in seen:
+                ac_value = calculate_ac(numbers)
+                
+                # AC 필터
+                if req.ac_filter and len(numbers) == 6 and ac_value < 7:
+                    continue
+                
+                # 합계 필터 (100~175)
+                if req.sum_filter and not is_valid_sum(numbers):
+                    continue
+                
+                # 연속번호 필터 (3개 이상 연속 제외)
+                if req.consecutive_filter and has_consecutive(numbers):
+                    continue
+                
+                seen.add(numbers_tuple)
+                analysis = analyze_numbers(numbers)
+                analysis["ac_value"] = ac_value
+                analysis["ac_rating"] = get_ac_rating(numbers)
+                generated.append({
+                    "numbers": numbers,
+                    "analysis": analysis
+                })
     
     # 다음 회차 예측
     latest_draw = draws[-1]["draw_no"]
@@ -223,6 +283,7 @@ async def generate_numbers(req: GenerateRequest):
         "generated_at": record["generated_at"],
         "lottery_id": req.lottery_id,
         "target_draw": target_draw,
+        "model": req.model_type,
         "numbers": generated,
         "saved": True
     }
@@ -291,8 +352,14 @@ async def compare_with_result(lottery_id: str, history_id: int):
     }
 
 
-# Static files
-app.mount("/static", StaticFiles(directory=Path(__file__).parent.parent / "web"), name="static")
+# Static files & Data
+STATIC_DIR = PROJECT_ROOT / "web"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/data", StaticFiles(directory=DATA_DIR), name="data")
+
+@app.get("/")
+async def read_index():
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 if __name__ == "__main__":
