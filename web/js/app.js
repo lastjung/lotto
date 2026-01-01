@@ -76,16 +76,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 탭 전환
 function switchTab(tabId) {
+    // Hide all tab contents
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.getElementById(`content-${tabId}`).classList.remove('hidden');
+    const targetContent = document.getElementById(`content-${tabId}`);
+    if (targetContent) targetContent.classList.remove('hidden');
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('bg-purple-600', 'shadow-lg', 'text-white');
-        btn.classList.add('text-gray-400');
+    // Update nav button styles
+    ['dashboard', 'history', 'models', 'settings'].forEach(tab => {
+        const navBtn = document.getElementById(`nav-${tab}`);
+        if (!navBtn) return;
+
+        if (tab === tabId) {
+            navBtn.classList.remove('text-gray-400');
+            navBtn.classList.add('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
+        } else {
+            navBtn.classList.remove('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
+            navBtn.classList.add('text-gray-400');
+        }
     });
-    const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-    activeBtn.classList.remove('text-gray-400');
-    activeBtn.classList.add('bg-purple-600', 'shadow-lg', 'text-white');
 
     if (tabId === 'history') loadHistory();
 }
