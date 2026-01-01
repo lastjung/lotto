@@ -10995,5 +10995,330 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 107,
+    "generated_at": "2026-01-01T12:14:03.293075",
+    "lottery_id": "korea_645",
+    "target_draw": 1205,
+    "model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          2,
+          7,
+          21,
+          28,
+          35,
+          41
+        ],
+        "analysis": {
+          "sum": 134,
+          "odd_count": 4,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          3,
+          10,
+          17,
+          26,
+          36,
+          38
+        ],
+        "analysis": {
+          "sum": 130,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          4,
+          5,
+          21,
+          23,
+          34,
+          44
+        ],
+        "analysis": {
+          "sum": 131,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          16,
+          17,
+          31,
+          37,
+          44
+        ],
+        "analysis": {
+          "sum": 152,
+          "odd_count": 4,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          3,
+          16,
+          19,
+          24,
+          38,
+          40
+        ],
+        "analysis": {
+          "sum": 140,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 108,
+    "generated_at": "2026-01-01T12:14:10.679734",
+    "lottery_id": "korea_645",
+    "target_draw": 1205,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          5,
+          14,
+          17,
+          21,
+          39,
+          41
+        ],
+        "analysis": {
+          "sum": 137,
+          "odd_count": 5,
+          "even_count": 1,
+          "low_count": 4,
+          "high_count": 2,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          14,
+          26,
+          36,
+          40,
+          43
+        ],
+        "analysis": {
+          "sum": 164,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          15,
+          17,
+          32,
+          38,
+          43
+        ],
+        "analysis": {
+          "sum": 147,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          6,
+          25,
+          30,
+          39,
+          44
+        ],
+        "analysis": {
+          "sum": 149,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          8,
+          20,
+          21,
+          27,
+          42
+        ],
+        "analysis": {
+          "sum": 125,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 4,
+          "high_count": 2,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 109,
+    "generated_at": "2026-01-01T12:14:17.477339",
+    "lottery_id": "korea_645",
+    "target_draw": 1205,
+    "model": "vector",
+    "numbers": [
+      {
+        "numbers": [
+          7,
+          8,
+          10,
+          24,
+          33,
+          40
+        ],
+        "analysis": {
+          "sum": 122,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)",
+          "similarity": 0.724,
+          "cluster": 4
+        }
+      },
+      {
+        "numbers": [
+          2,
+          3,
+          11,
+          15,
+          22,
+          34
+        ],
+        "analysis": {
+          "sum": 87,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 5,
+          "high_count": 1,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.87,
+          "cluster": 4
+        }
+      },
+      {
+        "numbers": [
+          1,
+          18,
+          19,
+          22,
+          23,
+          28
+        ],
+        "analysis": {
+          "sum": 111,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 4,
+          "high_count": 2,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.895,
+          "cluster": 1
+        }
+      },
+      {
+        "numbers": [
+          2,
+          22,
+          23,
+          32,
+          41,
+          44
+        ],
+        "analysis": {
+          "sum": 164,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.863,
+          "cluster": 2
+        }
+      },
+      {
+        "numbers": [
+          2,
+          12,
+          28,
+          33,
+          37,
+          40
+        ],
+        "analysis": {
+          "sum": 152,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)",
+          "similarity": 0.818,
+          "cluster": 3
+        }
+      }
+    ],
+    "result": null
   }
 ]

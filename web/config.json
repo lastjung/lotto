@@ -1,5 +1,5 @@
 {
-    "default_lottery": "korea_645",
-    "default_model": "lstm",
-    "updated_at": "2026-01-01T17:11:20.323Z"
+    "default_lottery": "usa_powerball",
+    "default_model": "vector",
+    "updated_at": "2026-01-01T17:19:22.134Z"
 }

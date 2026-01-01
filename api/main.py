@@ -26,6 +26,7 @@ from models_ai.src.vector.lotto_vector import LottoVectorModel
 from models_stat.ac_analysis import calculate_ac, is_valid_ac, get_ac_rating
 from models_stat.sum_analysis import is_valid_sum, is_valid_sum_dynamic
 from models_stat.consecutive_analysis import has_consecutive
+from models_stat.physics_bias import PhysicsBiasModel
 import torch
 
 app = FastAPI(title="로또 AI 분석 API", version="1.0")
@@ -288,6 +289,40 @@ async def generate_numbers(req: GenerateRequest):
                 "numbers": numbers,
                 "analysis": analysis
             })
+
+    elif actual_model_type == "physics_bias":
+        # Physics Bias: 물리적 편향 기반 생성
+        print("[INFO] Physics Bias Generating...")
+        
+        # 로또별 설정 로드
+        lottery_config = get_lottery_config(req.lottery_id)
+        max_num = lottery_config.get("ball_range", [1, 45])[1]
+        ball_count = lottery_config.get("ball_count", 6)
+        
+        # PhysicsBiasModel 생성 및 분석
+        physics_model = PhysicsBiasModel(draws, ball_count, max_num)
+        results = physics_model.generate(count=req.count * 2, strategy="balanced")
+        
+        for r in results:
+            if len(generated) >= req.count:
+                break
+            
+            numbers = r['numbers']
+            
+            # 합계 필터 (동적 범위)
+            if req.sum_filter and not is_valid_sum_dynamic(numbers, ball_count, max_num):
+                continue
+            
+            # 연속번호 필터
+            if req.consecutive_filter and has_consecutive(numbers):
+                continue
+            
+            # AC 계산 추가
+            ac_value = calculate_ac(numbers)
+            r['analysis']['ac_value'] = ac_value
+            r['analysis']['ac_rating'] = get_ac_rating(numbers)
+            
+            generated.append(r)
 
     elif actual_model_type == "hot_trend":
         # Hot Trend: 최근 빈도 기반 가중치
