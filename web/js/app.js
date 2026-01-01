@@ -16,9 +16,10 @@ let savedLottery = localStorage.getItem('s_lottery') || 'korea_645';
 let savedModel = localStorage.getItem('s_model') || 'transformer';
 
 // [Config] Supabase (from ui.js)
-const SB_URL = 'https://sfqlshdlqwqlkxdrfdke.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk';
-// let supabase = null; // [FIX] ui.js에서 이미 선언됨 (충돌 방지)
+// [Config] Supabase (from ui.js)
+// const SB_URL = ...; // [FIX] ui.js에서 선언됨
+// const SB_KEY = ...; // [FIX] ui.js에서 선언됨
+// let supabase = null; // [FIX] ui.js에서 선언됨
 
 let currentModel = savedModel;
 let session = null;
@@ -71,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadLottoData(savedLottery);
 
     // 모델 선택 UI 반영 (버튼 활성화)
-    selectModel(savedModel); // loadModel 호출 포함됨
+    selectModel(savedModel, true); // [Refine] 초기 로드 시 자동 생성 방지
 
     loadHistory(); // 이력 로드
 });
@@ -198,7 +199,7 @@ async function loadModel(modelType) {
 
 
 // 모델 선택
-async function selectModel(type) {
+async function selectModel(type, isInit = false) {
     currentModel = type;
 
     // 버튼 스타일 업데이트
@@ -220,12 +221,12 @@ async function selectModel(type) {
     });
 
     // [Persistence] 1. LocalStorage 저장
-    localStorage.setItem('s_model', type);
+    if (!isInit) localStorage.setItem('s_model', type);
 
     await loadModel(type);
 
-    // [특수 기능] Transformer/Hot Trend 자동 실행
-    if (type === 'transformer' || type === 'hot_trend') {
+    // [특수 기능] Transformer/Hot Trend 자동 실행 (초기 로드 시에는 실행 안 함)
+    if (!isInit && (type === 'transformer' || type === 'hot_trend')) {
         console.log(`⚡ ${type} Card Clicked: Executing Auto-Generate Flow`);
 
         // [Persistence] 2. Config 저장 (서버) - Dual Save
