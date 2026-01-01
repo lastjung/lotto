@@ -76,10 +76,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 탭 전환
 function switchTab(tabId) {
-    // Hide all tab contents
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    const targetContent = document.getElementById(`content-${tabId}`);
-    if (targetContent) targetContent.classList.remove('hidden');
+    // Hide all views
+    ['dashboard', 'history', 'models', 'settings'].forEach(tab => {
+        const view = document.getElementById(`view-${tab}`);
+        if (view) view.classList.add('hidden');
+    });
+
+    // Show target view
+    const targetView = document.getElementById(`view-${tabId}`);
+    if (targetView) targetView.classList.remove('hidden');
 
     // Update nav button styles
     ['dashboard', 'history', 'models', 'settings'].forEach(tab => {
