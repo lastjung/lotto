@@ -295,9 +295,36 @@ async function generateNumbers() {
             generated_data = await res.json();
         }
 
-        // 결과 표시 및 저장 (LocalStorage 공통 사용)
-        displayResults(generated_data);
-        saveHistoryEntry(generated_data);
+        // 🎱 Play lottery ball animation, then show results
+        const animationContainer = document.getElementById('resultsArea') || document.getElementById('numbersArea');
+
+        if (window.LotteryAnimation && animationContainer) {
+            // Get first set of numbers for animation
+            const firstSetNumbers = generated_data.numbers[0]?.numbers || [];
+
+            // Initialize animation if not already
+            if (!window.lottoAnim) {
+                window.lottoAnim = new LotteryAnimation({
+                    soundEnabled: true,
+                    revealDelay: 350,
+                    mixDuration: 1800,
+                    onComplete: () => {
+                        // After animation, show full results
+                        setTimeout(() => {
+                            displayResults(generated_data);
+                            saveHistoryEntry(generated_data);
+                        }, 500);
+                    }
+                });
+            }
+
+            // Run animation with first set numbers
+            window.lottoAnim.animate(firstSetNumbers, animationContainer);
+        } else {
+            // Fallback: No animation, show directly
+            displayResults(generated_data);
+            saveHistoryEntry(generated_data);
+        }
 
     } catch (e) {
         console.error('❌ 생성 실패:', e);

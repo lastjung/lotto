@@ -1,0 +1,255 @@
+/**
+ * 🎱 Lottery Ball Animation Styles
+ * 
+ * Styles for the lottery ball drawing machine animation.
+ * Includes: Machine dome, mixing balls, pop-out effects
+ */
+
+/* ===== Machine Container ===== */
+.lotto-machine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    position: relative;
+}
+
+/* ===== Machine Dome (Glass Bowl) ===== */
+.machine-dome {
+    width: 280px;
+    height: 200px;
+    background: linear-gradient(180deg, 
+        rgba(255,255,255,0.1) 0%, 
+        rgba(255,255,255,0.05) 50%,
+        rgba(0,0,0,0.2) 100%
+    );
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        inset 0 -30px 60px rgba(0,0,0,0.3),
+        0 10px 40px rgba(0,0,0,0.4),
+        inset 0 2px 20px rgba(255,255,255,0.1);
+}
+
+/* Glass reflection */
+.machine-dome::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 15%;
+    width: 30%;
+    height: 40%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
+    border-radius: 50%;
+}
+
+/* ===== Mixing Balls Container ===== */
+.mixing-balls {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Individual mixing ball */
+.mixing-ball {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 
+        inset -3px -3px 8px rgba(0,0,0,0.3),
+        inset 3px 3px 8px rgba(255,255,255,0.3),
+        0 4px 8px rgba(0,0,0,0.3);
+    left: var(--x, 50%);
+    top: var(--y, 50%);
+    transform: translate(-50%, -50%);
+    opacity: 0.9;
+}
+
+/* Mixing animation */
+.mixing-balls.mixing .mixing-ball {
+    animation: bounce-around 0.5s ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes bounce-around {
+    0%, 100% {
+        transform: translate(-50%, -50%) translate(0, 0);
+    }
+    25% {
+        transform: translate(-50%, -50%) translate(calc(var(--x) * 0.3), calc(var(--y) * -0.5));
+    }
+    50% {
+        transform: translate(-50%, -50%) translate(calc(var(--x) * -0.4), calc(var(--y) * 0.3));
+    }
+    75% {
+        transform: translate(-50%, -50%) translate(calc(var(--x) * 0.2), calc(var(--y) * 0.4));
+    }
+}
+
+/* Shake the whole dome when mixing */
+.mixing-balls.mixing {
+    animation: shake-dome 0.1s linear infinite;
+}
+
+@keyframes shake-dome {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px) rotate(-0.5deg); }
+    75% { transform: translateX(3px) rotate(0.5deg); }
+}
+
+/* ===== Machine Chute ===== */
+.machine-chute {
+    width: 60px;
+    height: 30px;
+    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-top: none;
+    border-radius: 0 0 20px 20px;
+    position: relative;
+    margin-top: -2px;
+}
+
+.chute-opening {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 10px;
+    background: #000;
+    border-radius: 0 0 10px 10px;
+}
+
+/* ===== Revealed Balls Area ===== */
+.revealed-balls {
+    display: flex;
+    gap: 12px;
+    margin-top: 2rem;
+    min-height: 60px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Individual revealed ball */
+.revealed-ball {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 
+        inset -4px -4px 10px rgba(0,0,0,0.3),
+        inset 4px 4px 10px rgba(255,255,255,0.3),
+        0 6px 15px rgba(0,0,0,0.4);
+}
+
+/* Pop-in animation for revealed balls */
+.revealed-ball.pop-in {
+    animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes pop-in {
+    0% {
+        opacity: 0;
+        transform: scale(0) translateY(-50px);
+    }
+    60% {
+        transform: scale(1.2) translateY(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ===== Ball Colors ===== */
+.ball-yellow {
+    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+}
+
+.ball-blue {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.ball-red {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+}
+
+.ball-gray {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+.ball-green {
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+}
+
+/* ===== Complete State ===== */
+.animation-active.complete .revealed-balls {
+    animation: celebrate 0.5s ease-in-out;
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.animation-active.complete .revealed-ball {
+    animation: glow-pulse 1s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 
+            inset -4px -4px 10px rgba(0,0,0,0.3),
+            inset 4px 4px 10px rgba(255,255,255,0.3),
+            0 6px 15px rgba(0,0,0,0.4),
+            0 0 20px rgba(255,255,255,0.2);
+    }
+    50% {
+        box-shadow: 
+            inset -4px -4px 10px rgba(0,0,0,0.3),
+            inset 4px 4px 10px rgba(255,255,255,0.3),
+            0 6px 15px rgba(0,0,0,0.4),
+            0 0 30px rgba(255,255,255,0.4);
+    }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+    .machine-dome {
+        width: 220px;
+        height: 160px;
+    }
+    
+    .mixing-ball {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    .revealed-ball {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
+    
+    .revealed-balls {
+        gap: 8px;
+    }
+}

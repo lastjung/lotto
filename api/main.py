@@ -427,6 +427,7 @@ async def compare_with_result(lottery_id: str, history_id: int):
 STATIC_DIR = PROJECT_ROOT / "web"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/js", StaticFiles(directory=STATIC_DIR / "js"), name="js")
+app.mount("/css", StaticFiles(directory=STATIC_DIR / "css"), name="css")
 app.mount("/data", StaticFiles(directory=DATA_DIR), name="data")
 
 @app.get("/")

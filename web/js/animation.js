@@ -1,0 +1,253 @@
+/**
+ * 🎱 Lottery Ball Animation Module
+ * 
+ * A modular animation system for lottery number generation.
+ * Features: Ball mixing, pop-out animation, sound effects
+ * 
+ * @author AI Lotto Analyzer
+ * @version 1.0.0
+ */
+
+class LotteryAnimation {
+    constructor(options = {}) {
+        this.container = null;
+        this.options = {
+            ballCount: 45,           // Total balls in the machine
+            revealDelay: 400,        // ms between each ball reveal
+            mixDuration: 2000,       // ms for mixing animation
+            soundEnabled: true,
+            onComplete: null,        // Callback when animation completes
+            ...options
+        };
+
+        // Sound effects
+        this.sounds = {
+            mix: null,
+            pop: null,
+            complete: null
+        };
+
+        this.isPlaying = false;
+        this.init();
+    }
+
+    init() {
+        this.createSounds();
+    }
+
+    createSounds() {
+        if (!this.options.soundEnabled) return;
+
+        // Create audio context for generating sounds
+        try {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn('Web Audio API not supported');
+            this.options.soundEnabled = false;
+        }
+    }
+
+    // Generate a "pop" sound effect
+    playPopSound() {
+        if (!this.options.soundEnabled || !this.audioCtx) return;
+
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, this.audioCtx.currentTime + 0.1);
+
+        gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.1);
+
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.1);
+    }
+
+    // Generate a "complete" celebration sound
+    playCompleteSound() {
+        if (!this.options.soundEnabled || !this.audioCtx) return;
+
+        const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+
+        notes.forEach((freq, i) => {
+            setTimeout(() => {
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+
+                osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+                osc.type = 'sine';
+
+                gain.gain.setValueAtTime(0.2, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.3);
+
+                osc.start(this.audioCtx.currentTime);
+                osc.stop(this.audioCtx.currentTime + 0.3);
+            }, i * 100);
+        });
+    }
+
+    // Generate mixing/rumble sound
+    playMixSound() {
+        if (!this.options.soundEnabled || !this.audioCtx) return;
+
+        const bufferSize = this.audioCtx.sampleRate * 2;
+        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.1;
+        }
+
+        const noise = this.audioCtx.createBufferSource();
+        const filter = this.audioCtx.createBiquadFilter();
+        const gain = this.audioCtx.createGain();
+
+        noise.buffer = buffer;
+        filter.type = 'lowpass';
+        filter.frequency.value = 200;
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 2);
+
+        noise.start();
+        noise.stop(this.audioCtx.currentTime + 2);
+    }
+
+    // Get ball color class based on number
+    getBallColorClass(num) {
+        if (num <= 10) return 'ball-yellow';
+        if (num <= 20) return 'ball-blue';
+        if (num <= 30) return 'ball-red';
+        if (num <= 40) return 'ball-gray';
+        return 'ball-green';
+    }
+
+    // Create the animation container HTML
+    createAnimationHTML() {
+        return `
+            <div class="lotto-machine">
+                <div class="machine-dome">
+                    <div class="mixing-balls" id="mixingBalls">
+                        ${Array(12).fill(0).map((_, i) =>
+            `<div class="mixing-ball ball-${['yellow', 'blue', 'red', 'gray', 'green'][i % 5]}" 
+                                  style="--delay: ${i * 0.1}s; --x: ${Math.random() * 100}%; --y: ${Math.random() * 100}%"></div>`
+        ).join('')}
+                    </div>
+                </div>
+                <div class="machine-chute">
+                    <div class="chute-opening"></div>
+                </div>
+                <div class="revealed-balls" id="revealedBalls"></div>
+            </div>
+        `;
+    }
+
+    // Main animation method
+    async animate(numbers, container) {
+        if (this.isPlaying) return;
+        this.isPlaying = true;
+
+        this.container = typeof container === 'string'
+            ? document.querySelector(container)
+            : container;
+
+        if (!this.container) {
+            console.error('Animation container not found');
+            this.isPlaying = false;
+            return;
+        }
+
+        // Clear and setup
+        this.container.innerHTML = this.createAnimationHTML();
+        this.container.classList.add('animation-active');
+
+        const mixingBalls = this.container.querySelector('#mixingBalls');
+        const revealedBalls = this.container.querySelector('#revealedBalls');
+
+        // Resume audio context if suspended
+        if (this.audioCtx?.state === 'suspended') {
+            await this.audioCtx.resume();
+        }
+
+        // Phase 1: Mixing animation
+        mixingBalls.classList.add('mixing');
+        this.playMixSound();
+
+        await this.delay(this.options.mixDuration);
+
+        // Phase 2: Reveal balls one by one
+        for (let i = 0; i < numbers.length; i++) {
+            const num = numbers[i];
+
+            // Create ball element
+            const ball = document.createElement('div');
+            ball.className = `revealed-ball ${this.getBallColorClass(num)} pop-in`;
+            ball.innerHTML = `<span>${num}</span>`;
+            ball.style.animationDelay = '0s';
+
+            // Add to revealed area
+            revealedBalls.appendChild(ball);
+
+            // Play pop sound
+            this.playPopSound();
+
+            // Wait before next ball
+            await this.delay(this.options.revealDelay);
+        }
+
+        // Phase 3: Complete
+        mixingBalls.classList.remove('mixing');
+        this.playCompleteSound();
+
+        // Add celebration effect
+        this.container.classList.add('complete');
+
+        await this.delay(500);
+
+        this.isPlaying = false;
+
+        // Callback
+        if (typeof this.options.onComplete === 'function') {
+            this.options.onComplete(numbers);
+        }
+
+        return numbers;
+    }
+
+    // Utility: delay promise
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Stop animation
+    stop() {
+        this.isPlaying = false;
+        if (this.container) {
+            this.container.classList.remove('animation-active', 'complete');
+        }
+    }
+
+    // Toggle sound
+    toggleSound(enabled) {
+        this.options.soundEnabled = enabled;
+    }
+}
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = LotteryAnimation;
+}
+
+// Also expose globally for script tag usage
+window.LotteryAnimation = LotteryAnimation;
