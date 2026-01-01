@@ -367,10 +367,13 @@
     }
 }
 
-/* Stopped state - show last item */
+/* Stopped state - show last item (bottom of strip) */
 .reel-strip.stopped {
     animation: none;
-    transform: translateY(calc(-100% + 60px));
+    /* Move strip up so last item (final number) is visible in the 60px window */
+    bottom: auto;
+    top: 0;
+    transform: translateY(calc(-100% + 56px));
 }
 
 /* Reel Numbers */
