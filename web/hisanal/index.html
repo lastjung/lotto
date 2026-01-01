@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LottoMaster AI - History Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        .ball {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .bg-ball-red {
+            background-color: #ef4444;
+        }
+
+        .bg-ball-green {
+            background-color: #22c55e;
+        }
+
+        .bg-ball-yellow {
+            background-color: #eab308;
+        }
+
+        .bg-ball-blue {
+            background-color: #3b82f6;
+        }
+
+        .bg-ball-gray {
+            background-color: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0f172a] text-gray-300">
+    <!-- Header -->
+    <header class="bg-[#1e293b]/80 border-b border-white/5 backdrop-blur-md sticky top-0 z-10 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-purple-500/20">
+                    L</div>
+                <span class="font-bold text-xl tracking-tight hidden md:inline text-white">LottoMaster AI</span>
+            </div>
+
+            <div class="flex-1 max-w-xs mx-4">
+                <select id="lotterySelect" onchange="changeLottery(this.value)"
+                    class="w-full bg-[#0f172a] border border-blue-500/30 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors hover:border-blue-400">
+                    <option value="korea_645" selected>🇰🇷 Korea Lotto 6/45</option>
+                    <option value="usa_powerball">🇺🇸 Powerball</option>
+                    <option value="usa_megamillions">🇺🇸 Mega Millions</option>
+                    <option value="canada_649">🇨🇦 Canada Lotto 6/49</option>
+                    <option value="japan_loto6">🇯🇵 Japan Loto 6</option>
+                </select>
+            </div>
+
+            <nav class="flex gap-4 text-sm font-medium">
+                <a href="/" class="text-gray-400 hover:text-white transition-colors">번호 생성</a>
+                <a href="#" class="text-blue-400 border-b-2 border-blue-400 pb-5">역사 & 분석</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div>
+            <h1 class="text-2xl font-bold mb-1 text-white" id="mainTitle">로또 번호 분석</h1>
+            <div class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400">
+                <p>최근 1년(<span id="drawCount" class="text-blue-400 font-bold">0</span>회) 데이터를 기반으로 한 통계입니다.</p>
+                <span class="hidden sm:inline text-gray-600">|</span>
+                <p class="font-medium text-blue-400">통계 기간: <span id="periodRange" class="text-gray-300">-</span></p>
+            </div>
+        </div>
+
+        <!-- Hot & Cold -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Hot Numbers -->
+            <div
+                class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between shadow-lg">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-xl">🔥</span>
+                        <h2 class="font-bold text-red-400">Hot Numbers (최다 출현)</h2>
+                    </div>
+                    <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General Numbers</div>
+                    <div id="hotNumbers" class="flex justify-between px-2 mb-4 text-white">
+                        <!-- JS Injected -->
+                        <div class="w-full text-center text-gray-500 py-4">로딩 중...</div>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">
+                        Bonus Numbers</div>
+                    <div id="hotBonus" class="flex justify-start gap-4 px-2 text-white">
+                        <!-- JS Injected -->
+                    </div>
+                </div>
+            </div>
+            <!-- Cold Numbers -->
+            <div
+                class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between shadow-lg">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-xl">🧊</span>
+                        <h2 class="font-bold text-blue-400">Cold Numbers (최소 출현)</h2>
+                    </div>
+                    <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General Numbers</div>
+                    <div id="coldNumbers" class="flex justify-between px-2 mb-4 text-white">
+                        <!-- JS Injected -->
+                        <div class="w-full text-center text-gray-500 py-4">로딩 중...</div>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">
+                        Bonus Numbers</div>
+                    <div id="coldBonus" class="flex justify-start gap-4 px-2 text-white">
+                        <!-- JS Injected -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frequency Chart -->
+        <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+            <h2 class="font-bold mb-6 text-white">번호별 출현 빈도 (Top 20)</h2>
+            <div class="h-64 relative w-full">
+                <canvas id="freqChart"></canvas>
+            </div>
+            <p class="text-center text-xs text-gray-500 mt-4">* 상위 20개 번호만 표시됩니다.</p>
+        </div>
+
+        <!-- Ratios Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Odd/Even -->
+            <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                <h2 class="font-bold mb-4 text-white">홀짝 비율 (Odd/Even)</h2>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="oddEvenChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">* Odd: 홀수 / Even: 짝수</p>
+            </div>
+            <!-- Low/High -->
+            <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                <h2 class="font-bold mb-4 text-white">고저 비율 (Low/High)</h2>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="lowHighChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">* Low: 중간값 이하 / High: 중간값 초과</p>
+            </div>
+        </div>
+
+        <!-- Trends Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Sum Trend -->
+            <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                <h2 class="font-bold mb-4 text-white">합계 추이 (Sum Trend)</h2>
+                <div class="h-64 w-full">
+                    <canvas id="sumChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">* 최근 30회차 데이터</p>
+            </div>
+            <!-- AC Trend -->
+            <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                <h2 class="font-bold mb-4 text-white">AC값 추이 (AC Value)</h2>
+                <div class="h-64 w-full">
+                    <canvas id="acChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">* 산술적 복잡도 (숫자 간격의 불규칙성)</p>
+            </div>
+        </div>
+
+        <!-- Distributions Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Sum Distribution -->
+            <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                <h2 class="font-bold mb-4 text-white">합계 분포 (Sum Dist)</h2>
+                <div class="h-64 w-full">
+                    <canvas id="sumDistChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">* 전체 기간 합계 빈도 (정규분포)</p>
+            </div>
+            <!-- End Digit -->
+            <div class="card bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                <h2 class="font-bold mb-4 text-white">끝수 분석 (End Digit)</h2>
+                <div class="h-64 w-full">
+                    <canvas id="endDigitChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-2">* 번호의 1의 자리 (0~9) 출현 빈도</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let charts = {}; // Store chart instances
+
+        // Chart.js Global Defaults for Dark Mode
+        Chart.defaults.color = '#94a3b8'; // text-gray-400
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.05)';
+
+        // Lottery Configuration (Synced with config/lotteries.json)
+        const lotteryConfigs = {
+            "korea_645": { "ball_count": 6 },
+            "usa_powerball": { "ball_count": 5 },
+            "usa_megamillions": { "ball_count": 5 },
+            "canada_649": { "ball_count": 6 },
+            "japan_loto6": { "ball_count": 6 }
+        };
+
+        function changeLottery(id) {
+            loadData(id);
+        }
+
+        async function loadData(lotteryId = 'korea_645') {
+            try {
+                // Try fetching from root data or relative (handling different server setups)
+                let res = await fetch(`/data/${lotteryId}/draws.json`);
+                if (!res.ok) res = await fetch(`../../data/${lotteryId}/draws.json`);
+                if (!res.ok) throw new Error('Data fetch failed');
+
+                const json = await res.json();
+                const allDraws = json.draws || json;
+
+                // Last 1 year (approx 52 weeks) 
+                const oneYearDraws = allDraws.slice(-52);
+                document.getElementById('drawCount').innerText = oneYearDraws.length;
+
+                // Update Period Range
+                if (oneYearDraws.length > 0) {
+                    const params = (d) => d.draw_date || 'Unknown';
+                    const start = params(oneYearDraws[0]);
+                    const end = params(oneYearDraws[oneYearDraws.length - 1]);
+                    document.getElementById('periodRange').innerText = `${start} ~ ${end}`;
+                }
+
+                // Update Title
+                const sel = document.getElementById('lotterySelect');
+                const name = sel.options[sel.selectedIndex].text;
+                document.getElementById('mainTitle').innerText = `${name.split(' ')[0]} 분석 통계`;
+
+                analyze(oneYearDraws, lotteryId);
+            } catch (e) {
+                console.error(e);
+                alert('데이터 로드 실패: ' + e.message);
+            }
+        }
+
+        function analyze(draws, lotteryId) {
+            const config = lotteryConfigs[lotteryId] || { ball_count: 6 };
+            const ballCount = config.ball_count;
+
+            // Set Bonus Label based on Lottery Type
+            let bonusLabel = "Bonus Ball (보너스)";
+            if (lotteryId === 'usa_powerball') bonusLabel = "Powerball (파워볼)";
+            if (lotteryId === 'usa_megamillions') bonusLabel = "Mega Ball (메가볼)";
+
+            document.querySelectorAll('.bonus-label').forEach(el => el.innerText = bonusLabel);
+
+            const freq = new Array(80).fill(0); // Max size coverage
+            const bonusFreq = new Array(80).fill(0);
+
+            let maxNum = 0;
+            let maxBonus = 0;
+
+            draws.forEach(d => {
+                if (d.numbers) {
+                    d.numbers.forEach(n => {
+                        freq[n]++;
+                        if (n > maxNum) maxNum = n;
+                    });
+                }
+                if (d.bonus !== undefined) {
+                    bonusFreq[d.bonus]++;
+                    if (d.bonus > maxBonus) maxBonus = d.bonus;
+                }
+            });
+
+            // --- General Hot & Cold ---
+            const ranked = [];
+            for (let i = 1; i <= maxNum; i++) ranked.push({ num: i, count: freq[i] });
+            ranked.sort((a, b) => b.count - a.count);
+
+            const hot = ranked.slice(0, ballCount);
+            const cold = ranked.slice(-ballCount).reverse();
+
+            renderBalls('hotNumbers', hot);
+            renderBalls('coldNumbers', cold);
+
+            // --- Bonus Hot & Cold ---
+            const bonusRanked = [];
+            if (maxBonus > 0) {
+                for (let i = 1; i <= maxBonus; i++) bonusRanked.push({ num: i, count: bonusFreq[i] });
+                bonusRanked.sort((a, b) => b.count - a.count);
+
+                // Show top 3 for bonus
+                const hotBonus = bonusRanked.slice(0, 3);
+                const coldBonus = bonusRanked.slice(-3).reverse();
+
+                renderBalls('hotBonus', hotBonus);
+                renderBalls('coldBonus', coldBonus);
+            } else {
+                document.getElementById('hotBonus').innerHTML = '<span class="text-xs text-gray-300">데이터 없음</span>';
+                document.getElementById('coldBonus').innerHTML = '<span class="text-xs text-gray-300">데이터 없음</span>';
+            }
+
+            // Frequency Chart Top 20
+            const top20 = ranked.slice(0, 20);
+            renderFreqChart(top20);
+
+            // Odd/Even
+            let odd = 0, even = 0;
+            draws.forEach(d => d.numbers.forEach(n => n % 2 === 0 ? even++ : odd++));
+            renderOddEvenChart(odd, even);
+
+            // Sum Trend (Last 30)
+            const last30 = draws.slice(-30);
+            const sums = last30.map(d => d.numbers.reduce((a, b) => a + b, 0));
+            const labels = last30.map(d => d.draw_no || '');
+            renderSumChart(labels, sums);
+
+            // Sum Distribution (Histogram) - Full Range
+            const allSums = draws.map(d => d.numbers.reduce((a, b) => a + b, 0));
+            if (allSums.length > 0) {
+                const binSize = 10;
+                let minSum = Math.min(...allSums);
+                let maxSum = Math.max(...allSums);
+                let startBin = Math.floor(minSum / binSize) * binSize;
+                let endBin = Math.ceil(maxSum / binSize) * binSize;
+
+                const labelsDist = [];
+                const dataDist = [];
+
+                for (let i = startBin; i < endBin; i += binSize) {
+                    let rangeLabel = `${i}~${i + binSize - 1}`;
+                    let count = allSums.filter(s => s >= i && s < i + binSize).length;
+                    labelsDist.push(rangeLabel);
+                    dataDist.push(count);
+                }
+                renderSumDistChart(labelsDist, dataDist);
+            }
+
+            // Low/High Analysis
+            const midPoint = maxNum / 2;
+            let lowCount = 0;
+            let highCount = 0;
+            draws.forEach(d => d.numbers.forEach(n => {
+                if (n <= midPoint) lowCount++;
+                else highCount++;
+            }));
+            renderLowHighChart(lowCount, highCount);
+
+            // End Digit Analysis (0~9)
+            const endDigitFreq = new Array(10).fill(0);
+            draws.forEach(d => d.numbers.forEach(n => {
+                const digit = n % 10;
+                endDigitFreq[digit]++;
+            }));
+            renderEndDigitChart(endDigitFreq);
+
+            // AC Value Trend (Last 30)
+            const acValues = last30.map(d => calculateAC(d.numbers));
+            renderACChart(labels, acValues);
+        }
+
+        function calculateAC(numbers) {
+            if (!numbers || numbers.length < 2) return 0;
+            const diffs = new Set();
+            for (let i = 0; i < numbers.length; i++) {
+                for (let j = i + 1; j < numbers.length; j++) {
+                    const diff = Math.abs(numbers[i] - numbers[j]);
+                    diffs.add(diff);
+                }
+            }
+            // AC = (Unique Difference Count) - (Total Balls - 1)
+            return diffs.size - (numbers.length - 1);
+        }
+
+        // ... existing renderBalls function ...
+
+        function renderACChart(labels, data) {
+            const ctx = document.getElementById('acChart').getContext('2d');
+            if (charts.ac) charts.ac.destroy();
+            charts.ac = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'AC Value',
+                        data: data,
+                        borderColor: '#ec4899', // Pink
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1, // Less smooth for AC to show exact values better
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 0,
+                            suggestedMax: 10,
+                            grid: { borderDash: [2, 2] }
+                        },
+                        x: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderSumDistChart(labels, data) {
+            const ctx = document.getElementById('sumDistChart').getContext('2d');
+            if (charts.sumDist) charts.sumDist.destroy();
+            charts.sumDist = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '빈도수',
+                        data: data,
+                        backgroundColor: '#a78bfa',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderLowHighChart(low, high) {
+            const ctx = document.getElementById('lowHighChart').getContext('2d');
+            const total = low + high;
+            if (charts.lowHigh) charts.lowHigh.destroy();
+            charts.lowHigh = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High (고)', 'Low (저)'],
+                    datasets: [{
+                        data: [high, low],
+                        backgroundColor: ['#f87171', '#60a5fa'], // Red / Blue
+                        borderWidth: 0,
+                        datalabels: { color: 'white', font: { weight: 'bold', size: 14 } }
+                    }]
+                },
+                options: {
+                    rotation: -90,
+                    circumference: 360,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true } },
+                        datalabels: {
+                            formatter: (value, ctx) => {
+                                if (total === 0) return '0%';
+                                return ((value / total) * 100).toFixed(1) + "%";
+                            },
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderEndDigitChart(data) {
+            const ctx = document.getElementById('endDigitChart').getContext('2d');
+            if (charts.endDigit) charts.endDigit.destroy();
+            charts.endDigit = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                    datasets: [{
+                        label: '출현 빈도',
+                        data: data,
+                        backgroundColor: '#fbbf24', // Amber
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderBalls(id, list) {
+            const el = document.getElementById(id);
+            el.innerHTML = list.map(item => `
+                <div class="flex flex-col items-center gap-1">
+                    <div class="ball ${getBallColor(item.num)} text-sm shadow-md transition-transform hover:scale-110">
+                        ${item.num}
+                    </div>
+                    <span class="text-xs font-bold text-gray-600">${item.count}회</span>
+                </div>
+            `).join('');
+        }
+
+        function getBallColor(n) {
+            if (n <= 10) return 'bg-ball-yellow';
+            if (n <= 20) return 'bg-ball-blue';
+            if (n <= 30) return 'bg-ball-red';
+            if (n <= 40) return 'bg-ball-gray';
+            return 'bg-ball-green';
+        }
+
+        function renderFreqChart(data) {
+            const ctx = document.getElementById('freqChart').getContext('2d');
+            if (charts.freq) charts.freq.destroy();
+            charts.freq = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.num),
+                    datasets: [{
+                        label: '출현 횟수',
+                        data: data.map(d => d.count),
+                        backgroundColor: '#6366f1',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Create explicit plugin registry manually if needed, but CDN usually registers global 'ChartDataLabels'
+        // We will register it just to be safe if it's available
+        if (typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
+
+        function renderOddEvenChart(odd, even) {
+            const ctx = document.getElementById('oddEvenChart').getContext('2d');
+            const total = odd + even;
+
+            if (charts.oddEven) charts.oddEven.destroy();
+            charts.oddEven = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Odd (홀)', 'Even (짝)'],
+                    datasets: [{
+                        data: [odd, even],
+                        backgroundColor: ['#818cf8', '#34d399'],
+                        borderWidth: 0,
+                        datalabels: {
+                            color: 'white',
+                            font: { weight: 'bold', size: 14 }
+                        }
+                    }]
+                },
+                options: {
+                    rotation: -90,
+                    circumference: 360,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true } },
+                        datalabels: {
+                            formatter: (value, ctx) => {
+                                if (total === 0) return '0%';
+                                let percentage = ((value / total) * 100).toFixed(1) + "%";
+                                return percentage;
+                            },
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderSumChart(labels, data) {
+            const ctx = document.getElementById('sumChart').getContext('2d');
+            if (charts.sum) charts.sum.destroy();
+            charts.sum = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '합계',
+                        data: data,
+                        borderColor: '#34d399',
+                        backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: 'white',
+                        pointBorderColor: '#34d399',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { borderDash: [2, 2] } },
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+                    }
+                }
+            });
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

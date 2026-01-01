@@ -391,3 +391,23 @@ cp -L web-static/data/*.json deploy/data/
 | LSTM | ✅ | ✅ |
 | Vector | ✅ | ✅ |
 | Hot Trend | ✅ | ✅ |
+
+---
+
+## 8. 통계 분석 페이지 고도화 (2026-01-01)
+
+### 8.1 기능 추가 (History Analysis)
+- **Advanced Statistics**:
+    - **Low/High Ratio**: 고저 비율 분석 (Low: 1~22, High: 23~45).
+    - **End Digit Analysis**: 끝수(1의 자리) 출현 빈도 분석.
+    - **AC Value Trend**: 산술적 복잡도(Arithmetic Complexity) 추세 그래프 (최근 30회).
+    - **Bonus stats**: Hot/Cold 번호 카드에 보너스 번호 통계 추가.
+
+### 8.2 UI/UX 개선
+- **Dark Theme Re-skinning**:
+    - 메인 사이트의 **"Deep Space"** 테마(Dark Purple) 적용.
+    - Glassmorphism 카드 디자인 (`bg-[#1e293b]/50`, `backdrop-blur`).
+    - Chart.js 다크 모드 가독성 최적화 (Grid/Font color adjustment).
+- **Layout Optimization**:
+    - 차트 그룹화: 비율(Ratio), 추세(Trend), 분포(Distribution) 로우(Row) 분리.
+    - **Low/High 직관성 개선**: High(고)를 우측/상단에, Low(저)를 좌측/하단에 배치하여 시각적 혼동 제거.
