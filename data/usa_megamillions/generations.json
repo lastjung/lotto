@@ -26,5 +26,59 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 2,
+    "generated_at": "2026-01-01T11:32:50.465558",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 3,
+    "generated_at": "2026-01-01T11:33:03.268999",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 4,
+    "generated_at": "2026-01-01T11:33:09.037325",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 5,
+    "generated_at": "2026-01-01T11:33:31.187716",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 6,
+    "generated_at": "2026-01-01T11:33:36.834422",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 7,
+    "generated_at": "2026-01-01T11:33:43.441695",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
   }
 ]

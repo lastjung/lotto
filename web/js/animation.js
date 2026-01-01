@@ -416,6 +416,31 @@ class SlotMachineAnimation {
             return;
         }
 
+        // Handle empty numbers array
+        if (!numbers || numbers.length === 0) {
+            this.container.innerHTML = `
+                <div class="slot-machine">
+                    <div class="slot-header">
+                        <span class="slot-title">🎰 LUCKY DRAW 🎰</span>
+                    </div>
+                    <div class="slot-reels" style="padding: 2rem; text-align: center;">
+                        <div style="color: #f97316; font-size: 1.2rem;">
+                            ⚠️ 생성된 번호가 없습니다
+                        </div>
+                        <div style="color: #888; margin-top: 0.5rem; font-size: 0.9rem;">
+                            필터 설정을 확인하거나 다시 시도해주세요
+                        </div>
+                    </div>
+                </div>
+            `;
+            this.container.classList.add('slot-active');
+            this.isPlaying = false;
+            if (typeof this.options.onComplete === 'function') {
+                this.options.onComplete([]);
+            }
+            return;
+        }
+
         // Resume audio context
         if (this.audioCtx?.state === 'suspended') {
             await this.audioCtx.resume();
@@ -595,6 +620,32 @@ class AIScannerAnimation {
 
         this.container = typeof container === 'string' ? document.querySelector(container) : container;
         if (!this.container) { this.isPlaying = false; return; }
+
+        // Handle empty numbers array
+        if (!numbers || numbers.length === 0) {
+            this.container.innerHTML = `
+                <div class="ai-scanner">
+                    <div class="scanner-header">
+                        <span class="scanner-title">🔬 AI ANALYSIS</span>
+                        <span class="scanner-status" style="color: #f97316;">ERROR</span>
+                    </div>
+                    <div class="scanner-slots" style="padding: 2rem; text-align: center;">
+                        <div style="color: #f97316; font-size: 1.2rem;">
+                            ⚠️ 생성된 번호가 없습니다
+                        </div>
+                        <div style="color: #888; margin-top: 0.5rem; font-size: 0.9rem;">
+                            필터 설정을 확인하거나 다시 시도해주세요
+                        </div>
+                    </div>
+                </div>
+            `;
+            this.container.classList.add('scanner-active');
+            this.isPlaying = false;
+            if (typeof this.options.onComplete === 'function') {
+                this.options.onComplete([]);
+            }
+            return;
+        }
 
         if (this.audioCtx?.state === 'suspended') await this.audioCtx.resume();
 

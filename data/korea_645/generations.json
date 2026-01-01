@@ -10517,5 +10517,110 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 102,
+    "generated_at": "2026-01-01T11:32:41.277603",
+    "lottery_id": "korea_645",
+    "target_draw": 1205,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          1,
+          13,
+          16,
+          30,
+          34,
+          40
+        ],
+        "analysis": {
+          "sum": 134,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          7,
+          13,
+          25,
+          30,
+          40
+        ],
+        "analysis": {
+          "sum": 120,
+          "odd_count": 4,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          8,
+          12,
+          23,
+          39,
+          40
+        ],
+        "analysis": {
+          "sum": 129,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          18,
+          23,
+          30,
+          38,
+          39
+        ],
+        "analysis": {
+          "sum": 153,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          4,
+          7,
+          14,
+          28,
+          33,
+          39
+        ],
+        "analysis": {
+          "sum": 125,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]
