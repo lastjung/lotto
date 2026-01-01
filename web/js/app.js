@@ -606,6 +606,11 @@ function saveHistoryEntry(data) {
             id: Date.now(),
             date: new Date().toISOString(),
             model: data.model || currentModel,
+            lottery_type: getLotteryValue(),
+            lottery_name: (function () {
+                const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
+                return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.trim() : 'Korea Lotto 6/45';
+            })(),
             numbers: data.numbers || [],
             generated_at: new Date().toISOString()
         };
@@ -659,7 +664,10 @@ function loadHistory() {
                 <div class="text-xs text-gray-400">
                     ${new Date(entry.date || entry.generated_at || Date.now()).toLocaleString()}
                 </div>
-                <span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">${modelName.toUpperCase()}</span>
+                <div class="flex gap-2">
+                    <span class="bg-green-500/20 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">${entry.lottery_name || 'Korea Lotto'}</span>
+                    <span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">${modelName.toUpperCase()}</span>
+                </div>
             </div>
             <div class="space-y-2">
                 ${numberSets.map(set => {

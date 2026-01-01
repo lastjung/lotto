@@ -319,100 +319,14 @@ window.displayResults = function (data) {
     }
 }
 
-// 2. Override loadHistory (because layout might be different)
-window.loadHistory = function () {
-    const area = document.getElementById('historyArea');
-    if (!area) return;
+/*
+ * [DISABLED] loadHistory and selectModel overrides
+ * These are now handled by app.js to avoid function collision.
+ * Uncomment below if you need to restore ui.js-specific behavior.
+ */
 
-    const history = JSON.parse(localStorage.getItem('lotto_history') || '[]');
+// // 2. Override loadHistory (because layout might be different)
+// window.loadHistory = function () { ... }
 
-    if (history.length === 0) {
-        area.innerHTML = '<div class="text-center py-10 opacity-50"><div class="text-4xl mb-2">📜</div><p>No generation history yet</p></div>';
-        return;
-    }
-
-    area.innerHTML = history.reverse().map(entry => `
-        <div class="glass-panel p-4 rounded-xl border-l-2 border-l-purple-500/50 hover:bg-white/5 transition-colors">
-            <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-2">
-                     <span class="text-[10px] font-bold bg-purple-500/20 text-purple-200 px-2 py-0.5 rounded border border-purple-500/30">${entry.model ? entry.model.toUpperCase() : 'UNKNOWN'}</span>
-                     <span class="text-xs text-gray-400">${new Date(entry.date || entry.generated_at || Date.now()).toLocaleString('ko-KR')}</span>
-                </div>
-            </div>
-            <div class="space-y-2">
-                ${entry.numbers ? (Array.isArray(entry.numbers) ? entry.numbers : []).map((nums, idx) => `
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] text-gray-600 font-mono w-4">#${idx + 1}</span>
-                        <div class="flex gap-1.5 flex-wrap">
-                            ${(Array.isArray(nums) ? nums : nums.numbers).map(n =>
-        `<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${getBallClass(n)} text-shadow shadow-lg text-white">${n}</span>`
-    ).join('')}
-                        </div>
-                    </div>
-                `).join('') : ''}
-            </div>
-        </div>
-    `).join('');
-}
-
-
-// 3. Override selectModel to handle new Grid and Statistical Sections
-window.selectModel = function (model, isInit = false) {
-    if (window.appSelectModel) {
-        window.appSelectModel(model, isInit); // Call core logic if available
-    } else {
-        // Fallback or explicit set
-        if (typeof currentModel !== 'undefined') currentModel = model;
-    }
-
-    // Visual Update: Reset all cards
-    const cards = document.querySelectorAll('.model-card');
-    cards.forEach(c => {
-        c.classList.remove('ring-2', 'ring-blue-500', 'ring-purple-500', 'ring-green-500', 'ring-pink-500', 'ring-cyan-500', 'bg-blue-500/10', 'bg-purple-500/10', 'bg-green-500/10', 'bg-pink-500/10', 'bg-cyan-500/10');
-        const dot = c.querySelector('.active-dot');
-        if (dot) dot.classList.add('hidden');
-    });
-
-    // Identify target IDs for both sections
-    let targetIds = [];
-    let ringClass = 'ring-blue-500';
-    let bgClass = 'bg-blue-500/10';
-
-    if (model === 'transformer') {
-        targetIds = ['card-transformer-v3', 'card-transformer-stat'];
-        ringClass = 'ring-blue-500';
-        bgClass = 'bg-blue-500/10';
-    } else if (model === 'lstm') {
-        targetIds = ['card-lstm-v3', 'card-lstm-stat'];
-        ringClass = 'ring-purple-500';
-        bgClass = 'bg-purple-500/10';
-    } else if (model === 'vector') {
-        targetIds = ['card-physics-v3', 'card-physics-stat', 'card-cold-stat'];
-        ringClass = 'ring-green-500';
-        bgClass = 'bg-green-500/10';
-    } else if (model === 'hot_trend') {
-        targetIds = ['card-hot_trend'];
-        ringClass = 'ring-purple-500';
-        bgClass = 'bg-purple-500/10';
-    }
-
-    // Apply highlighting to all matches
-    targetIds.forEach(id => {
-        const activeCard = document.getElementById(id);
-        if (activeCard) {
-            let currentRing = ringClass;
-            let currentBg = bgClass;
-
-            // Specific highlight for Cold Theory
-            if (id === 'card-cold-stat') {
-                currentRing = 'ring-cyan-500';
-                currentBg = 'bg-cyan-500/10';
-            }
-
-            activeCard.classList.add('ring-2', currentRing, currentBg);
-            const dot = activeCard.querySelector('.active-dot');
-            if (dot) dot.classList.remove('hidden');
-        }
-    });
-}
-
+// // 3. Override selectModel to handle new Grid and Statistical Sections
+// window.selectModel = function (model, isInit = false) { ... }
