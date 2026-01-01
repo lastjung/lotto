@@ -154,6 +154,13 @@ class LottoTransformer(nn.Module):
 
 def create_model(config: dict = None) -> LottoTransformer:
     """모델 생성 헬퍼 함수"""
+    # 이전 변수명 호환성 (num_numbers→ball_ranges, seq_length→history_length)
+    if config:
+        if "num_numbers" in config and "ball_ranges" not in config:
+            config["ball_ranges"] = config.pop("num_numbers")
+        if "seq_length" in config and "history_length" not in config:
+            config["history_length"] = config.pop("seq_length")
+    
     default_config = {
         "ball_ranges": 45,
         "history_length": 10,

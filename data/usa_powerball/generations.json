@@ -135,5 +135,205 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 8,
+    "generated_at": "2026-01-01T12:10:47.378817",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1883,
+    "model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          11,
+          21,
+          23,
+          27,
+          40
+        ],
+        "analysis": {
+          "sum": 122,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 4,
+          "high_count": 1,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          8,
+          12,
+          40,
+          41,
+          53
+        ],
+        "analysis": {
+          "sum": 154,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          8,
+          29,
+          49,
+          50,
+          52
+        ],
+        "analysis": {
+          "sum": 188,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 5,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          13,
+          23,
+          38,
+          50
+        ],
+        "analysis": {
+          "sum": 126,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          14,
+          29,
+          51,
+          60
+        ],
+        "analysis": {
+          "sum": 156,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 9,
+    "generated_at": "2026-01-01T12:10:47.549922",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1883,
+    "model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          5,
+          13,
+          23,
+          51,
+          53
+        ],
+        "analysis": {
+          "sum": 145,
+          "odd_count": 5,
+          "even_count": 0,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          12,
+          21,
+          29,
+          36,
+          59
+        ],
+        "analysis": {
+          "sum": 157,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          20,
+          23,
+          31,
+          56
+        ],
+        "analysis": {
+          "sum": 132,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 4,
+          "high_count": 1,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          17,
+          34,
+          40,
+          62
+        ],
+        "analysis": {
+          "sum": 155,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          11,
+          17,
+          22,
+          32,
+          54
+        ],
+        "analysis": {
+          "sum": 136,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 4,
+          "high_count": 1,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]
