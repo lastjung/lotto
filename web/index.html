@@ -774,7 +774,7 @@
 
         // Model Selection UI Handler
         const originalSelectModelUI = window.selectModel;
-        window.selectModel = async function (model) {
+        window.selectModel = async function (model, isInit = false) {
             // Visual Update for Cards
             document.querySelectorAll('.model-card').forEach(el => {
                 el.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/20');
@@ -788,8 +788,8 @@
             }
 
             // Call logic
-            if (typeof appSelectModel === 'function') await appSelectModel(model);
-            else if (typeof originalSelectModelUI === 'function') await originalSelectModelUI(model);
+            if (typeof appSelectModel === 'function') await appSelectModel(model, isInit);
+            else if (typeof originalSelectModelUI === 'function') await originalSelectModelUI(model, isInit);
         }
 
         // Ripple Effect

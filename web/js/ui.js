@@ -4,17 +4,20 @@
 let globalDrawData = [];
 let numberFrequency = {};
 // --- SUPABASE CONFIG ---
-const SB_URL = 'https://sfqlshdlqwqlkxdrfdke.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk';
-let supabase = null;
+// const SB_URL = '...'; // [FIX] Defined in app.js
+// const SB_KEY = '...'; // [FIX] Defined in app.js
+// let supabase = null;  // [FIX] Defined in app.js
 
 // --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase
     try {
         if (window.supabase) {
-            supabase = window.supabase.createClient(SB_URL, SB_KEY);
-            console.log('Supabase client initialized');
+            // Use global supabaseClient from app.js
+            if (!supabaseClient && typeof SB_URL !== 'undefined') {
+                supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+            }
+            console.log('Supabase client initialized (UI)');
         }
     } catch (e) {
         console.error('Supabase init failed:', e);
@@ -354,9 +357,9 @@ window.loadHistory = function () {
 
 
 // 3. Override selectModel to handle new Grid and Statistical Sections
-window.selectModel = function (model) {
+window.selectModel = function (model, isInit = false) {
     if (window.appSelectModel) {
-        window.appSelectModel(model); // Call core logic if available
+        window.appSelectModel(model, isInit); // Call core logic if available
     } else {
         // Fallback or explicit set
         if (typeof currentModel !== 'undefined') currentModel = model;

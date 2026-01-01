@@ -4,8 +4,6 @@
  */
 
 // 설정 및 환경 감지
-// 설정 및 환경 감지
-// 설정 및 환경 감지
 const API_PORT = '8000'; // FastAPI 서버 기본 포트
 // [FIX] 포트가 8000이거나 로컬호스트가 아니면 API 모드 사용 (기존 코드 보존)
 const IS_STATIC_MODE = window.location.port !== '8000' && window.location.port !== '';
@@ -16,10 +14,9 @@ let savedLottery = localStorage.getItem('s_lottery') || 'korea_645';
 let savedModel = localStorage.getItem('s_model') || 'transformer';
 
 // [Config] Supabase (from ui.js)
-// [Config] Supabase (from ui.js)
-// const SB_URL = ...; // [FIX] ui.js에서 선언됨
-// const SB_KEY = ...; // [FIX] ui.js에서 선언됨
-// let supabase = null; // [FIX] ui.js에서 선언됨
+const SB_URL = 'https://sfqlshdlqwqlkxdrfdke.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk';
+let supabaseClient = null; // [FIX] Renamed to avoid conflict with window.supabase from CDN
 
 let currentModel = savedModel;
 let session = null;
@@ -33,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // [Init] Supabase
     if (window.supabase) {
         try {
-            supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
             console.log('✅ Supabase client initialized');
         } catch (e) {
             console.error('❌ Supabase init failed:', e);
@@ -536,17 +533,23 @@ function displayResults(data) {
     area.innerHTML = `
         <div class="flex items-center justify-between mb-4">
             <div class="text-sm text-gray-400">
-                <span class="text-purple-400 font-bold">${data.model ? data.model.toUpperCase() : 'AI'}</span> Model 
+                <span class="text-blue-400 font-bold mr-1">
+                    ${(function () {
+            const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
+            return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.trim() : 'Korea Lotto 6/45';
+        })()}
+                </span>
+                | <span class="text-purple-400 font-bold">${data.model ? data.model.toUpperCase() : 'AI'}</span>
                 | Draw ${data.target_draw || 'Next'}
             </div>
             <span class="text-xs text-gray-600">${new Date().toLocaleTimeString()}</span>
         </div>
         <div class="space-y-3">
         ${data.numbers.map((item, i) => {
-        const nums = item.numbers;
-        const analysis = item.analysis || {};
+            const nums = item.numbers;
+            const analysis = item.analysis || {};
 
-        return `
+            return `
             <div class="bg-white/5 rounded-2xl p-4 border border-white/5 hover:bg-white/10 transition-all group">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-1 rounded">SET #${i + 1}</span>
@@ -564,13 +567,13 @@ function displayResults(data) {
                 </div>
             </div>
         `;
-    }).join('')}
+        }).join('')}
     </div>`;
 }
 
 // [Persistence] Cloud Save (Supabase)
 async function saveToSupabase(data) {
-    if (!supabase) return;
+    if (!supabaseClient) return;
 
     try {
         const payload = {
@@ -586,7 +589,7 @@ async function saveToSupabase(data) {
             })()
         };
 
-        const { error } = await supabase.from('lotto_history').insert([payload]);
+        const { error } = await supabaseClient.from('lotto_history').insert([payload]);
         if (error) console.warn('❌ Supabase save error:', error.message);
         else console.log('✅ Saved to Supabase DB');
     } catch (e) {

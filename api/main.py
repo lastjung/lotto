@@ -13,8 +13,6 @@ from pathlib import Path
 import sys
 import random
 from collections import Counter
-import random
-from collections import Counter
 
 # 프로젝트 루트를 sys.path에 추가 (앱 시작 시 한 번만)
 PROJECT_ROOT = Path(__file__).parent.parent.absolute()
@@ -283,6 +281,9 @@ async def generate_numbers(req: GenerateRequest):
             
             # 분석 데이터
             analysis = analyze_numbers(numbers)
+            ac_val = calculate_ac(numbers)
+            analysis["ac_value"] = ac_val
+            analysis["ac_rating"] = get_ac_rating(numbers)
             analysis["model"] = "hot_trend"
             
             generated.append({
