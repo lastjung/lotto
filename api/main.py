@@ -45,17 +45,25 @@ DATA_DIR = PROJECT_ROOT / "data"
 MODELS = {}
 
 def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
-    """모델 로드 (lazy loading) - 로또별 개별 모델 지원"""
+    """모델 로드 (lazy loading) - 로또별 개별 모델 지원
+    
+    Returns: 
+        tuple(model, is_compatible) - is_compatible indicates if model embedding matches lottery range
+    """
     global MODELS
     cache_key = f"{model_type}_{lottery_id}"
     
+    # 로또 설정 미리 로드
+    lottery_config = get_lottery_config(lottery_id)
+    lottery_max = lottery_config.get("number_range", [1, 45])[1]
+    
     if cache_key not in MODELS:
-        # Vector 모델은 실시간 학습 (학습 파일 불필요)
+        # Vector 모델은 실시간 학습 (학습 파일 불필요) - 항상 호환
         if model_type == "vector":
             draws = load_draws(lottery_id)
             model = LottoVectorModel(n_clusters=5, n_neighbors=10)
-            model.fit([d["numbers"] for d in draws])  # dict에서 numbers 추출
-            MODELS[cache_key] = model
+            model.fit([d["numbers"] for d in draws])
+            MODELS[cache_key] = (model, True)
             return MODELS[cache_key]
         
         folder = "transformer" if model_type == "transformer" else "lstm"
@@ -77,6 +85,13 @@ def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
         checkpoint = torch.load(model_path, map_location="cpu", weights_only=True)
         config = checkpoint.get("config", {})
         
+        # 모델이 지원하는 최대 번호 확인
+        model_max = config.get("num_numbers", 45)
+        is_compatible = (model_max >= lottery_max)
+        
+        if not is_compatible:
+            print(f"⚠️ 모델 비호환: {lottery_id} 요구 {lottery_max}, 모델 {model_max} (Vector로 폴백)")
+        
         if model_type == "transformer":
             model = create_transformer(config)
         else:
@@ -84,7 +99,7 @@ def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
             
         model.load_state_dict(checkpoint["model_state_dict"])
         model.eval()
-        MODELS[cache_key] = model
+        MODELS[cache_key] = (model, is_compatible)
         
     return MODELS[cache_key]
 
@@ -97,6 +112,18 @@ def load_draws(lottery_id: str = "korea_645") -> list:
     with open(data_file, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data.get("draws", [])
+
+
+def get_lottery_config(lottery_id: str) -> dict:
+    """로또 설정 로드 (number_range, numbers_count 등)"""
+    config_path = PROJECT_ROOT / "config" / "lotteries.json"
+    default = {"number_range": [1, 45], "numbers_count": 6}
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            configs = json.load(f)
+        return configs.get(lottery_id, default)
+    except:
+        return default
 
 
 def load_history(lottery_id: str = "korea_645") -> list:
@@ -118,14 +145,15 @@ def save_history(history: list, lottery_id: str = "korea_645"):
     print(f"[DEBUG] 저장 완료!")
 
 
-def analyze_numbers(numbers: list) -> dict:
-    """번호 분석"""
+def analyze_numbers(numbers: list, max_number: int = 45) -> dict:
+    """번호 분석 (max_number는 로또별로 다름: 45, 49, 43 등)"""
+    midpoint = max_number // 2
     return {
         "sum": sum(numbers),
         "odd_count": sum(1 for n in numbers if n % 2 == 1),
         "even_count": sum(1 for n in numbers if n % 2 == 0),
-        "low_count": sum(1 for n in numbers if n <= 22),
-        "high_count": sum(1 for n in numbers if n > 22),
+        "low_count": sum(1 for n in numbers if n <= midpoint),
+        "high_count": sum(1 for n in numbers if n > midpoint),
     }
 
 
@@ -202,16 +230,38 @@ async def get_draws(lottery_id: str, limit: int = 10):
 @app.post("/api/generate")
 async def generate_numbers(req: GenerateRequest):
     """AI 번호 생성"""
-    model = get_model(req.model_type, req.lottery_id)
     draws = load_draws(req.lottery_id)
     
     if len(draws) < 10:
         raise HTTPException(status_code=400, detail="데이터 부족 (최소 10회차 필요)")
     
+    # 원래 요청한 모델 저장
+    original_model_type = req.model_type
+    actual_model_type = req.model_type
+    
+    # 모델 호환성 확인 (Vector 제외)
+    if req.model_type in ["transformer", "lstm"]:
+        model_result = get_model(req.model_type, req.lottery_id)
+        model, is_compatible = model_result
+        
+        if not is_compatible:
+            # 비호환 모델 → Vector로 폴백
+            print(f"[INFO] {req.lottery_id}: {req.model_type} 비호환, Vector로 폴백")
+            actual_model_type = "vector"
+            model_result = get_model("vector", req.lottery_id)
+            model, _ = model_result
+    else:
+        model_result = get_model(req.model_type, req.lottery_id)
+        model, _ = model_result
+    
     generated = []
     
     # Vector 모델은 별도 처리 (generate() 메서드 사용)
-    if req.model_type == "vector":
+    if actual_model_type == "vector":
+        # 로또별 설정 로드
+        lottery_config = get_lottery_config(req.lottery_id)
+        max_num = lottery_config.get("number_range", [1, 45])[1]
+        
         # Vector가 더 많이 생성하도록 요청 (필터로 걸러질 수 있으므로)
         results = model.generate(count=req.count * 3, temperature=req.temperature)
         for r in results:
@@ -228,7 +278,7 @@ async def generate_numbers(req: GenerateRequest):
             if req.consecutive_filter and has_consecutive(numbers):
                 continue
             
-            analysis = analyze_numbers(numbers)
+            analysis = analyze_numbers(numbers, max_num)
             analysis["ac_value"] = r['ac_value']
             analysis["ac_rating"] = get_ac_rating(numbers)
             analysis["similarity"] = r['similarity']
@@ -238,9 +288,15 @@ async def generate_numbers(req: GenerateRequest):
                 "analysis": analysis
             })
 
-    elif req.model_type == "hot_trend":
+    elif actual_model_type == "hot_trend":
         # Hot Trend: 최근 빈도 기반 가중치
         print("[INFO] Hot Trend Generating...")
+        
+        # 로또별 설정 로드
+        lottery_config = get_lottery_config(req.lottery_id)
+        num_range = lottery_config.get("number_range", [1, 45])
+        min_num, max_num = num_range[0], num_range[1]
+        numbers_count = lottery_config.get("numbers_count", 6)
         
         # 최근 30회차 분석 (데이터가 적으면 전체 사용)
         recent_count = min(len(draws), 30)
@@ -250,10 +306,10 @@ async def generate_numbers(req: GenerateRequest):
         for draw in recent_draws:
             frequency.update(draw)
             
-        # 가중치 계산
+        # 가중치 계산 (로또별 범위 사용)
         weights = {}
         total_weight = 0
-        for n in range(1, 46):
+        for n in range(min_num, max_num + 1):
             w = 1 + (frequency[n] * 2)
             weights[n] = w
             total_weight += w
@@ -262,13 +318,13 @@ async def generate_numbers(req: GenerateRequest):
         for _ in range(req.count):
             current_set = set()
             attempts = 0
-            while len(current_set) < 6 and attempts < 100:
+            while len(current_set) < numbers_count and attempts < 100:
                 attempts += 1
                 rand_val = random.uniform(0, total_weight)
                 cumulative = 0
                 selected = -1
                 
-                for n in range(1, 46):
+                for n in range(min_num, max_num + 1):
                     cumulative += weights[n]
                     if rand_val <= cumulative:
                         selected = n
@@ -280,7 +336,7 @@ async def generate_numbers(req: GenerateRequest):
             numbers = sorted(list(current_set))
             
             # 분석 데이터
-            analysis = analyze_numbers(numbers)
+            analysis = analyze_numbers(numbers, max_num)
             ac_val = calculate_ac(numbers)
             analysis["ac_value"] = ac_val
             analysis["ac_rating"] = get_ac_rating(numbers)
@@ -293,6 +349,11 @@ async def generate_numbers(req: GenerateRequest):
 
     else:
         # Transformer/LSTM: predict() 메서드 사용
+        # 로또별 설정 로드
+        lottery_config = get_lottery_config(req.lottery_id)
+        max_num = lottery_config.get("number_range", [1, 45])[1]
+        numbers_count = lottery_config.get("numbers_count", 6)
+        
         recent = [d["numbers"] for d in draws[-10:]]
         input_tensor = torch.tensor([recent], dtype=torch.long)
         
@@ -308,11 +369,11 @@ async def generate_numbers(req: GenerateRequest):
             numbers = sorted(prediction[0].tolist())
             numbers_tuple = tuple(numbers)
             
-            if len(set(numbers)) == 6 and numbers_tuple not in seen:
+            if len(set(numbers)) == numbers_count and numbers_tuple not in seen:
                 ac_value = calculate_ac(numbers)
                 
                 # AC 필터
-                if req.ac_filter and len(numbers) == 6 and ac_value < 7:
+                if req.ac_filter and len(numbers) == numbers_count and ac_value < 7:
                     continue
                 
                 # 합계 필터 (100~175)
@@ -324,7 +385,7 @@ async def generate_numbers(req: GenerateRequest):
                     continue
                 
                 seen.add(numbers_tuple)
-                analysis = analyze_numbers(numbers)
+                analysis = analyze_numbers(numbers, max_num)
                 analysis["ac_value"] = ac_value
                 analysis["ac_rating"] = get_ac_rating(numbers)
                 generated.append({
