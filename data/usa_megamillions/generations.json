@@ -80,5 +80,51 @@
     "model": "transformer",
     "numbers": [],
     "result": null
+  },
+  {
+    "id": 8,
+    "generated_at": "2026-01-01T11:59:06.718952",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          10,
+          14,
+          44,
+          60,
+          68
+        ],
+        "analysis": {
+          "sum": 196,
+          "odd_count": 0,
+          "even_count": 5,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          37,
+          54,
+          63,
+          69
+        ],
+        "analysis": {
+          "sum": 230,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 1,
+          "high_count": 4,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]

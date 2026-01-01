@@ -14,7 +14,7 @@ def is_valid_sum(numbers: list, min_sum: int = 100, max_sum: int = 175) -> bool:
     - 권장 범위: 100~175 (전체 당첨의 약 85% 커버)
     
     Args:
-        numbers: 6개 번호 리스트
+        numbers: 번호 리스트
         min_sum: 최소 합계 (기본 100)
         max_sum: 최대 합계 (기본 175)
     
@@ -22,6 +22,39 @@ def is_valid_sum(numbers: list, min_sum: int = 100, max_sum: int = 175) -> bool:
         True if 합계가 범위 내, False otherwise
     """
     total = sum(numbers)
+    return min_sum <= total <= max_sum
+
+
+def is_valid_sum_dynamic(numbers: list, ball_count: int = 6, max_number: int = 45) -> bool:
+    """
+    동적 합계 범위 검증 (로또별로 다른 범위 적용)
+    
+    이론적 합계 범위 계산:
+    - 최소: 1 + 2 + ... + ball_count
+    - 최대: (max_number - ball_count + 1) + ... + max_number
+    - 평균: (최소 + 최대) / 2
+    - 권장 범위: 평균 ± 25%
+    
+    Args:
+        numbers: 번호 리스트
+        ball_count: 공 개수 (5 or 6)
+        max_number: 최대 번호 (45, 49, 69 등)
+    
+    Returns:
+        True if 합계가 범위 내
+    """
+    total = sum(numbers)
+    
+    # 이론적 합계 범위 계산
+    min_theoretical = sum(range(1, ball_count + 1))  # 1+2+...+ball_count
+    max_theoretical = sum(range(max_number - ball_count + 1, max_number + 1))
+    avg = (min_theoretical + max_theoretical) / 2
+    
+    # 권장 범위: 평균 ± 30%
+    margin = avg * 0.30
+    min_sum = int(avg - margin)
+    max_sum = int(avg + margin)
+    
     return min_sum <= total <= max_sum
 
 

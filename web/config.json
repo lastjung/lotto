@@ -1,5 +1,5 @@
 {
-    "default_lottery": "usa_megamillions",
-    "default_model": "vector",
-    "updated_at": "2026-01-01T16:33:47.323Z"
+    "default_lottery": "usa_powerball",
+    "default_model": "transformer",
+    "updated_at": "2026-01-01T16:54:21.102Z"
 }

@@ -24,7 +24,7 @@ from models_ai.src.transformer.lotto_transformer import create_model as create_t
 from models_ai.src.lstm.lotto_lstm import create_model as create_lstm
 from models_ai.src.vector.lotto_vector import LottoVectorModel
 from models_stat.ac_analysis import calculate_ac, is_valid_ac, get_ac_rating
-from models_stat.sum_analysis import is_valid_sum
+from models_stat.sum_analysis import is_valid_sum, is_valid_sum_dynamic
 from models_stat.consecutive_analysis import has_consecutive
 import torch
 
@@ -261,6 +261,7 @@ async def generate_numbers(req: GenerateRequest):
         # 로또별 설정 로드
         lottery_config = get_lottery_config(req.lottery_id)
         max_num = lottery_config.get("ball_range", [1, 45])[1]
+        ball_count = lottery_config.get("ball_count", 6)
         
         # Vector가 더 많이 생성하도록 요청 (필터로 걸러질 수 있으므로)
         results = model.generate(count=req.count * 3, temperature=req.temperature)
@@ -270,8 +271,8 @@ async def generate_numbers(req: GenerateRequest):
             
             numbers = r['numbers']
             
-            # 합계 필터 (100~175)
-            if req.sum_filter and not is_valid_sum(numbers):
+            # 합계 필터 (동적 범위)
+            if req.sum_filter and not is_valid_sum_dynamic(numbers, ball_count, max_num):
                 continue
             
             # 연속번호 필터 (3개 이상 연속 제외)
@@ -375,12 +376,13 @@ async def generate_numbers(req: GenerateRequest):
             if len(set(numbers)) == ball_count and numbers_tuple not in seen:
                 ac_value = calculate_ac(numbers)
                 
-                # AC 필터
-                if req.ac_filter and len(numbers) == ball_count and ac_value < 7:
+                # AC 필터 (동적: 6개 공 = 7, 5개 공 = 5)
+                ac_threshold = 7 if ball_count == 6 else 5
+                if req.ac_filter and ac_value < ac_threshold:
                     continue
                 
-                # 합계 필터 (100~175)
-                if req.sum_filter and not is_valid_sum(numbers):
+                # 합계 필터 (동적 범위)
+                if req.sum_filter and not is_valid_sum_dynamic(numbers, ball_count, max_num):
                     continue
                 
                 # 연속번호 필터 (3개 이상 연속 제외)
