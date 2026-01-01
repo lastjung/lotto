@@ -361,3 +361,33 @@ cp -L web-static/data/*.json deploy/data/
 - [x] **Filter Integration**: AC, 합계, 연속 번호 등 이론 필터들을 엔진에 통합.
 - [x] **Sidebar Logic**: 대시보드와 설정(System) 영역의 논리적 분리 및 상태 유지 로직 구현.
 - [x] **Data Completion**: 캐나다 로또 등 누락된 과거 데이터 수집 및 자동화 프로세스 구축.
+
+---
+
+## 7. 프론트엔드 정리 (2026-01-01)
+
+### 7.1 ui.js / app.js 충돌 해결
+| 문제 | 해결 |
+|------|------|
+| `displayResults` 오버라이드 | 제거 (-80줄) |
+| `loadHistory` 오버라이드 | 제거 (-35줄) |
+| `selectModel` 오버라이드 | 제거 (-60줄) |
+| `supabase` 변수 충돌 | `supabaseClient`로 변경 |
+
+### 7.2 결과 헤더 표시 개선
+- **Before**: 번호만 표시
+- **After**: `Korea Lotto 6/45 | HOT_TREND | Draw 1205` 헤더 추가
+
+### 7.3 LSTM/Vector 자동 생성 수정
+```diff
+- if (!isInit && (type === 'transformer' || type === 'hot_trend')) {
++ if (!isInit && ['transformer', 'lstm', 'vector', 'hot_trend'].includes(type)) {
+```
+
+### 7.4 모든 모델 정상 작동 확인
+| 모델 | 생성 | 저장 |
+|------|------|------|
+| Transformer | ✅ | ✅ |
+| LSTM | ✅ | ✅ |
+| Vector | ✅ | ✅ |
+| Hot Trend | ✅ | ✅ |
