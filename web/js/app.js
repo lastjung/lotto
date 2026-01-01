@@ -222,8 +222,8 @@ async function selectModel(type, isInit = false) {
 
     await loadModel(type);
 
-    // [특수 기능] Transformer/Hot Trend 자동 실행 (초기 로드 시에는 실행 안 함)
-    if (!isInit && (type === 'transformer' || type === 'hot_trend')) {
+    // [특수 기능] 모든 모델 자동 실행 (초기 로드 시에는 실행 안 함)
+    if (!isInit && ['transformer', 'lstm', 'vector', 'hot_trend'].includes(type)) {
         console.log(`⚡ ${type} Card Clicked: Executing Auto-Generate Flow`);
 
         // [Persistence] 2. Config 저장 (서버) - Dual Save
