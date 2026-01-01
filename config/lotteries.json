@@ -2,8 +2,8 @@
     "korea_645": {
         "name": "한국 로또 6/45",
         "country": "KR",
-        "numbers_count": 6,
-        "number_range": [
+        "ball_count": 6,
+        "ball_range": [
             1,
             45
         ],
@@ -17,8 +17,8 @@
     "usa_powerball": {
         "name": "Powerball",
         "country": "US",
-        "numbers_count": 5,
-        "number_range": [
+        "ball_count": 5,
+        "ball_range": [
             1,
             69
         ],
@@ -40,8 +40,8 @@
     "usa_megamillions": {
         "name": "Mega Millions",
         "country": "US",
-        "numbers_count": 5,
-        "number_range": [
+        "ball_count": 5,
+        "ball_range": [
             1,
             70
         ],
@@ -62,8 +62,8 @@
     "canada_649": {
         "name": "Lotto 6/49",
         "country": "CA",
-        "numbers_count": 6,
-        "number_range": [
+        "ball_count": 6,
+        "ball_range": [
             1,
             49
         ],
@@ -78,8 +78,8 @@
     "japan_loto6": {
         "name": "ロト6",
         "country": "JP",
-        "numbers_count": 6,
-        "number_range": [
+        "ball_count": 6,
+        "ball_range": [
             1,
             43
         ],

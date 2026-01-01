@@ -55,7 +55,7 @@ def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
     
     # 로또 설정 미리 로드
     lottery_config = get_lottery_config(lottery_id)
-    lottery_max = lottery_config.get("number_range", [1, 45])[1]
+    lottery_max = lottery_config.get("ball_range", [1, 45])[1]
     
     if cache_key not in MODELS:
         # Vector 모델은 실시간 학습 (학습 파일 불필요) - 항상 호환
@@ -85,8 +85,8 @@ def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
         checkpoint = torch.load(model_path, map_location="cpu", weights_only=True)
         config = checkpoint.get("config", {})
         
-        # 모델이 지원하는 최대 번호 확인
-        model_max = config.get("num_numbers", 45)
+        # 모델이 지원하는 최대 번호 확인 (신규: ball_ranges, 구형: num_numbers)
+        model_max = config.get("ball_ranges", config.get("num_numbers", 45))
         is_compatible = (model_max >= lottery_max)
         
         if not is_compatible:
@@ -115,9 +115,9 @@ def load_draws(lottery_id: str = "korea_645") -> list:
 
 
 def get_lottery_config(lottery_id: str) -> dict:
-    """로또 설정 로드 (number_range, numbers_count 등)"""
+    """로또 설정 로드 (ball_range, ball_count 등)"""
     config_path = PROJECT_ROOT / "config" / "lotteries.json"
-    default = {"number_range": [1, 45], "numbers_count": 6}
+    default = {"ball_range": [1, 45], "ball_count": 6}
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             configs = json.load(f)
@@ -260,7 +260,7 @@ async def generate_numbers(req: GenerateRequest):
     if actual_model_type == "vector":
         # 로또별 설정 로드
         lottery_config = get_lottery_config(req.lottery_id)
-        max_num = lottery_config.get("number_range", [1, 45])[1]
+        max_num = lottery_config.get("ball_range", [1, 45])[1]
         
         # Vector가 더 많이 생성하도록 요청 (필터로 걸러질 수 있으므로)
         results = model.generate(count=req.count * 3, temperature=req.temperature)
@@ -294,9 +294,9 @@ async def generate_numbers(req: GenerateRequest):
         
         # 로또별 설정 로드
         lottery_config = get_lottery_config(req.lottery_id)
-        num_range = lottery_config.get("number_range", [1, 45])
+        num_range = lottery_config.get("ball_range", [1, 45])
         min_num, max_num = num_range[0], num_range[1]
-        numbers_count = lottery_config.get("numbers_count", 6)
+        ball_count = lottery_config.get("ball_count", 6)
         
         # 최근 30회차 분석 (데이터가 적으면 전체 사용)
         recent_count = min(len(draws), 30)
@@ -318,7 +318,7 @@ async def generate_numbers(req: GenerateRequest):
         for _ in range(req.count):
             current_set = set()
             attempts = 0
-            while len(current_set) < numbers_count and attempts < 100:
+            while len(current_set) < ball_count and attempts < 100:
                 attempts += 1
                 rand_val = random.uniform(0, total_weight)
                 cumulative = 0
@@ -351,8 +351,8 @@ async def generate_numbers(req: GenerateRequest):
         # Transformer/LSTM: predict() 메서드 사용
         # 로또별 설정 로드
         lottery_config = get_lottery_config(req.lottery_id)
-        max_num = lottery_config.get("number_range", [1, 45])[1]
-        numbers_count = lottery_config.get("numbers_count", 6)
+        max_num = lottery_config.get("ball_range", [1, 45])[1]
+        ball_count = lottery_config.get("ball_count", 6)
         
         recent = [d["numbers"] for d in draws[-10:]]
         input_tensor = torch.tensor([recent], dtype=torch.long)
@@ -369,11 +369,11 @@ async def generate_numbers(req: GenerateRequest):
             numbers = sorted(prediction[0].tolist())
             numbers_tuple = tuple(numbers)
             
-            if len(set(numbers)) == numbers_count and numbers_tuple not in seen:
+            if len(set(numbers)) == ball_count and numbers_tuple not in seen:
                 ac_value = calculate_ac(numbers)
                 
                 # AC 필터
-                if req.ac_filter and len(numbers) == numbers_count and ac_value < 7:
+                if req.ac_filter and len(numbers) == ball_count and ac_value < 7:
                     continue
                 
                 # 합계 필터 (100~175)

@@ -1,8 +1,13 @@
 """
 로또 LSTM 모델 학습 스크립트
+
+사용법:
+    python train.py --lottery korea_645
+    python train.py --lottery canada_649 --history_length 20 --epochs 100
 """
 
 import json
+import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,26 +17,43 @@ import numpy as np
 from tqdm import tqdm
 import sys
 
-# 프로젝트 루트 추가
-sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+sys.path.append(str(PROJECT_ROOT))
 from models_ai.src.lstm.lotto_lstm import create_model
+
+
+def load_lottery_config(lottery_id: str) -> dict:
+    """로또 설정 로드 (config/lotteries.json)"""
+    config_path = PROJECT_ROOT / "config" / "lotteries.json"
+    with open(config_path, "r", encoding="utf-8") as f:
+        configs = json.load(f)
+    if lottery_id not in configs:
+        raise ValueError(f"Unknown lottery: {lottery_id}. Available: {list(configs.keys())}")
+    return configs[lottery_id]
+
+
+def load_training_config() -> dict:
+    """학습 설정 로드 (config/training_config.json)"""
+    config_path = PROJECT_ROOT / "config" / "training_config.json"
+    with open(config_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 class LottoDataset(Dataset):
     """로또 데이터셋"""
     
-    def __init__(self, data_path: str, seq_length: int = 10):
+    def __init__(self, data_path: str, history_length: int = 10):
         with open(data_path, "r", encoding="utf-8") as f:
             data = json.load(f)
         
         self.draws = [d["numbers"] for d in data["draws"]]
-        self.seq_length = seq_length
+        self.history_length = history_length
         
-        # 시퀀스 생성: 이전 seq_length 회차 -> 다음 회차
+        # 시퀀스 생성: 이전 history_length 회차 -> 다음 회차
         self.sequences = []
-        for i in range(len(self.draws) - seq_length):
-            input_seq = self.draws[i:i + seq_length]
-            target = self.draws[i + seq_length]
+        for i in range(len(self.draws) - history_length):
+            input_seq = self.draws[i:i + history_length]
+            target = self.draws[i + history_length]
             self.sequences.append((input_seq, target))
     
     def __len__(self):
@@ -47,7 +69,7 @@ class LottoDataset(Dataset):
         return input_tensor, target_tensor
 
 
-def train_epoch(model, dataloader, optimizer, criterion, device):
+def train_epoch(model, dataloader, optimizer, criterion, device, ball_count):
     """한 에폭 학습"""
     model.train()
     total_loss = 0
@@ -59,13 +81,13 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
         optimizer.zero_grad()
         
         # Forward
-        outputs = model(inputs)  # (batch, 6, 45)
+        outputs = model(inputs)  # (batch, ball_count, ball_ranges)
         
         # Loss 계산
         loss = 0
-        for i in range(6):
+        for i in range(ball_count):
             loss += criterion(outputs[:, i, :], targets[:, i])
-        loss /= 6
+        loss /= ball_count
         
         # Backward
         loss.backward()
@@ -76,10 +98,10 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
     return total_loss / len(dataloader)
 
 
-def evaluate(model, dataloader, device):
+def evaluate(model, dataloader, device, ball_count):
     """평가"""
     model.eval()
-    correct_per_position = [0] * 6
+    correct_per_position = [0] * ball_count
     total = 0
     
     with torch.no_grad():
@@ -90,7 +112,7 @@ def evaluate(model, dataloader, device):
             outputs = model(inputs)
             predictions = outputs.argmax(dim=-1)
             
-            for i in range(6):
+            for i in range(ball_count):
                 correct_per_position[i] += (predictions[:, i] == targets[:, i]).sum().item()
             total += targets.size(0)
     
@@ -98,27 +120,45 @@ def evaluate(model, dataloader, device):
     return accuracies
 
 
-def train(
-    data_path: str = "data/korea_645/draws.json",
-    model_save_path: str = "models_ai/trained/lstm/lotto_model.pt",
-    seq_length: int = 10,
-    batch_size: int = 32,
-    epochs: int = 50,
-    lr: float = 0.001,
-    device: str = None
-):
+def train(lottery_id: str, **overrides):
     """모델 학습 메인 함수"""
     
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    # 로또 설정 로드
+    lottery_config = load_lottery_config(lottery_id)
+    ball_range = lottery_config["ball_range"]
+    ball_ranges = ball_range[1]  # max value
+    ball_count = lottery_config["ball_count"]
+    data_path = PROJECT_ROOT / lottery_config["data_file"]
     
+    print(f"\n{'='*50}")
+    print(f"🎱 {lottery_config['name']} LSTM 모델 학습")
+    print(f"{'='*50}")
+    print(f"ball_ranges: {ball_ranges}, ball_count: {ball_count}")
+    
+    # 학습 설정 로드
+    training_config = load_training_config()
+    
+    # CLI 오버라이드 적용
+    for key, value in overrides.items():
+        if value is not None:
+            training_config[key] = value
+    
+    history_length = training_config["history_length"]
+    epochs = training_config["epochs"]
+    batch_size = training_config["batch_size"]
+    lr = training_config["learning_rate"]
+    
+    print(f"history_length: {history_length}, epochs: {epochs}")
+    
+    # 디바이스 설정
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     print(f"Device: {device}")
     
     # 데이터 로드
-    print("데이터 로드 중...")
-    dataset = LottoDataset(data_path, seq_length)
+    print("\n데이터 로드 중...")
+    dataset = LottoDataset(str(data_path), history_length)
     
-    # Train/Val 분리
+    # Train/Val 분리 (80/20)
     train_size = int(0.8 * len(dataset))
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
@@ -128,15 +168,18 @@ def train(
     
     print(f"Train: {len(train_dataset)}, Val: {len(val_dataset)}")
     
-    # 모델 생성
+    # 모델 설정
     model_config = {
-        "num_numbers": 45,
-        "seq_length": seq_length,
+        "ball_ranges": ball_ranges,
+        "history_length": history_length,
+        "ball_count": ball_count,
         "embedding_dim": 64,
         "hidden_dim": 128,
         "num_layers": 2,
-        "dropout": 0.2
+        "dropout": 0.2,
     }
+    
+    # 모델 생성
     model = create_model(model_config).to(device)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"모델 파라미터: {total_params:,}")
@@ -148,12 +191,17 @@ def train(
     
     best_loss = float('inf')
     
+    # 저장 경로
+    save_dir = PROJECT_ROOT / "models_ai" / "trained" / "lstm"
+    save_dir.mkdir(parents=True, exist_ok=True)
+    model_save_path = save_dir / f"{lottery_id}.pt"
+    
     # 학습 루프
     print("\n학습 시작...")
     for epoch in range(epochs):
-        train_loss = train_epoch(model, train_loader, optimizer, criterion, device)
-        val_accs = evaluate(model, val_loader, device)
-        avg_acc = sum(val_accs) / 6
+        train_loss = train_epoch(model, train_loader, optimizer, criterion, device, ball_count)
+        val_accs = evaluate(model, val_loader, device, ball_count)
+        avg_acc = sum(val_accs) / ball_count
         
         scheduler.step()
         
@@ -162,17 +210,41 @@ def train(
         # 최고 모델 저장
         if train_loss < best_loss:
             best_loss = train_loss
-            Path(model_save_path).parent.mkdir(parents=True, exist_ok=True)
             torch.save({
                 "model_state_dict": model.state_dict(),
                 "config": model_config,
+                "lottery_id": lottery_id,
                 "epoch": epoch,
                 "loss": train_loss
             }, model_save_path)
             print(f"  ✓ 모델 저장: {model_save_path}")
     
-    print("\n✅ 학습 완료!")
+    print(f"\n✅ 학습 완료! 저장: {model_save_path}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="로또 LSTM 모델 학습")
+    parser.add_argument("--lottery", "-l", type=str, required=True,
+                        help="로또 ID (예: korea_645, canada_649)")
+    parser.add_argument("--history_length", type=int, default=None,
+                        help="입력 회차 수 (기본: training_config.json)")
+    parser.add_argument("--epochs", type=int, default=None,
+                        help="학습 에폭 수")
+    parser.add_argument("--batch_size", type=int, default=None,
+                        help="배치 크기")
+    parser.add_argument("--learning_rate", type=float, default=None,
+                        help="학습률")
+    
+    args = parser.parse_args()
+    
+    train(
+        lottery_id=args.lottery,
+        history_length=args.history_length,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate
+    )
 
 
 if __name__ == "__main__":
-    train()
+    main()

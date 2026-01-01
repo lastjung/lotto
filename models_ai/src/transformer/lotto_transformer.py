@@ -33,34 +33,36 @@ class LottoTransformer(nn.Module):
     """
     로또 번호 예측용 소형 Transformer
     
-    입력: 이전 N회차의 번호들 (N x 6)
-    출력: 다음 회차 각 번호(1~45)의 확률
+    입력: 이전 N회차의 번호들 (N x ball_count)
+    출력: 다음 회차 각 번호(1~ball_ranges)의 확률
     """
     
     def __init__(
         self,
-        num_numbers: int = 45,      # 로또 번호 범위 (1~45)
-        seq_length: int = 10,        # 입력 시퀀스 길이 (이전 N회차)
-        d_model: int = 64,           # 임베딩 차원
-        nhead: int = 4,              # 어텐션 헤드 수
-        num_layers: int = 2,         # Transformer 레이어 수
-        dim_feedforward: int = 128,  # FFN 차원
+        ball_ranges: int = 45,        # 로또 번호 범위 (1~45)
+        history_length: int = 10,     # 입력 시퀀스 길이 (이전 N회차)
+        ball_count: int = 6,          # 공 개수
+        d_model: int = 64,            # 임베딩 차원
+        nhead: int = 4,               # 어텐션 헤드 수
+        num_layers: int = 2,          # Transformer 레이어 수
+        dim_feedforward: int = 128,   # FFN 차원
         dropout: float = 0.1
     ):
         super().__init__()
         
-        self.num_numbers = num_numbers
-        self.seq_length = seq_length
+        self.ball_ranges = ball_ranges
+        self.history_length = history_length
+        self.ball_count = ball_count
         self.d_model = d_model
         
-        # 번호 임베딩 (1~45 -> d_model 차원)
-        self.number_embedding = nn.Embedding(num_numbers + 1, d_model)  # 0: padding
+        # 번호 임베딩 (1~ball_ranges -> d_model 차원)
+        self.number_embedding = nn.Embedding(ball_ranges + 1, d_model)  # 0: padding
         
-        # 위치 임베딩 (6개 번호 위치)
-        self.position_in_draw = nn.Embedding(6, d_model)
+        # 위치 임베딩 (ball_count개 번호 위치)
+        self.position_in_draw = nn.Embedding(ball_count, d_model)
         
         # 회차 위치 인코딩
-        self.positional_encoding = PositionalEncoding(d_model, max_len=seq_length * 6)
+        self.positional_encoding = PositionalEncoding(d_model, max_len=history_length * ball_count)
         
         # Transformer Encoder
         encoder_layer = nn.TransformerEncoderLayer(
@@ -73,7 +75,7 @@ class LottoTransformer(nn.Module):
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
         # 출력 레이어: 각 번호의 확률
-        self.fc_out = nn.Linear(d_model, num_numbers)
+        self.fc_out = nn.Linear(d_model, ball_ranges)
         
         # 드롭아웃
         self.dropout = nn.Dropout(dropout)
@@ -94,8 +96,8 @@ class LottoTransformer(nn.Module):
         # 번호 임베딩
         embedded = self.number_embedding(x_flat)  # (batch, seq*6, d_model)
         
-        # 번호 위치 임베딩 (0~5 반복)
-        positions = torch.arange(6).repeat(self.seq_length).to(x.device)
+        # 번호 위치 임베딩 (0~ball_count-1 반복)
+        positions = torch.arange(self.ball_count).repeat(self.history_length).to(x.device)
         pos_embedded = self.position_in_draw(positions)
         embedded = embedded + pos_embedded
         
@@ -106,8 +108,8 @@ class LottoTransformer(nn.Module):
         # Transformer
         encoded = self.transformer(embedded)  # (batch, seq*6, d_model)
         
-        # 마지막 6개 토큰의 출력을 사용 (다음 회차 예측)
-        last_outputs = encoded[:, -6:, :]  # (batch, 6, d_model)
+        # 마지막 ball_count개 토큰의 출력을 사용 (다음 회차 예측)
+        last_outputs = encoded[:, -self.ball_count:, :]  # (batch, ball_count, d_model)
         
         # 각 위치에서 번호 확률 예측
         logits = self.fc_out(last_outputs)  # (batch, 6, num_numbers)
@@ -143,7 +145,7 @@ class LottoTransformer(nn.Module):
             
             # 샘플링
             predicted = []
-            for i in range(6):
+            for i in range(self.ball_count):
                 sampled = torch.multinomial(probs[:, i, :], 1)
                 predicted.append(sampled + 1)  # 0-indexed -> 1-indexed
             
@@ -153,8 +155,9 @@ class LottoTransformer(nn.Module):
 def create_model(config: dict = None) -> LottoTransformer:
     """모델 생성 헬퍼 함수"""
     default_config = {
-        "num_numbers": 45,
-        "seq_length": 10,
+        "ball_ranges": 45,
+        "history_length": 10,
+        "ball_count": 6,
         "d_model": 64,
         "nhead": 4,
         "num_layers": 2,

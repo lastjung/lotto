@@ -12,14 +12,15 @@ class LottoLSTM(nn.Module):
     """
     로또 번호 예측용 LSTM 모델
     
-    입력: 이전 N회차의 번호들 (N x 6)
-    출력: 다음 회차 각 번호(1~45)의 확률
+    입력: 이전 N회차의 번호들 (N x ball_count)
+    출력: 다음 회차 각 번호(1~ball_ranges)의 확률
     """
     
     def __init__(
         self,
-        num_numbers: int = 45,
-        seq_length: int = 10,
+        ball_ranges: int = 45,
+        history_length: int = 10,
+        ball_count: int = 6,
         embedding_dim: int = 64,
         hidden_dim: int = 128,
         num_layers: int = 2,
@@ -27,15 +28,16 @@ class LottoLSTM(nn.Module):
     ):
         super().__init__()
         
-        self.num_numbers = num_numbers
-        self.seq_length = seq_length
+        self.ball_ranges = ball_ranges
+        self.history_length = history_length
+        self.ball_count = ball_count
         
         # 번호 임베딩
-        self.embedding = nn.Embedding(num_numbers + 1, embedding_dim)
+        self.embedding = nn.Embedding(ball_ranges + 1, embedding_dim)
         
         # LSTM 레이어
         self.lstm = nn.LSTM(
-            input_size=embedding_dim * 6,
+            input_size=embedding_dim * ball_count,
             hidden_size=hidden_dim,
             num_layers=num_layers,
             batch_first=True,
@@ -43,21 +45,21 @@ class LottoLSTM(nn.Module):
         )
         
         # 출력 레이어
-        self.fc_out = nn.Linear(hidden_dim, num_numbers * 6)
+        self.fc_out = nn.Linear(hidden_dim, ball_ranges * ball_count)
         self.dropout = nn.Dropout(dropout)
         
     def forward(self, x):
         """
         Args:
-            x: (batch, seq_length, 6)
+            x: (batch, history_length, ball_count)
         Returns:
-            (batch, 6, num_numbers)
+            (batch, ball_count, ball_ranges)
         """
         batch_size = x.size(0)
         
-        # 임베딩 및 결합: (batch, seq, 6, emb) -> (batch, seq, 6 * emb)
-        embedded = self.embedding(x)  # (batch, seq, 6, embedding_dim)
-        embedded = embedded.view(batch_size, self.seq_length, -1)
+        # 임베딩 및 결합: (batch, seq, ball_count, emb) -> (batch, seq, ball_count * emb)
+        embedded = self.embedding(x)  # (batch, seq, ball_count, embedding_dim)
+        embedded = embedded.view(batch_size, self.history_length, -1)
         
         # LSTM
         lstm_out, _ = self.lstm(embedded)  # (batch, seq, hidden_dim)
@@ -66,9 +68,9 @@ class LottoLSTM(nn.Module):
         last_out = lstm_out[:, -1, :]  # (batch, hidden_dim)
         last_out = self.dropout(last_out)
         
-        # 로짓 생성: (batch, hidden_dim) -> (batch, 6 * num_numbers)
+        # 로짓 생성: (batch, hidden_dim) -> (batch, ball_count * ball_ranges)
         logits = self.fc_out(last_out)
-        logits = logits.view(batch_size, 6, self.num_numbers)
+        logits = logits.view(batch_size, self.ball_count, self.ball_ranges)
         
         return logits
 
@@ -76,7 +78,7 @@ class LottoLSTM(nn.Module):
         """번호 생성"""
         self.eval()
         with torch.no_grad():
-            logits = self.forward(x)  # (batch, 6, 45)
+            logits = self.forward(x)  # (batch, ball_count, ball_ranges)
             logits = logits / temperature
             
             if top_k > 0:
@@ -86,7 +88,7 @@ class LottoLSTM(nn.Module):
             probs = F.softmax(logits, dim=-1)
             
             predicted = []
-            for i in range(6):
+            for i in range(self.ball_count):
                 sampled = torch.multinomial(probs[:, i, :], 1)
                 predicted.append(sampled + 1)
             
@@ -95,8 +97,9 @@ class LottoLSTM(nn.Module):
 
 def create_model(config: dict = None) -> LottoLSTM:
     default_config = {
-        "num_numbers": 45,
-        "seq_length": 10,
+        "ball_ranges": 45,
+        "history_length": 10,
+        "ball_count": 6,
         "embedding_dim": 64,
         "hidden_dim": 128,
         "num_layers": 2,

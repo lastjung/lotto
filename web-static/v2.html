@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎱 AI 로또 분석기 V2 - Deep Space</title>
+    <!-- Tailwind CSS with CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'void-navy': '#0f172a',
+                        'midnight-purple': '#2e1065',
+                        'neon-cyan': '#06b6d4',
+                        'vivid-pink': '#ec4899',
+                        'amber-gold': '#f59e0b',
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                        'glow-pink': '0 0 15px rgba(236, 72, 153, 0.5)',
+                        'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.5)',
+                    },
+                    fontFamily: {
+                        'sans': ['Pretendard', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 20%, #2e1065 0%, #0f172a 70%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        .heading-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .lotto-ball-v2 {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+            position: relative;
+            box-shadow: inset -2px -2px 6px rgba(0, 0, 0, 0.4), inset 2px 2px 4px rgba(255, 255, 255, 0.3), 0 4px 8px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 3D Orb Colors */
+        .ball-1-10 {
+            background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b);
+        }
+
+        .ball-11-20 {
+            background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb);
+        }
+
+        .ball-21-30 {
+            background: radial-gradient(circle at 30% 30%, #f87171, #dc2626);
+        }
+
+        .ball-31-40 {
+            background: radial-gradient(circle at 30% 30%, gray, #4b5563);
+        }
+
+        .ball-41-45 {
+            background: radial-gradient(circle at 30% 30%, #34d399, #059669);
+        }
+
+        .btn-glow-primary {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow-primary:hover {
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+            transform: translateY(-1px);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+            }
+        }
+
+        .pulsing-core {
+            animation: pulse-glow 3s infinite;
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pop-in {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Background Elements -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div
+            class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/30 rounded-full blur-[100px] floating">
+        </div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[100px] floating"
+            style="animation-delay: -2s;"></div>
+    </div>
+
+    <!-- Mobile-First Tab Bar (Bottom) -->
+    <nav
+        class="fixed bottom-0 left-0 w-full glass-card z-50 md:hidden flex justify-around p-3 pb-6 border-t border-white/10">
+        <button onclick="switchTab('generator')" class="flex flex-col items-center gap-1 text-vivid-pink">
+            <span class="text-xl">🔮</span>
+            <span class="text-[10px] font-bold">생성</span>
+        </button>
+        <button onclick="switchTab('history')"
+            class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+            <span class="text-xl">🕒</span>
+            <span class="text-[10px] font-bold">기록</span>
+        </button>
+        <button onclick="switchTab('draws')"
+            class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+            <span class="text-xl">📊</span>
+            <span class="text-[10px] font-bold">통계</span>
+        </button>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8 pb-24 max-w-5xl">
+        <!-- Hero Header -->
+        <header class="text-center mb-10 relative">
+            <div class="inline-block relative">
+                <div class="absolute inset-0 bg-purple-500 blur-2xl opacity-20 pulsing-core rounded-full"></div>
+                <h1
+                    class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-100 to-gray-300 relative z-10">
+                    AI Lotto Core
+                </h1>
+            </div>
+            <p class="text-blue-200/60 mt-2 font-light tracking-wide">Next-Gen Predictive Engine</p>
+        </header>
+
+        <!-- Desktop Navigation (Hidden on Mobile) -->
+        <nav class="hidden md:flex justify-center gap-4 mb-8">
+            <button onclick="switchTab('generator')" id="tab-btn-generator"
+                class="tab-btn py-2 px-6 rounded-full glass-panel border border-purple-500/30 text-white shadow-glow-pink transition-all">
+                🔮 번호 생성
+            </button>
+            <button onclick="switchTab('history')" id="tab-btn-history"
+                class="tab-btn py-2 px-6 rounded-full glass-panel text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                🕒 생성 이력
+            </button>
+            <button onclick="switchTab('draws')" id="tab-btn-draws"
+                class="tab-btn py-2 px-6 rounded-full glass-panel text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                📊 당첨 데이터
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="relative">
+            <!-- Generator Tab -->
+            <div id="content-generator" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Main Controls (Left/Center) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Control Deck -->
+                    <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-50">
+                            <div class="text-xs font-mono text-purple-300 border border-purple-500/30 px-2 py-1 rounded bg-purple-900/20"
+                                id="model-status">
+                                시스템 초기화...
+                            </div>
+                        </div>
+
+                        <h2 class="text-xl font-bold mb-6 heading-font flex items-center gap-2">
+                            <span class="text-neon-cyan">⚡</span> 엔진 설정
+                        </h2>
+
+                        <!-- Lottery Selection -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div class="space-y-2">
+                                <label class="text-xs text-gray-400 uppercase tracking-wider font-bold ml-1">대상
+                                    복권</label>
+                                <select id="lotterySelect" onchange="onLotteryChange()"
+                                    class="w-full bg-void-navy/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-cyan/50 transition-colors">
+                                    <option value="korea_645">🇰🇷 한국 로또 6/45</option>
+                                    <option value="usa_powerball">🇺🇸 미국 파워볼</option>
+                                    <option value="usa_megamillions">🇺🇸 미국 메가밀리언즈</option>
+                                    <option value="canada_649">🇨🇦 캐나다 6/49</option>
+                                    <option value="japan_loto6">🇯🇵 일본 로또 6</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs text-gray-400 uppercase tracking-wider font-bold ml-1">AI
+                                    모델</label>
+                                <div class="flex bg-void-navy/50 rounded-xl p-1 border border-white/10"
+                                    id="modelButtonContainer">
+                                    <button onclick="selectModel('transformer')" id="btn-transformer"
+                                        class="flex-1 py-2 rounded-lg text-sm font-bold bg-purple-500/20 text-white border border-purple-500/50 shadow-glow-pink transition-all">
+                                        Transformer
+                                    </button>
+                                    <button onclick="selectModel('lstm')" id="btn-lstm"
+                                        class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">
+                                        LSTM
+                                    </button>
+                                    <button onclick="selectModel('vector')" id="btn-vector"
+                                        class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">
+                                        Vector
+                                    </button>
+                                </div>
+                                <input type="hidden" id="modelSelect" value="transformer">
+                            </div>
+                        </div>
+
+                        <!-- Generation Trigger -->
+                        <div class="flex items-center gap-4 mt-8 pt-6 border-t border-white/5">
+                            <div class="flex-1">
+                                <label class="text-xs text-gray-500 block mb-1">생성 수량</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="number" id="countInput" value="5" min="1" max="50"
+                                        class="bg-void-navy/50 border border-white/10 rounded-lg px-3 py-2 w-20 text-center font-bold">
+                                    <div class="h-1 flex-1 bg-gray-800 rounded-full overflow-hidden">
+                                        <div
+                                            class="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-full animate-pulse">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="generateBtn"
+                                class="btn-glow-primary px-8 py-3 rounded-xl font-bold text-white text-lg flex items-center gap-2 group-hover:scale-105 transition-transform">
+                                <span>🚀</span> 실행
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results Area -->
+                    <div id="resultsArea" class="space-y-4">
+                        <!-- Results will be injected here by app.js -->
+                        <!-- Placeholder for visual check -->
+                        <div
+                            class="glass-panel rounded-2xl p-8 text-center text-gray-500 border-dashed border-2 border-white/10">
+                            <span class="text-4xl block mb-2 opacity-30">🎲</span>
+                            <p>AI 엔진 대기 중...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side Panel (Filters & Stats) -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Filters -->
+                    <div class="glass-card rounded-2xl p-5">
+                        <h3
+                            class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <span>🎚️</span> 필터 옵션
+                        </h3>
+                        <div class="space-y-3">
+                            <label
+                                class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+                                <div>
+                                    <div class="font-bold text-sm text-green-400 group-hover:text-green-300">AC 복잡도 ≥ 7
+                                    </div>
+                                    <div class="text-[10px] text-gray-500">규칙적인 패턴 제외</div>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="acFilter" checked class="sr-only peer">
+                                    <div
+                                        class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500">
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label
+                                class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+                                <div>
+                                    <div class="font-bold text-sm text-orange-400 group-hover:text-orange-300">합계 범위 필터
+                                    </div>
+                                    <div class="text-[10px] text-gray-500">100 ~ 175 사이만 허용</div>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="sumFilter" class="sr-only peer">
+                                    <div
+                                        class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500">
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label
+                                class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+                                <div>
+                                    <div class="font-bold text-sm text-pink-400 group-hover:text-pink-300">연속번호 제외</div>
+                                    <div class="text-[10px] text-gray-500">3연속 번호 조합 차단</div>
+                                </div>
+                                <div class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="consecutiveFilter" class="sr-only peer">
+                                    <div
+                                        class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-500">
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Mini Confidence Card (Coming Soon Mockup) -->
+                    <div class="glass-panel rounded-2xl p-5 border border-purple-500/20 relative overflow-hidden">
+                        <div
+                            class="absolute -right-4 -top-4 w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-xl opacity-20">
+                        </div>
+                        <h3 class="text-sm font-bold text-gray-300 mb-1">AI Confidence</h3>
+                        <div class="flex items-end gap-2">
+                            <span
+                                class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">87%</span>
+                            <span class="text-xs text-gray-500 mb-1">Estimated accuracy</span>
+                        </div>
+                        <div class="text-[10px] text-gray-500 mt-2">
+                            * Based on recent entropy analysis
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="content-history" class="tab-content hidden">
+                <div class="glass-card rounded-2xl p-6 min-h-[50vh]">
+                    <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                        <h2 class="text-2xl font-bold heading-font">Generations Trace</h2>
+                        <button onclick="loadHistory()"
+                            class="text-sm text-gray-400 hover:text-white flex items-center gap-1 px-3 py-1 rounded-lg hover:bg-white/5 transition-all">
+                            <span>🔄</span> Refresh
+                        </button>
+                    </div>
+                    <div id="historyArea" class="space-y-3">
+                        <!-- History items injected by app.js -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Draws Tab -->
+            <div id="content-draws" class="tab-content hidden">
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold heading-font">Global Lottery Data</h2>
+                        <select id="drawLotterySelect" onchange="loadDraws()"
+                            class="bg-black/30 border border-white/10 rounded-lg px-3 py-1 text-sm text-gray-300">
+                            <option value="korea_645">🇰🇷 한국 6/45</option>
+                            <option value="usa_powerball">🇺🇸 미국 파워볼</option>
+                            <option value="usa_megamillions">🇺🇸 미국 메가밀리언즈</option>
+                            <option value="canada_649">🇨🇦 캐나다 6/49</option>
+                            <option value="japan_loto6">🇯🇵 일본 로또 6</option>
+                        </select>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-white/5">
+                        <table class="w-full text-left">
+                            <thead class="bg-black/40 text-gray-400 text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th class="p-4 font-medium">Draw / Date</th>
+                                    <th class="p-4 text-center font-medium">Winning Numbers</th>
+                                    <th class="p-4 text-center font-medium">Bonus</th>
+                                    <th class="p-4 text-right font-medium">Jackpot</th>
+                                </tr>
+                            </thead>
+                            <tbody id="drawsTableBody" class="divide-y divide-white/5 text-sm text-gray-300">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="drawsLoader" class="py-10 text-center hidden">
+                        <div
+                            class="inline-block w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full spinning">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-xs text-gray-600">
+            <p>AI Lotto Analyzer V2.0 • Powered by Transformer & LSTM Models</p>
+            <p class="mt-1 opacity-50">Disclaimer: For entertainment and educational purposes only.</p>
+        </footer>
+    </div>
+
+    <!-- Modals / Progress (Hidden by default) -->
+    <div id="progressArea"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+        <div class="glass-card p-8 rounded-2xl flex flex-col items-center">
+            <div
+                class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full spinning mb-4 shadow-glow-pink">
+            </div>
+            <p class="text-lg font-bold text-white">AI Neural Processing...</p>
+            <p class="text-sm text-gray-400 mt-2">Analyzing patterns</p>
+        </div>
+    </div>
+
+    <!-- Unified Master Script -->
+    <script src="static/js/app.js"></script>
+    <script>
+        // Design V2 Specific Overrides
+        // We override the displayResults function locally to match the new styling if needed
+        // Or we rely on CSS classes mapping. 
+        // Since app.js injects HTML strings, we might need to patch the injection logic in app.js
+        // But for "verification" stage, let's see if we can perform a hot-patch here or just CSS override.
+
+        // Let's redefine 'getBallClass' just in case CSS names differ, keeping them compatible.
+        // The V2 CSS uses .lotto-ball-v2 
+
+        const originalDisplayResults = displayResults;
+
+        // Override displayResults to use V2 HTML structure
+        displayResults = function (data) {
+            const area = document.getElementById('numbersArea') || document.getElementById('resultsArea');
+            if (!area) return;
+
+            if (!data.numbers || data.numbers.length === 0) {
+                area.innerHTML = '<p class="text-yellow-400 bg-yellow-500/10 p-4 rounded-xl border border-yellow-500/20">No valid numbers found. Please adjust filters.</p>';
+                return;
+            }
+
+            area.innerHTML = `
+                <div class="text-xs text-gray-500 mb-3 flex items-center justify-between px-2">
+                    <span>${new Date(data.generated_at).toLocaleString('ko-KR')}</span>
+                    <span class="text-neon-cyan font-bold bg-cyan-900/20 px-2 py-0.5 rounded border border-cyan-500/30">${data.model.toUpperCase()}</span>
+                </div>
+                ${data.numbers.map((item, i) => {
+                const nums = item.numbers;
+                const analysis = item.analysis;
+
+                return `
+                    <div class="glass-panel rounded-xl p-4 mb-3 transition-all hover:bg-white/5 group border-l-4 border-l-purple-500 animation-entry">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-gray-600 font-mono text-sm group-hover:text-purple-400 transition-colors">#${String(i + 1).padStart(2, '0')}</span>
+                            <div class="flex gap-2 flex-wrap">
+                                ${nums.map((n, idx) => `
+                                    <span class="lotto-ball-v2 ${getBallClass(n)} pop-in" style="animation-delay: ${idx * 0.05}s">
+                                        ${n}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 text-[10px] md:text-xs text-gray-500 pl-8 border-t border-white/5 pt-2 mt-2">
+                            <div class="flex items-center gap-1">
+                                <span class="text-gray-600">Sum</span>
+                                <strong class="text-gray-300">${analysis.sum}</strong>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="text-gray-600">AC</span>
+                                <strong class="text-${analysis.ac_value >= 7 ? 'green' : 'red'}-400">${analysis.ac_value}</strong>
+                            </div>
+                             ${analysis.odd_count !== undefined ? `
+                            <div class="flex items-center gap-1">
+                                <span class="text-gray-600">Odd/Even</span>
+                                <strong class="text-gray-300">${analysis.odd_count}:${analysis.even_count}</strong>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('')}`;
+        }
+
+        // Add minimal animation style if not present
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .animation-entry { animation: slideUp 0.5s ease-out forwards; opacity: 0; transform: translateY(20px); }
+            @keyframes slideUp { 100% { opacity: 1; transform: translateY(0); } }
+        `;
+        document.head.appendChild(style);
+
+        // Override model button styling selection manually since app.js targets specific old classes
+        // functionality will work, but visual selection state might be wonky without this patch.
+        const originalSelectModel = selectModel;
+        selectModel = async function (type) {
+            await originalSelectModel(type); // Run logic
+
+            // Apply V2 styling manually
+            ['transformer', 'lstm', 'vector'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if (m === type) {
+                    btn.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-purple-500/20 text-white border border-purple-500/50 shadow-glow-pink transition-all";
+                } else {
+                    btn.className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all";
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
