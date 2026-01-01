@@ -224,7 +224,7 @@ async function saveToSupabase(data) {
     };
 
     try {
-        const { error } = await supabase.from('lotto_history').insert([payload]);
+        const { error } = await supabaseClient.from('lotto_history').insert([payload]);
         if (error) {
             console.warn('Supabase save error:', error.message);
         } else {
@@ -237,87 +237,13 @@ async function saveToSupabase(data) {
 
 
 // --- UI OVERRIDES (Interact with app.js) ---
+/*
+ * [DISABLED] displayResults override
+ * Using app.js version which includes lottery type and model header.
+ * The ui.js version was missing the header info.
+ */
+// window.displayResults = function (data) { ... }
 
-// 1. Override displayResults to render into the new layout
-window.displayResults = function (data) {
-    // Hide Placeholder
-    const placeholder = document.getElementById('resultsPlaceholder');
-    if (placeholder) placeholder.classList.add('hidden');
-
-    const area = document.getElementById('resultsArea');
-    if (!area) return;
-
-    if (!data.numbers || data.numbers.length === 0) {
-        area.innerHTML = '<div class="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-center">No numbers generated.</div>';
-        return;
-    }
-
-    // Render Cards
-    let html = '';
-    data.numbers.forEach((set, i) => {
-        const confidence = calculateConfidence(set.numbers);
-        let ringColor = 'border-gray-600';
-        let bgGlow = '';
-        let scoreColor = 'text-gray-400';
-
-        if (confidence >= 90) {
-            ringColor = 'border-purple-500';
-            bgGlow = 'shadow-[0_0_30px_-5px_rgba(168,85,247,0.3)] bg-purple-500/5';
-            scoreColor = 'text-purple-400';
-        } else if (confidence >= 80) {
-            ringColor = 'border-blue-500';
-            bgGlow = 'bg-blue-500/5';
-            scoreColor = 'text-blue-400';
-        }
-
-        html += `
-             <div class="glass-panel p-4 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all ${bgGlow} animation-entry" style="animation-delay: ${i * 0.1}s">
-                <div class="flex items-center gap-4">
-                    <div class="w-8 h-8 rounded-full border-2 ${ringColor} flex items-center justify-center text-xs font-bold ${scoreColor} bg-black/20">
-                        ${confidence}
-                    </div>
-                    <div class="flex gap-2">
-                        ${set.numbers.map(n => `
-                            <span class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${getBallClass(n)} text-shadow-sm shadow-lg transform transition-transform group-hover:scale-110 text-white">
-                                ${n}
-                            </span>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <div class="hidden md:flex flex-col items-end text-[10px] text-gray-500 gap-1">
-                    <span class="font-mono">Sum: <b class="text-gray-300">${set.analysis.sum}</b></span>
-                    <span class="font-mono">AC: <b class="text-gray-300">${set.analysis.ac_value}</b></span>
-                </div>
-             </div>
-             `;
-    });
-
-    area.innerHTML = html;
-
-    // Trigger Save
-    const historyItem = {
-        id: Date.now(),
-        date: new Date().toISOString(),
-        model: data.model,
-        numbers: data.numbers
-    };
-
-    // Local Save (App Wrapper)
-    if (window.saveHistoryEntry && window.saveHistoryEntry.name !== 'saveHistoryEntryWrapped') {
-        window.saveHistoryEntry(historyItem);
-    } else if (window.originalSaveHistoryEntry) {
-        window.originalSaveHistoryEntry(historyItem);
-    }
-
-    // Cloud Save (Explicit)
-    saveToSupabase(historyItem);
-
-    // Refresh History Tab if visible
-    if (document.getElementById('view-history') && !document.getElementById('view-history').classList.contains('hidden')) {
-        setTimeout(loadHistory, 500);
-    }
-}
 
 /*
  * [DISABLED] loadHistory and selectModel overrides

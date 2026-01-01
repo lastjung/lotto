@@ -525,6 +525,10 @@ function displayResults(data) {
     const area = document.getElementById('resultsArea') || document.getElementById('numbersArea');
     if (!area) return;
 
+    // Hide placeholder when results are shown
+    const placeholder = document.getElementById('resultsPlaceholder');
+    if (placeholder) placeholder.classList.add('hidden');
+
     if (!data.numbers || data.numbers.length === 0) {
         area.innerHTML = '<p class="text-yellow-400">조건에 맞는 번호가 없습니다. 필터를 조정해주세요.</p>';
         return;
