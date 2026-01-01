@@ -135,32 +135,18 @@ lotto/
 │   ├── usa_megamillions/    # 메가밀리언즈 데이터
 │   ├── canada_649/          # 캐나다 데이터
 │   └── japan_loto6/         # 일본 데이터
-├── models_ai/               # AI 딥러닝 모델
+├── models_ai/               # AI 딥러닝 모델 (Transformer, LSTM)
 │   ├── src/                 # 모델 소스코드
-│   │   ├── transformer/
-│   │   │   ├── lotto_transformer.py
-│   │   │   └── train.py
-│   │   └── lstm/
-│   │       ├── lotto_lstm.py
-│   │       └── train.py
-│   └── trained/             # 학습된 모델 파일 (.pt)
-│       ├── transformer/
-│       │   ├── korea_645.pt
-│       │   ├── canada_649.pt
-│       │   └── japan_loto6.pt
-│       └── lstm/
-│           ├── korea_645.pt
-│           ├── canada_649.pt
-│           └── japan_loto6.pt
+│   └── trained/             # 학습된 모델 파일 (.onnx, .pt)
 ├── models_stat/             # 통계 분석 모듈
-│   └── ac_analysis.py       # AC값 분석
-├── scripts/
-│   ├── train.py             # 학습 스크립트
-│   └── update_data.py       # 데이터 업데이트
+│   ├── ac_analysis.py       # AC값 분석
+│   ├── sum_analysis.py      # 합계 기반 분석
+│   └── consecutive_analysis.py # 연속 번호 분석
 ├── web/
-│   └── index.html           # 프론트엔드 UI
-├── .gitignore               # Git 제외 파일
-└── run.sh                   # 서버 실행 스크립트
+│   ├── index.html           # 메인 프론트엔드 (V2)
+│   └── js/                  # 프론트엔드 로직 (app.js, ui.js)
+├── web-static/              # ONNX 전용 정적 배포본
+└── .gitignore               # Git 제외 파일
 ```
 
 ### 2.2 API 엔드포인트
@@ -200,15 +186,12 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ### 3.2 모델 저장 구조 (5개 로또 × 2개 모델 = 10개)
 
 ```
-lotto_models/
+models_ai/trained/
 ├── transformer/
-│   ├── korea_645.pt        # 한국 전용 Transformer
-│   ├── usa_powerball.pt    # 파워볼 전용
-│   ├── usa_megamillions.pt # 메가밀리언즈 전용
-│   ├── canada_649.pt       # 캐나다 전용
-│   └── japan_loto6.pt      # 일본 전용
+│   ├── {lottery_id}.onnx    # ONNX (웹 브라우저용)
+│   └── {lottery_id}.pt      # PyTorch (서버용)
 └── lstm/
-    └── {lottery_id}.pt     # 동일 구조 (5개)
+    └── {lottery_id}.onnx    # ONNX (웹 브라우저용)
 ```
 
 **학습 명령어**:
@@ -365,6 +348,16 @@ cp -L web-static/data/*.json deploy/data/
 - **Draw Dataclass**: 회차 데이터 형식을 데이터 클래스로 공식화하여 타입 안정성 강화.
 - **증분 업데이트(Incremental Fill)**: 누락된 회차만 선별적으로 채우는 로직을 베이스 클래스에 내장.
 
-### 6.3 수동 데이터 복구 및 자동화
-- **캐나다 6/49**: 2024년~2025년 공백 데이터를 브라우저 자동화 스크래핑 및 `fill_gaps.py`를 통해 성공적으로 복구.
-- **한국 6/45**: 최신 1204회차(2025년 12월 말)까지 업데이트 완료 확인.
+### 6.4 프론트엔드 하이브리드 설정 UI (System Tab)
+- **Dashboard**: 가장 빈번하게 사용되는 **Generation Count**만 메인 대시보드(Start 버튼 바로 위)에 배치하여 접근성 극대화.
+- **System Tab (Sidebar)**: 전문적인 분석 필터들(AC, Sum, Consecutive)을 사이드바의 `System` 탭으로 분리 통합.
+- **이점**:
+    - **Clean UI**: 대시보드의 복잡도를 낮추고 분석 결과물에 집중할 수 있는 공간 확보.
+    - **전문가 모드**: 상세한 통계 필터링을 원하는 사용자만 `System` 창에서 정밀하게 환경 설정 가능.
+    - **확장성**: 추후 AI 가중치나 추가적인 수치 제한 옵션을 System 탭에서 쉽게 관리 가능.
+
+### 6.5 프로젝트 상태 요약 (Done)
+- [x] **UI Renovation**: Premium Glassmorphism V2 테마 적용 및 레이아웃 최적화.
+- [x] **Filter Integration**: AC, 합계, 연속 번호 등 이론 필터들을 엔진에 통합.
+- [x] **Sidebar Logic**: 대시보드와 설정(System) 영역의 논리적 분리 및 상태 유지 로직 구현.
+- [x] **Data Completion**: 캐나다 로또 등 누락된 과거 데이터 수집 및 자동화 프로세스 구축.

@@ -528,10 +528,23 @@
                             </div>
 
                             <!-- 3. Analysis Configuration -->
-                            <!-- 3. Analysis Configuration -->
-                            <div class="mb-8 glass-panel p-5 bg-[#1e293b]/40 border border-white/5 rounded-2xl">
-                                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Analysis
-                                    Settings</h3>
+                            <div
+                                class="mb-8 glass-panel p-5 bg-[#1e293b]/40 border border-white/5 rounded-2xl relative">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Analysis
+                                        Settings</h3>
+                                    <button onclick="toggleAdvancedSettings()" id="settingsToggleBtn"
+                                        class="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-blue-400 transition-all border border-transparent hover:border-white/10"
+                                        title="Toggle Advanced Filters">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                                            </path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
 
                                 <div class="space-y-4">
                                     <!-- Generation Count Row -->
@@ -560,6 +573,67 @@
                                                         stroke-width="2" d="M12 4v16m8-8H4"></path>
                                                 </svg>
                                             </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Advanced Filters Panel (Toggleable) -->
+                                    <div id="advancedSettingsPanel"
+                                        class="hidden pt-4 border-t border-white/5 space-y-4 relative bg-black/20 -mx-5 px-5 -mb-5 pb-5 rounded-b-2xl">
+                                        <button onclick="toggleAdvancedSettings()"
+                                            class="absolute top-4 right-5 text-gray-500 hover:text-red-400 transition-colors"
+                                            title="Close Advanced Settings">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+
+                                        <h4 class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">
+                                            Theoretical Filters</h4>
+
+                                        <!-- AC Filter Row -->
+                                        <div class="flex items-center justify-between group">
+                                            <div class="flex flex-col">
+                                                <span class="text-xs font-medium text-gray-200">AC Theory Filter</span>
+                                                <span class="text-[10px] text-gray-500">Pattern complexity (AC ≥
+                                                    7)</span>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer scale-90">
+                                                <input type="checkbox" id="acFilter" class="sr-only peer" checked>
+                                                <div
+                                                    class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        <!-- Sum Filter Row -->
+                                        <div class="flex items-center justify-between group">
+                                            <div class="flex flex-col">
+                                                <span class="text-xs font-medium text-gray-200">Sum Range Filter</span>
+                                                <span class="text-[10px] text-gray-500">Target balance (100 ~
+                                                    175)</span>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer scale-90">
+                                                <input type="checkbox" id="sumFilter" class="sr-only peer">
+                                                <div
+                                                    class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        <!-- Consecutive Filter Row -->
+                                        <div class="flex items-center justify-between group">
+                                            <div class="flex flex-col">
+                                                <span class="text-xs font-medium text-gray-200">Consecutive
+                                                    Restriction</span>
+                                                <span class="text-[10px] text-gray-500">Exclude 3+ sequences</span>
+                                            </div>
+                                            <label class="relative inline-flex items-center cursor-pointer scale-90">
+                                                <input type="checkbox" id="consecutiveFilter" class="sr-only peer">
+                                                <div
+                                                    class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600">
+                                                </div>
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
@@ -620,80 +694,21 @@
                     <div id="historyArea" class="space-y-4"></div>
                 </div>
 
-                <!-- SYSTEM SETTINGS VIEW (Hidden by default) -->
+                <!-- SYSTEM SETTINGS VIEW (Focused on engine details) -->
                 <div id="view-settings" class="hidden max-w-4xl mx-auto p-4 md:p-8">
                     <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
                         <span>⚙️</span> System Configuration
                     </h2>
-                    <p class="text-gray-500 mb-8 text-sm">Fine-tune the AI Analysis Engine and Theory Modules</p>
+                    <p class="text-gray-500 mb-8 text-sm">AI Analysis Engine and Inference Settings</p>
 
-                    <div class="glass-panel p-8 bg-[#1e293b]/40 border border-white/10 rounded-3xl space-y-8">
-                        <div>
-                            <h3 class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-6">Theoretical
-                                Analysis Filters</h3>
-
-                            <div class="space-y-6">
-                                <!-- AC Filter Row -->
-                                <div
-                                    class="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-all">
-                                    <div class="flex flex-col">
-                                        <span class="text-base font-semibold text-gray-200">AC Theory Filter</span>
-                                        <span class="text-xs text-gray-500 max-w-md">Enforce pattern complexity (AC ≥
-                                            7). High AC values indicate more random-like numerical distributions.</span>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="acFilter" class="sr-only peer" checked>
-                                        <div
-                                            class="w-12 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 ring-4 ring-transparent peer-checked:ring-blue-500/20">
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div class="h-px bg-white/5 w-full"></div>
-
-                                <!-- Sum Filter Row -->
-                                <div
-                                    class="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-all">
-                                    <div class="flex flex-col">
-                                        <span class="text-base font-semibold text-gray-200">Sum Range Filter</span>
-                                        <span class="text-xs text-gray-500 max-w-md">Target statistical balance (100 ~
-                                            175). Most winning combinations fall within this Gaussian normal
-                                            range.</span>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="sumFilter" class="sr-only peer">
-                                        <div
-                                            class="w-12 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600 ring-4 ring-transparent peer-checked:ring-purple-500/20">
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div class="h-px bg-white/5 w-full"></div>
-
-                                <!-- Consecutive Filter Row -->
-                                <div
-                                    class="flex items-center justify-between group p-2 rounded-xl hover:bg-white/5 transition-all">
-                                    <div class="flex flex-col">
-                                        <span class="text-base font-semibold text-gray-200">Consecutive
-                                            Restriction</span>
-                                        <span class="text-xs text-gray-500 max-w-md">Exclude 3+ consecutive numbers.
-                                            Statistical probability of 3+ sequential numbers is extremely low.</span>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="consecutiveFilter" class="sr-only peer">
-                                        <div
-                                            class="w-12 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600 ring-4 ring-transparent peer-checked:ring-cyan-500/20">
-                                        </div>
-                                    </label>
-                                </div>
+                    <div class="glass-panel p-8 bg-[#1e293b]/40 border border-white/10 rounded-3xl">
+                        <div class="flex flex-col items-center justify-center py-12 text-center">
+                            <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
+                                <span class="text-3xl">🧬</span>
                             </div>
-                        </div>
-
-                        <div class="pt-4 border-t border-white/5">
-                            <p class="text-[10px] text-gray-600 leading-relaxed italic">
-                                * These settings influence the AI Post-Processing layer. Combinations that do not meet
-                                these criteria will be automatically discarded before display.
-                            </p>
+                            <h3 class="text-xl font-bold text-white mb-2">Engine is Optimal</h3>
+                            <p class="text-gray-500 max-w-sm">Detailed filter settings have been moved back to the
+                                Dashboard for faster access. Click the gear icon on the dashboard to toggle them.</p>
                         </div>
                     </div>
                 </div>
@@ -741,6 +756,19 @@
 
             // Trigger Loaders
             if (tabId === 'history' && typeof loadHistory === 'function') loadHistory();
+        }
+
+        // Toggle Advanced Settings UI
+        function toggleAdvancedSettings() {
+            const panel = document.getElementById('advancedSettingsPanel');
+            const btn = document.getElementById('settingsToggleBtn');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                btn.classList.add('text-blue-400', 'bg-blue-500/10', 'border-blue-500/20');
+            } else {
+                panel.classList.add('hidden');
+                btn.classList.remove('text-blue-400', 'bg-blue-500/10', 'border-blue-500/20');
+            }
         }
 
         // Model Selection UI Handler
