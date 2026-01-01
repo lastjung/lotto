@@ -27,6 +27,8 @@ from models_stat.ac_analysis import calculate_ac, is_valid_ac, get_ac_rating
 from models_stat.sum_analysis import is_valid_sum, is_valid_sum_dynamic
 from models_stat.consecutive_analysis import has_consecutive
 from models_stat.physics_bias import PhysicsBiasModel
+from models_stat.cold_theory import ColdTheoryModel
+from models_stat.balanced_mix import BalancedMixModel
 import torch
 
 app = FastAPI(title="로또 AI 분석 API", version="1.0")
@@ -318,6 +320,61 @@ async def generate_numbers(req: GenerateRequest):
                 continue
             
             # AC 계산 추가
+            ac_value = calculate_ac(numbers)
+            r['analysis']['ac_value'] = ac_value
+            r['analysis']['ac_rating'] = get_ac_rating(numbers)
+            
+            generated.append(r)
+
+    elif actual_model_type == "cold_theory":
+        # Cold Theory: 연체 번호 기반 생성
+        print("[INFO] Cold Theory Generating...")
+        
+        lottery_config = get_lottery_config(req.lottery_id)
+        max_num = lottery_config.get("ball_range", [1, 45])[1]
+        ball_count = lottery_config.get("ball_count", 6)
+        
+        cold_model = ColdTheoryModel(draws, ball_count, max_num)
+        results = cold_model.generate(count=req.count * 2, strategy="weighted")
+        
+        for r in results:
+            if len(generated) >= req.count:
+                break
+            
+            numbers = r['numbers']
+            
+            if req.sum_filter and not is_valid_sum_dynamic(numbers, ball_count, max_num):
+                continue
+            
+            if req.consecutive_filter and has_consecutive(numbers):
+                continue
+            
+            ac_value = calculate_ac(numbers)
+            r['analysis']['ac_value'] = ac_value
+            r['analysis']['ac_rating'] = get_ac_rating(numbers)
+            
+            generated.append(r)
+
+    elif actual_model_type == "balanced_mix":
+        # Balanced Mix: 균형 잡힌 번호 생성
+        print("[INFO] Balanced Mix Generating...")
+        
+        lottery_config = get_lottery_config(req.lottery_id)
+        max_num = lottery_config.get("ball_range", [1, 45])[1]
+        ball_count = lottery_config.get("ball_count", 6)
+        
+        balanced_model = BalancedMixModel(draws, ball_count, max_num)
+        results = balanced_model.generate(count=req.count * 2, tolerance=0.15)
+        
+        for r in results:
+            if len(generated) >= req.count:
+                break
+            
+            numbers = r['numbers']
+            
+            if req.consecutive_filter and has_consecutive(numbers):
+                continue
+            
             ac_value = calculate_ac(numbers)
             r['analysis']['ac_value'] = ac_value
             r['analysis']['ac_rating'] = get_ac_rating(numbers)
