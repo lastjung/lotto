@@ -79,12 +79,70 @@ models_ai/trained/lstm/{lottery_id}.pt
 
 ---
 
+## 로또 유형별 지원 현황
+
+### ✅ 완전 지원 (Standard Type)
+
+동일 풀에서 N개 선택하는 형태:
+
+| 로또 | 구조 | 학습 가능 |
+|------|------|-----------|
+| 🇰🇷 Korea 6/45 | 6개 from [1-45] | ✅ Transformer/LSTM |
+| 🇨🇦 Canada 6/49 | 6개 from [1-49] | ✅ Transformer/LSTM |
+| 🇯🇵 Japan Loto6 | 6개 from [1-43] | ✅ Transformer/LSTM |
+
+### ⚠️ 제한적 지원 (Special Ball Type)
+
+메인볼 + 특수볼(별도 풀)이 있는 형태:
+
+| 로또 | 구조 | 현재 지원 |
+|------|------|-----------|
+| 🇺🇸 Powerball | 5개 [1-69] + 파워볼 1개 [1-26] | ⚠️ Vector 폴백 |
+| 🇺🇸 Mega Millions | 5개 [1-70] + 메가볼 1개 [1-25] | ⚠️ Vector 폴백 |
+
+**왜 제한적인가?**
+
+```
+Powerball 구조:
+─────────────────────────────
+• 메인볼: 1-69에서 5개 선택 (일반 로또와 유사)
+• 파워볼: 1-26에서 1개 선택 (완전히 별도 추첨)
+• 잭팟: 메인 5개 + 파워볼 모두 일치해야 함
+
+현재 모델 한계:
+─────────────────────────────
+• 모든 슬롯이 동일 범위 가정 (ball_ranges)
+• 듀얼 출력 구조 미지원 (슬롯1-5: 69, 슬롯6: 26)
+
+이론적 해결책:
+─────────────────────────────
+1. 모델 구조 수정 (fc_main: 69, fc_power: 26)
+2. 파워볼 독립이므로 학습해도 자동 파악됨
+3. 그러나 구현 복잡도 대비 ROI 낮음
+
+현실적 결론:
+─────────────────────────────
+• Powerball은 Vector 모델로 폴백 (현재 동작)
+• 또는 메인볼만 학습 + 파워볼은 빈도분석
+• 우선순위: Standard Type 로또 먼저 완성
+```
+
+---
+
 ## TODO: 모델 재학습
 
-Canada 649, Powerball 등에서 Transformer/LSTM 사용하려면:
+### Phase 1: Standard Type 완성
+1. train.py에 `--lottery` 파라미터 추가
+2. `config/lotteries.json`에서 자동으로 ball_range, ball_count 로드
+3. `config/training_config.json` 기본값 적용 + CLI 오버라이드
+4. korea_645, canada_649, japan_loto6 재학습
 
-1. 새 변수명으로 학습 스크립트 수정
-2. 로또별 `ball_ranges` 값으로 개별 학습
-3. `config/lotteries.json` 변수명 변경
-4. `api/main.py` 참조 코드 업데이트
+### Phase 2: 변수명 통일 (선택)
+1. `num_numbers` → `ball_ranges`
+2. `seq_length` → `history_length`
+3. `numbers_count` → `ball_count`
+4. `number_range` → `ball_range`
 
+### Phase 3: Special Ball Type (미정)
+- Powerball/Mega Millions 전용 모델 구조
+- 현재는 Vector 폴백으로 충분
