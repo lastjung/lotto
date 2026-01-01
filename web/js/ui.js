@@ -387,6 +387,10 @@ window.selectModel = function (model) {
         targetIds = ['card-physics-v3', 'card-physics-stat', 'card-cold-stat'];
         ringClass = 'ring-green-500';
         bgClass = 'bg-green-500/10';
+    } else if (model === 'hot_trend') {
+        targetIds = ['card-hot_trend'];
+        ringClass = 'ring-purple-500';
+        bgClass = 'bg-purple-500/10';
     }
 
     // Apply highlighting to all matches

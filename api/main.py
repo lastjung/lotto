@@ -11,6 +11,10 @@ from datetime import datetime
 import json
 from pathlib import Path
 import sys
+import random
+from collections import Counter
+import random
+from collections import Counter
 
 # 프로젝트 루트를 sys.path에 추가 (앱 시작 시 한 번만)
 PROJECT_ROOT = Path(__file__).parent.parent.absolute()
@@ -129,6 +133,7 @@ def analyze_numbers(numbers: list) -> dict:
 
 
 
+
 def compare_numbers(generated: list, winning: list) -> dict:
     """생성 번호와 당첨 번호 비교"""
     generated_set = set(generated)
@@ -141,6 +146,20 @@ def compare_numbers(generated: list, winning: list) -> dict:
 
 
 # ========== API 엔드포인트 ==========
+
+@app.post("/api/config")
+async def save_config(config: dict):
+    """설정 저장"""
+    config_path = PROJECT_ROOT / "web" / "config.json"
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=4)
+        print(f"[DEBUG] 설정 저장 완료: {config_path}")
+        return {"status": "success", "message": "Configuration saved"}
+    except Exception as e:
+        print(f"[ERROR] 설정 저장 실패: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to save config: {str(e)}")
+
 
 class GenerateRequest(BaseModel):
     lottery_id: str = "korea_645"
@@ -220,6 +239,57 @@ async def generate_numbers(req: GenerateRequest):
                 "numbers": numbers,
                 "analysis": analysis
             })
+
+    elif req.model_type == "hot_trend":
+        # Hot Trend: 최근 빈도 기반 가중치
+        print("[INFO] Hot Trend Generating...")
+        
+        # 최근 30회차 분석 (데이터가 적으면 전체 사용)
+        recent_count = min(len(draws), 30)
+        recent_draws = [d["numbers"] for d in draws[-recent_count:]]
+        
+        frequency = Counter()
+        for draw in recent_draws:
+            frequency.update(draw)
+            
+        # 가중치 계산
+        weights = {}
+        total_weight = 0
+        for n in range(1, 46):
+            w = 1 + (frequency[n] * 2)
+            weights[n] = w
+            total_weight += w
+            
+        # 번호 생성
+        for _ in range(req.count):
+            current_set = set()
+            attempts = 0
+            while len(current_set) < 6 and attempts < 100:
+                attempts += 1
+                rand_val = random.uniform(0, total_weight)
+                cumulative = 0
+                selected = -1
+                
+                for n in range(1, 46):
+                    cumulative += weights[n]
+                    if rand_val <= cumulative:
+                        selected = n
+                        break
+                
+                if selected != -1:
+                    current_set.add(selected)
+            
+            numbers = sorted(list(current_set))
+            
+            # 분석 데이터
+            analysis = analyze_numbers(numbers)
+            analysis["model"] = "hot_trend"
+            
+            generated.append({
+                "numbers": numbers,
+                "analysis": analysis
+            })
+
     else:
         # Transformer/LSTM: predict() 메서드 사용
         recent = [d["numbers"] for d in draws[-10:]]
@@ -355,6 +425,7 @@ async def compare_with_result(lottery_id: str, history_id: int):
 # Static files & Data
 STATIC_DIR = PROJECT_ROOT / "web"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/js", StaticFiles(directory=STATIC_DIR / "js"), name="js")
 app.mount("/data", StaticFiles(directory=DATA_DIR), name="data")
 
 @app.get("/")

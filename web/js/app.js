@@ -4,11 +4,23 @@
  */
 
 // 설정 및 환경 감지
+// 설정 및 환경 감지
+// 설정 및 환경 감지
 const API_PORT = '8000'; // FastAPI 서버 기본 포트
-const IS_STATIC_MODE = window.location.port !== API_PORT || window.location.hostname.includes('github.io') || window.location.hostname.includes('vercel.app');
-const API_BASE = ''; // 같은 호스트일 경우 비워둠
+// [FIX] 포트가 8000이거나 로컬호스트가 아니면 API 모드 사용 (기존 코드 보존)
+const IS_STATIC_MODE = window.location.port !== '8000' && window.location.port !== '';
+const API_BASE = IS_STATIC_MODE ? '' : 'http://localhost:8000';
 
-let currentModel = 'transformer';
+// [Persistence] 초기 로드 시 LocalStorage 값 우선 사용
+let savedLottery = localStorage.getItem('s_lottery') || 'korea_645';
+let savedModel = localStorage.getItem('s_model') || 'transformer';
+
+// [Config] Supabase (from ui.js)
+const SB_URL = 'https://sfqlshdlqwqlkxdrfdke.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk';
+// let supabase = null; // [FIX] ui.js에서 이미 선언됨 (충돌 방지)
+
+let currentModel = savedModel;
 let session = null;
 let lottoData = null;
 let modelLoaded = false;
@@ -16,6 +28,17 @@ let modelLoaded = false;
 // 초기화
 document.addEventListener('DOMContentLoaded', async () => {
     console.log(`🚀 AI 로또 분석기 시작 (모드: ${IS_STATIC_MODE ? 'STATIC/ONNX' : 'API/SERVER'})`);
+
+    // [Init] Supabase
+    if (window.supabase) {
+        try {
+            supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            console.log('✅ Supabase client initialized');
+        } catch (e) {
+            console.error('❌ Supabase init failed:', e);
+        }
+    }
+
     await loadLottoData();
     if (IS_STATIC_MODE) {
         await loadModel('transformer');
@@ -29,8 +52,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const generateBtn = document.getElementById('generateBtn');
     if (generateBtn) generateBtn.addEventListener('click', generateNumbers);
 
-    const lotterySelect = document.getElementById('lotterySelect');
-    if (lotterySelect) lotterySelect.addEventListener('change', onLotteryChange);
+    // Desktop & Mobile Selectors
+    const lotterySelectDesktop = document.getElementById('lotterySelectDesktop');
+    const lotterySelectMobile = document.getElementById('lotterySelectMobile');
+    const lotterySelectOld = document.getElementById('lotterySelect');
+
+    const handler = (e) => onLotteryChange(e.target.value);
+    if (lotterySelectDesktop) lotterySelectDesktop.addEventListener('change', handler);
+    if (lotterySelectMobile) lotterySelectMobile.addEventListener('change', handler);
+    if (lotterySelectOld) lotterySelectOld.addEventListener('change', handler);
+
+    // [Persistence] 저장된 설정 UI에 반영
+    if (lotterySelectDesktop) lotterySelectDesktop.value = savedLottery;
+    if (lotterySelectMobile) lotterySelectMobile.value = savedLottery;
+    if (lotterySelectOld) lotterySelectOld.value = savedLottery;
+
+    // 복원된 값으로 초기 데이터 로드 (model은 아래에서 로드됨)
+    await loadLottoData(savedLottery);
+
+    // 모델 선택 UI 반영 (버튼 활성화)
+    selectModel(savedModel); // loadModel 호출 포함됨
 
     loadHistory(); // 이력 로드
 });
@@ -71,10 +112,52 @@ async function loadLottoData(lotteryId = 'korea_645') {
     }
 }
 
+// [Helper] 서버로 설정 저장 (Dual Save)
+async function saveConfigToServer(lottery, model) {
+    if (IS_STATIC_MODE) return;
+    try {
+        await fetch(`${API_BASE}/api/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                default_lottery: lottery,
+                default_model: model,
+                updated_at: new Date().toISOString()
+            })
+        });
+        console.log("✅ Config saved to SERVER");
+    } catch (e) {
+        console.error("❌ Failed to save config to server:", e);
+    }
+}
+
+// [Helper] 안전하게 복권 값 가져오기
+function getLotteryValue() {
+    const desktop = document.getElementById('lotterySelectDesktop');
+    const mobile = document.getElementById('lotterySelectMobile');
+    const old = document.getElementById('lotterySelect');
+
+    if (desktop && desktop.value) return desktop.value;
+    if (mobile && mobile.value) return mobile.value;
+    if (old && old.value) return old.value;
+
+    return 'korea_645'; // Default fallback
+}
+
 // 복권 종류 변경 처리
 async function onLotteryChange() {
-    const lotteryId = document.getElementById('lotterySelect').value;
+    const lotteryId = getLotteryValue(); // [FIX] Use helper
+
+    // [Persistence] 1. LocalStorage 저장
+    localStorage.setItem('s_lottery', lotteryId);
+
     await loadLottoData(lotteryId);
+
+    // [Persistence] 2. Config 저장 (모델 변경 시와 동일하게)
+    // 현재는 모델 변경 시에만 config 저장이 트리거되므로, 
+    // 여기서는 간단히 로컬 변수 업데이트만 하고, 실제 저장은 selectModel이나 생성 시점에 될 수 있음
+    // 하지만 "두 군데 저장" 요구사항에 맞춰 즉시 저장 시도
+    saveConfigToServer(lotteryId, currentModel);
 
     // 모델도 해당 복권에 맞춰 다시 로딩 (나중에 국가별 모델이 다를 경우 대비)
     await loadModel(currentModel);
@@ -82,46 +165,79 @@ async function onLotteryChange() {
 
 // ONNX 모델 로드
 async function loadModel(modelType) {
+    // API 모드일 경우 클라이언트 모델 로딩 건너뜀
+    if (!IS_STATIC_MODE) {
+        modelLoaded = true;
+        const statusEl = document.getElementById('model-status');
+        if (statusEl) statusEl.textContent = `✅ ${modelType.toUpperCase()} (API Mode)`;
+        console.log(`ℹ️ Model selection updated to ${modelType} (Server-side)`);
+        return;
+    }
+
     const statusEl = document.getElementById('model-status');
-    statusEl.textContent = `📦 ${modelType.toUpperCase()} 모델 로딩 중...`;
+    if (statusEl) statusEl.textContent = `📦 ${modelType.toUpperCase()} 모델 로딩 중...`;
 
     try {
-        if (modelType === 'vector') {
-            // Vector는 JS로 구현 (ONNX 없음)
+        if (modelType === 'vector' || modelType === 'hot_trend') {
+            // Vector/Hot Trend는 JS로 구현 (ONNX 없음)
             modelLoaded = true;
-            statusEl.textContent = '✅ Vector 모델 준비 완료 (JS 구현)';
+            if (statusEl) statusEl.textContent = `✅ ${modelType.toUpperCase()} 준비 완료 (JS 구현)`;
             return;
         }
 
         session = await ort.InferenceSession.create(`models/${modelType}.onnx`);
         modelLoaded = true;
-        statusEl.textContent = `✅ ${modelType.toUpperCase()} 모델 로드 완료`;
+        if (statusEl) statusEl.textContent = `✅ ${modelType.toUpperCase()} 모델 로드 완료`;
         console.log(`✅ ONNX 모델 로드: ${modelType}`);
     } catch (e) {
         console.error('❌ 모델 로드 실패:', e);
-        statusEl.textContent = `❌ 모델 로드 실패: ${e.message}`;
+        if (statusEl) statusEl.textContent = `❌ 모델 로드 실패: ${e.message}`;
         modelLoaded = false;
     }
 }
+
 
 // 모델 선택
 async function selectModel(type) {
     currentModel = type;
 
     // 버튼 스타일 업데이트
-    ['transformer', 'lstm', 'vector'].forEach(m => {
+    ['transformer', 'lstm', 'vector', 'hot_trend'].forEach(m => {
         const btn = document.getElementById(`btn-${m}`);
+        // 구버전/신버전 ID 호환성 체크 (btn- vs card-)
+        const cardBtn = document.getElementById(`card-${m}`);
+        const target = btn || cardBtn;
+
+        if (!target) return; // 요소가 없으면 스킵
+
         if (m === type) {
-            btn.classList.add('border-purple-500', 'bg-purple-500/20', 'text-white');
-            btn.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
+            target.classList.add('border-purple-500', 'bg-purple-500/20', 'text-white');
+            target.classList.remove('border-gray-700', 'bg-gray-800', 'text-gray-400');
         } else {
-            btn.classList.remove('border-purple-500', 'bg-purple-500/20', 'text-white');
-            btn.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
+            target.classList.remove('border-purple-500', 'bg-purple-500/20', 'text-white');
+            target.classList.add('border-gray-700', 'bg-gray-800', 'text-gray-400');
         }
     });
 
+    // [Persistence] 1. LocalStorage 저장
+    localStorage.setItem('s_model', type);
+
     await loadModel(type);
+
+    // [특수 기능] Transformer/Hot Trend 자동 실행
+    if (type === 'transformer' || type === 'hot_trend') {
+        console.log(`⚡ ${type} Card Clicked: Executing Auto-Generate Flow`);
+
+        // [Persistence] 2. Config 저장 (서버) - Dual Save
+        await saveConfigToServer(getLotteryValue(), type);
+
+        // 2. 번호 생성 (DB 저장 및 결과 표시는 generateNumbers 내부에서 처리됨)
+        await generateNumbers();
+    }
 }
+// [Integrate] UI.js와의 호환성을 위해 전역 노출
+window.appSelectModel = selectModel;
+
 
 // 번호 생성
 async function generateNumbers() {
@@ -144,6 +260,8 @@ async function generateNumbers() {
             let raw_numbers;
             if (currentModel === 'vector') {
                 raw_numbers = await generateWithVector();
+            } else if (currentModel === 'hot_trend') {
+                raw_numbers = await generateWithHotTrend();
             } else {
                 raw_numbers = await generateWithONNX();
             }
@@ -157,7 +275,7 @@ async function generateNumbers() {
                         ac_value: calculateAC(nums)
                     }
                 })),
-                lottery_id: document.getElementById('lotterySelect').value,
+                lottery_id: getLotteryValue(), // [FIX] Use helper
                 model: currentModel,
                 generated_at: new Date().toISOString()
             };
@@ -167,7 +285,7 @@ async function generateNumbers() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    lottery_id: document.getElementById('lotterySelect').value,
+                    lottery_id: getLotteryValue(), // [FIX] Use helper
                     count: 5,
                     model_type: currentModel,
                     ac_filter: document.getElementById('acFilter').checked,
@@ -217,6 +335,43 @@ async function generateWithONNX() {
         generated.push(numbers);
     }
 
+    return generated;
+}
+
+// Hot Trend (최근 빈도 기반 가중치) 생성
+async function generateWithHotTrend() {
+    const generated = [];
+    const recentDraws = getRecentDraws(30); // 최근 30회차 분석
+    const frequency = new Array(46).fill(0);
+
+    // 빈도 분석
+    recentDraws.forEach(draw => {
+        draw.forEach(num => frequency[num]++);
+    });
+
+    // 가중치 기반 랜덤 선택 (Weighted Random)
+    for (let i = 0; i < 5; i++) { // 5게임 생성
+        const numbers = new Set();
+        while (numbers.size < 6) {
+            // 룰렛 휠 선택 방식 (Roulette Wheel Selection)
+            let totalWeight = 0;
+            // 기본 가중치 1 + 빈도 * 2 (빈도 높은 번호 우대)
+            const weights = frequency.map(f => 1 + (f * 2));
+            weights[0] = 0; // 0번 인덱스 제외
+
+            weights.forEach(w => totalWeight += w);
+            let randomVal = Math.random() * totalWeight;
+
+            for (let n = 1; n <= 45; n++) {
+                randomVal -= weights[n];
+                if (randomVal <= 0) {
+                    if (!numbers.has(n)) numbers.add(n);
+                    break;
+                }
+            }
+        }
+        generated.push([...numbers].sort((a, b) => a - b));
+    }
     return generated;
 }
 
@@ -369,7 +524,7 @@ function hasConsecutive(numbers, minCount = 3) {
 
 // 결과 표시 (UI)
 function displayResults(data) {
-    const area = document.getElementById('numbersArea') || document.getElementById('resultsArea');
+    const area = document.getElementById('resultsArea') || document.getElementById('numbersArea');
     if (!area) return;
 
     if (!data.numbers || data.numbers.length === 0) {
@@ -378,98 +533,154 @@ function displayResults(data) {
     }
 
     area.innerHTML = `
-        <div class="text-sm text-gray-400 mb-2">
-            📅 ${new Date(data.generated_at).toLocaleString('ko-KR')} | 
-            <span class="text-purple-400 font-bold">${data.model.toUpperCase()}</span> 모델 |
-            🎯 ${data.target_draw || '예측'}회차 대상
+        <div class="flex items-center justify-between mb-4">
+            <div class="text-sm text-gray-400">
+                <span class="text-purple-400 font-bold">${data.model ? data.model.toUpperCase() : 'AI'}</span> Model 
+                | Draw ${data.target_draw || 'Next'}
+            </div>
+            <span class="text-xs text-gray-600">${new Date().toLocaleTimeString()}</span>
         </div>
+        <div class="space-y-3">
         ${data.numbers.map((item, i) => {
         const nums = item.numbers;
-        const analysis = item.analysis;
+        const analysis = item.analysis || {};
 
         return `
-            <div class="bg-black/30 rounded-lg p-4 transition-all hover:bg-black/40 border border-white/5">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="text-gray-500 font-mono">#${i + 1}</span>
-                    <div class="flex gap-2">
-                        ${nums.map(n => `
-                            <span class="lotto-ball ${getBallClass(n)} pop-in" style="width:36px; height:36px; font-size:14px;">
-                                ${n}
-                            </span>
-                        `).join('')}
+            <div class="bg-white/5 rounded-2xl p-4 border border-white/5 hover:bg-white/10 transition-all group">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-1 rounded">SET #${i + 1}</span>
+                    <div class="flex gap-2 text-[10px] text-gray-500">
+                        <span>Sum: <b class="text-gray-300">${analysis.sum}</b></span>
+                        <span>AC: <b class="text-gray-300">${analysis.ac_value}</b></span>
                     </div>
                 </div>
-                <div class="text-xs md:text-sm text-gray-400 flex flex-wrap gap-3">
-                    <span>합계: <strong class="text-gray-200">${analysis.sum}</strong></span>
-                    <span>AC: <strong class="text-gray-200">${analysis.ac_value}</strong></span>
-                    ${analysis.odd_count !== undefined ? `<span>홀짝: ${analysis.odd_count}:${analysis.even_count}</span>` : ''}
+                <div class="flex gap-2 justify-center">
+                    ${nums.map(n => `
+                        <span class="lotto-ball-v2 ${getBallClass(n)} pop-in" style="animation-delay: ${i * 0.1}s">
+                            ${n}
+                        </span>
+                    `).join('')}
                 </div>
             </div>
         `;
-    }).join('')}`;
+    }).join('')}
+    </div>`;
+}
+
+// [Persistence] Cloud Save (Supabase)
+async function saveToSupabase(data) {
+    if (!supabase) return;
+
+    try {
+        const payload = {
+            created_at: new Date().toISOString(),
+            numbers: data.numbers,
+            model: data.model || currentModel,
+            lottery_type: getLotteryValue(),
+            // Simple user ID from localStorage or generate new
+            user_id: localStorage.getItem('lotto_user_id') || (() => {
+                const id = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('lotto_user_id', id);
+                return id;
+            })()
+        };
+
+        const { error } = await supabase.from('lotto_history').insert([payload]);
+        if (error) console.warn('❌ Supabase save error:', error.message);
+        else console.log('✅ Saved to Supabase DB');
+    } catch (e) {
+        console.warn('❌ Supabase network error:', e);
+    }
 }
 
 // 이력 저장 (공통)
 function saveHistoryEntry(data) {
-    const history = JSON.parse(localStorage.getItem('lotto_history') || '[]');
-    history.unshift(data);
-    localStorage.setItem('lotto_history', JSON.stringify(history.slice(0, 1000)));
+    try {
+        // 1. LocalStorage
+        const history = JSON.parse(localStorage.getItem('lotto_history') || '[]');
+        const entry = {
+            id: Date.now(),
+            date: new Date().toISOString(),
+            model: data.model || currentModel,
+            numbers: data.numbers || [],
+            generated_at: new Date().toISOString()
+        };
+
+        history.unshift(entry);
+        const limitedHistory = history.slice(0, 100);
+        localStorage.setItem('lotto_history', JSON.stringify(limitedHistory));
+        console.log("✅ Local History saved");
+
+        // 2. Cloud DB (Supabase)
+        saveToSupabase(data);
+
+    } catch (e) {
+        console.error("❌ Failed to save history:", e);
+    }
 }
 
-// 이력 저장
-function saveToHistory(numbersList) {
-    if (numbersList.length === 0) return;
-
-    const history = JSON.parse(localStorage.getItem('lotto_history') || '[]');
-    const newEntry = {
-        id: Date.now(),
-        date: new Date().toISOString(),
-        model: currentModel,
-        numbers: numbersList
-    };
-
-    history.unshift(newEntry);
-    localStorage.setItem('lotto_history', JSON.stringify(history.slice(0, 1000))); // 최근 1000개만 유효
-}
-
-// 이력 로드 및 표시
+// 이력 로드 및 표시 (Robust for Null/Error)
 function loadHistory() {
     const area = document.getElementById('historyArea');
-    const history = JSON.parse(localStorage.getItem('lotto_history') || '[]');
+    if (!area) return;
+
+    let history = [];
+    try {
+        const raw = localStorage.getItem('lotto_history');
+        if (raw) {
+            history = JSON.parse(raw);
+            if (!Array.isArray(history)) history = [];
+        }
+    } catch (e) {
+        console.error("Local History Corrupted, resetting:", e);
+        localStorage.removeItem('lotto_history');
+        history = [];
+    }
 
     if (history.length === 0) {
-        area.innerHTML = '<p class="text-gray-400">생성 이력이 없습니다.</p>';
+        area.innerHTML = '<div class="text-center text-gray-500 py-10">No history data available.</div>';
         return;
     }
 
-    area.innerHTML = history.map(entry => `
-        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
-            <div class="flex justify-between items-start mb-3">
-                <div class="text-xs text-gray-500">
-                    📅 ${new Date(entry.date).toLocaleString('ko-KR')} | 
-                    <span class="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">${entry.model.toUpperCase()}</span>
+    area.innerHTML = history.map((entry, idx) => {
+        if (!entry || !entry.numbers) return ''; // Skip invalid entries
+
+        // Handle different data structures (array of arrays vs array of objects)
+        const numberSets = Array.isArray(entry.numbers) ? entry.numbers : [];
+        const modelName = entry.model || 'Unknown';
+
+        return `
+        <div class="glass-panel p-4 rounded-xl border border-white/10 mb-4">
+            <div class="flex justify-between items-start mb-3 border-b border-white/5 pb-2">
+                <div class="text-xs text-gray-400">
+                    ${new Date(entry.date || entry.generated_at || Date.now()).toLocaleString()}
                 </div>
+                <span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">${modelName.toUpperCase()}</span>
             </div>
             <div class="space-y-2">
-                ${entry.numbers.map(nums => `
-                    <div class="flex gap-1.5 flex-wrap">
-                        ${nums.map(n => `<span class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${getBallColor(n)}">${n}</span>`).join('')}
+                ${numberSets.map(set => {
+            // entry.numbers structure check: could be [1,2,3..] or {numbers:[1,2..]}
+            const nums = Array.isArray(set) ? set : (set.numbers || []);
+            if (nums.length === 0) return '';
+            return `
+                    <div class="flex gap-1.5 flex-wrap justify-center sm:justify-start">
+                        ${nums.map(n => `<span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${getBallColor(n)}">${n}</span>`).join('')}
                     </div>
-                `).join('')}
+                    `;
+        }).join('')}
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
-// 이력 삭제
 function clearHistory() {
-    if (confirm('모든 생성 이력을 삭제하시겠습니까?')) {
+    if (confirm('Clear all local history?')) {
         localStorage.removeItem('lotto_history');
         loadHistory();
     }
 }
 
-// 공 색상 클래스
+// 공 색상 클래스 (V2 대응)
 function getBallClass(num) {
     if (num <= 10) return 'ball-1-10';
     if (num <= 20) return 'ball-11-20';
@@ -478,11 +689,12 @@ function getBallClass(num) {
     return 'ball-41-45';
 }
 
-// 공 색상 (폴백용)
 function getBallColor(n) {
-    if (n <= 10) return 'bg-yellow-500 text-black';
-    if (n <= 20) return 'bg-blue-500 text-white';
-    if (n <= 30) return 'bg-red-500 text-white';
-    if (n <= 40) return 'bg-gray-600 text-white';
-    return 'bg-green-500 text-white';
+    // Fallback for missing CSS classes or history view
+    if (n <= 10) return 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20';
+    if (n <= 20) return 'bg-blue-500 text-white shadow-lg shadow-blue-500/20';
+    if (n <= 30) return 'bg-red-500 text-white shadow-lg shadow-red-500/20';
+    if (n <= 40) return 'bg-gray-600 text-white shadow-lg shadow-gray-500/20';
+    return 'bg-green-500 text-white shadow-lg shadow-green-500/20';
 }
+
