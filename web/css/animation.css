@@ -18,19 +18,18 @@
 .machine-dome {
     width: 280px;
     height: 200px;
-    background: linear-gradient(180deg, 
-        rgba(255,255,255,0.1) 0%, 
-        rgba(255,255,255,0.05) 50%,
-        rgba(0,0,0,0.2) 100%
-    );
-    border: 2px solid rgba(255,255,255,0.2);
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.05) 50%,
+            rgba(0, 0, 0, 0.2) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
     position: relative;
     overflow: hidden;
-    box-shadow: 
-        inset 0 -30px 60px rgba(0,0,0,0.3),
-        0 10px 40px rgba(0,0,0,0.4),
-        inset 0 2px 20px rgba(255,255,255,0.1);
+    box-shadow:
+        inset 0 -30px 60px rgba(0, 0, 0, 0.3),
+        0 10px 40px rgba(0, 0, 0, 0.4),
+        inset 0 2px 20px rgba(255, 255, 255, 0.1);
 }
 
 /* Glass reflection */
@@ -41,7 +40,7 @@
     left: 15%;
     width: 30%;
     height: 40%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
     border-radius: 50%;
 }
 
@@ -64,11 +63,11 @@
     font-weight: bold;
     font-size: 14px;
     color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    box-shadow: 
-        inset -3px -3px 8px rgba(0,0,0,0.3),
-        inset 3px 3px 8px rgba(255,255,255,0.3),
-        0 4px 8px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow:
+        inset -3px -3px 8px rgba(0, 0, 0, 0.3),
+        inset 3px 3px 8px rgba(255, 255, 255, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.3);
     left: var(--x, 50%);
     top: var(--y, 50%);
     transform: translate(-50%, -50%);
@@ -82,15 +81,20 @@
 }
 
 @keyframes bounce-around {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(-50%, -50%) translate(0, 0);
     }
+
     25% {
         transform: translate(-50%, -50%) translate(calc(var(--x) * 0.3), calc(var(--y) * -0.5));
     }
+
     50% {
         transform: translate(-50%, -50%) translate(calc(var(--x) * -0.4), calc(var(--y) * 0.3));
     }
+
     75% {
         transform: translate(-50%, -50%) translate(calc(var(--x) * 0.2), calc(var(--y) * 0.4));
     }
@@ -102,9 +106,19 @@
 }
 
 @keyframes shake-dome {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-3px) rotate(-0.5deg); }
-    75% { transform: translateX(3px) rotate(0.5deg); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px) rotate(-0.5deg);
+    }
+
+    75% {
+        transform: translateX(3px) rotate(0.5deg);
+    }
 }
 
 /* ===== Machine Chute ===== */
@@ -112,7 +126,7 @@
     width: 60px;
     height: 30px;
     background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
-    border: 2px solid rgba(255,255,255,0.1);
+    border: 2px solid rgba(255, 255, 255, 0.1);
     border-top: none;
     border-radius: 0 0 20px 20px;
     position: relative;
@@ -152,11 +166,11 @@
     font-weight: bold;
     font-size: 18px;
     color: white;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    box-shadow: 
-        inset -4px -4px 10px rgba(0,0,0,0.3),
-        inset 4px 4px 10px rgba(255,255,255,0.3),
-        0 6px 15px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow:
+        inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+        inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+        0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Pop-in animation for revealed balls */
@@ -169,9 +183,11 @@
         opacity: 0;
         transform: scale(0) translateY(-50px);
     }
+
     60% {
         transform: scale(1.2) translateY(5px);
     }
+
     100% {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -205,8 +221,15 @@
 }
 
 @keyframes celebrate {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .animation-active.complete .revealed-ball {
@@ -214,42 +237,261 @@
 }
 
 @keyframes glow-pulse {
-    0%, 100% {
-        box-shadow: 
-            inset -4px -4px 10px rgba(0,0,0,0.3),
-            inset 4px 4px 10px rgba(255,255,255,0.3),
-            0 6px 15px rgba(0,0,0,0.4),
-            0 0 20px rgba(255,255,255,0.2);
+
+    0%,
+    100% {
+        box-shadow:
+            inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+            inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+            0 6px 15px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(255, 255, 255, 0.2);
     }
+
     50% {
-        box-shadow: 
-            inset -4px -4px 10px rgba(0,0,0,0.3),
-            inset 4px 4px 10px rgba(255,255,255,0.3),
-            0 6px 15px rgba(0,0,0,0.4),
-            0 0 30px rgba(255,255,255,0.4);
+        box-shadow:
+            inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+            inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+            0 6px 15px rgba(0, 0, 0, 0.4),
+            0 0 30px rgba(255, 255, 255, 0.4);
     }
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 640px) {
     .machine-dome {
         width: 220px;
         height: 160px;
     }
-    
+
     .mixing-ball {
         width: 28px;
         height: 28px;
         font-size: 12px;
     }
-    
+
     .revealed-ball {
         width: 42px;
         height: 42px;
         font-size: 16px;
     }
-    
+
     .revealed-balls {
         gap: 8px;
+    }
+}
+
+
+/* ========================================
+   🎰 SLOT MACHINE ANIMATION STYLES
+   ======================================== */
+
+.slot-machine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, #2d1b4e 0%, #1a0f2e 100%);
+    border-radius: 20px;
+    border: 3px solid #f59e0b;
+    box-shadow:
+        0 0 30px rgba(245, 158, 11, 0.3),
+        inset 0 2px 20px rgba(255, 255, 255, 0.1);
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.slot-header {
+    background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%);
+    padding: 0.5rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.slot-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1a0f2e;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Reels Container */
+.slot-reels {
+    display: flex;
+    gap: 8px;
+    background: #0f0a1a;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Individual Reel */
+.slot-reel {
+    position: relative;
+    width: 50px;
+    height: 60px;
+    overflow: hidden;
+    background: #1a1025;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.reel-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.reel-strip {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Spinning state */
+.reel-strip.spinning {
+    animation: spin-reel 0.15s linear infinite;
+}
+
+@keyframes spin-reel {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-60px);
+    }
+}
+
+/* Stopped state - show last item */
+.reel-strip.stopped {
+    animation: none;
+    transform: translateY(calc(-100% + 60px));
+}
+
+/* Reel Numbers */
+.reel-number {
+    width: 46px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    margin: 2px;
+}
+
+/* Reel Frame overlay */
+.reel-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border-radius: 8px;
+    box-shadow:
+        inset 0 5px 15px rgba(0, 0, 0, 0.5),
+        inset 0 -5px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Lever */
+.slot-lever {
+    position: absolute;
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lever-ball {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    border-radius: 50%;
+    box-shadow:
+        inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+        0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.lever-stick {
+    width: 8px;
+    height: 40px;
+    background: linear-gradient(90deg, #9ca3af 0%, #e5e7eb 50%, #9ca3af 100%);
+    border-radius: 4px;
+    margin-top: -2px;
+}
+
+/* Slot Complete State */
+.slot-complete .slot-machine {
+    animation: slot-flash 0.3s ease-in-out 3;
+}
+
+@keyframes slot-flash {
+
+    0%,
+    100% {
+        box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 60px rgba(245, 158, 11, 0.8);
+    }
+}
+
+.slot-complete .reel-number {
+    animation: slot-win-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes slot-win-pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .slot-machine {
+        padding: 1rem;
+        max-width: 320px;
+    }
+
+    .slot-reel {
+        width: 40px;
+        height: 50px;
+    }
+
+    .reel-number {
+        width: 36px;
+        height: 46px;
+        font-size: 16px;
+    }
+
+    .slot-lever {
+        right: -20px;
+    }
+
+    .lever-ball {
+        width: 18px;
+        height: 18px;
+    }
+
+    .lever-stick {
+        width: 6px;
+        height: 30px;
     }
 }

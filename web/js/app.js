@@ -295,21 +295,31 @@ async function generateNumbers() {
             generated_data = await res.json();
         }
 
-        // 🎱 Play lottery ball animation, then show results
+        // 🎬 Play animation, then show results (supports multiple animation types)
         const animationContainer = document.getElementById('resultsArea') || document.getElementById('numbersArea');
 
-        if (window.LotteryAnimation && animationContainer) {
+        if (window.animationManager && animationContainer) {
             // Get first set of numbers for animation
             const firstSetNumbers = generated_data.numbers[0]?.numbers || [];
 
-            // Initialize animation if not already
+            // Get animation from manager (respects user preference)
+            const animation = window.animationManager.getAnimation(() => {
+                // After animation, show full results
+                setTimeout(() => {
+                    displayResults(generated_data);
+                    saveHistoryEntry(generated_data);
+                }, 500);
+            });
+
+            // Run animation with first set numbers
+            animation.animate(firstSetNumbers, animationContainer);
+        } else if (window.LotteryAnimation && animationContainer) {
+            // Fallback to direct LotteryAnimation if no manager
+            const firstSetNumbers = generated_data.numbers[0]?.numbers || [];
             if (!window.lottoAnim) {
                 window.lottoAnim = new LotteryAnimation({
                     soundEnabled: true,
-                    revealDelay: 350,
-                    mixDuration: 1800,
                     onComplete: () => {
-                        // After animation, show full results
                         setTimeout(() => {
                             displayResults(generated_data);
                             saveHistoryEntry(generated_data);
@@ -317,8 +327,6 @@ async function generateNumbers() {
                     }
                 });
             }
-
-            // Run animation with first set numbers
             window.lottoAnim.animate(firstSetNumbers, animationContainer);
         } else {
             // Fallback: No animation, show directly

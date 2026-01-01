@@ -699,16 +699,61 @@
                     <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
                         <span>⚙️</span> System Configuration
                     </h2>
-                    <p class="text-gray-500 mb-8 text-sm">AI Analysis Engine and Inference Settings</p>
+                    <p class="text-gray-500 mb-8 text-sm">AI Analysis Engine and Animation Settings</p>
 
-                    <div class="glass-panel p-8 bg-[#1e293b]/40 border border-white/10 rounded-3xl">
-                        <div class="flex flex-col items-center justify-center py-12 text-center">
-                            <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-4">
-                                <span class="text-3xl">🧬</span>
+                    <!-- Animation Selector -->
+                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span>🎬</span> Animation Style
+                        </h3>
+                        <p class="text-gray-500 text-sm mb-4">번호 생성 시 표시되는 애니메이션을 선택하세요</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="animationSelector">
+                            <!-- Lottery Ball -->
+                            <div class="animation-option cursor-pointer p-4 rounded-xl border-2 border-purple-500 bg-purple-500/10 transition-all hover:scale-105"
+                                data-type="lottery_ball" onclick="selectAnimation('lottery_ball')">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="text-3xl">🎱</span>
+                                    <div>
+                                        <h4 class="font-bold text-white">로또볼 추첨기</h4>
+                                        <p class="text-xs text-gray-400">공이 튀며 나오는 실제 추첨 효과</p>
+                                    </div>
+                                </div>
+                                <div class="selected-badge text-xs text-purple-400 font-medium">✓ 선택됨</div>
                             </div>
-                            <h3 class="text-xl font-bold text-white mb-2">Engine is Optimal</h3>
-                            <p class="text-gray-500 max-w-sm">Detailed filter settings have been moved back to the
-                                Dashboard for faster access. Click the gear icon on the dashboard to toggle them.</p>
+
+                            <!-- Slot Machine -->
+                            <div class="animation-option cursor-pointer p-4 rounded-xl border-2 border-gray-600 bg-gray-800/50 transition-all hover:scale-105 hover:border-purple-400"
+                                data-type="slot_machine" onclick="selectAnimation('slot_machine')">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="text-3xl">🎰</span>
+                                    <div>
+                                        <h4 class="font-bold text-white">슬롯머신</h4>
+                                        <p class="text-xs text-gray-400">카지노 스타일 릴 회전</p>
+                                    </div>
+                                </div>
+                                <div class="selected-badge hidden text-xs text-purple-400 font-medium">✓ 선택됨</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sound Toggle -->
+                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span>🔊</span> Sound Effects
+                        </h3>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-white">애니메이션 효과음</p>
+                                <p class="text-gray-500 text-sm">번호 생성 시 사운드 효과 재생</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="soundToggle" class="sr-only peer" checked
+                                    onchange="toggleAnimationSound(this.checked)">
+                                <div
+                                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500">
+                                </div>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -822,6 +867,51 @@
                 if (bar) bar.style.width = val + '%';
             }
         }, 1000);
+
+        // ===== Animation Selector Functions =====
+        function selectAnimation(type) {
+            if (!window.animationManager) return;
+
+            window.animationManager.setType(type);
+            updateAnimationUI(type);
+        }
+
+        function updateAnimationUI(selectedType) {
+            const options = document.querySelectorAll('.animation-option');
+            options.forEach(opt => {
+                const isSelected = opt.dataset.type === selectedType;
+                const badge = opt.querySelector('.selected-badge');
+
+                if (isSelected) {
+                    opt.classList.remove('border-gray-600', 'bg-gray-800/50');
+                    opt.classList.add('border-purple-500', 'bg-purple-500/10');
+                    if (badge) badge.classList.remove('hidden');
+                } else {
+                    opt.classList.remove('border-purple-500', 'bg-purple-500/10');
+                    opt.classList.add('border-gray-600', 'bg-gray-800/50');
+                    if (badge) badge.classList.add('hidden');
+                }
+            });
+        }
+
+        function toggleAnimationSound(enabled) {
+            if (window.animationManager) {
+                window.animationManager.toggleSound(enabled);
+            }
+        }
+
+        // Initialize animation UI on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.animationManager) {
+                const currentType = window.animationManager.getType();
+                updateAnimationUI(currentType);
+
+                const soundToggle = document.getElementById('soundToggle');
+                if (soundToggle && window.animationManager.soundEnabled !== undefined) {
+                    soundToggle.checked = window.animationManager.soundEnabled;
+                }
+            }
+        });
 
     </script>
     <style>
