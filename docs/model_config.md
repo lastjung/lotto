@@ -50,6 +50,35 @@ models_ai/trained/lstm/{lottery_id}.pt
 
 ---
 
+## 학습 설정 파일 (`config/training_config.json`)
+
+### 모델 구조 파라미터
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `history_length` | 10 | 입력으로 사용할 과거 회차 수 |
+| `d_model` | 64 | 임베딩 차원 (모델 크기) |
+| `nhead` | 4 | 어텐션 헤드 수 (Transformer) |
+| `num_layers` | 2 | Transformer/LSTM 레이어 수 |
+| `dim_feedforward` | 128 | FFN 히든 크기 (Transformer) |
+| `dropout` | 0.1 | 드롭아웃 비율 (과적합 방지) |
+
+### 학습 파라미터
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| `epochs` | 50 | 총 학습 반복 횟수 |
+| `batch_size` | 32 | 한 번에 처리할 데이터 수 |
+| `learning_rate` | 0.001 | 학습률 |
+| `early_stopping` | 5 | N 에폭 개선 없으면 종료 |
+
+### 자주 조정하는 값
+- `history_length`: 더 긴 과거 참조 실험
+- `epochs`: 학습 시간 조절
+- `learning_rate`: 수렴 속도 조정
+
+---
+
 ## TODO: 모델 재학습
 
 Canada 649, Powerball 등에서 Transformer/LSTM 사용하려면:
@@ -58,3 +87,4 @@ Canada 649, Powerball 등에서 Transformer/LSTM 사용하려면:
 2. 로또별 `ball_ranges` 값으로 개별 학습
 3. `config/lotteries.json` 변수명 변경
 4. `api/main.py` 참조 코드 업데이트
+
