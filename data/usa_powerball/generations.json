@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "generated_at": "2026-01-01T11:27:54.244042",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1883,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 2,
+    "generated_at": "2026-01-01T11:29:14.216707",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1883,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 3,
+    "generated_at": "2026-01-01T11:30:33.537102",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1883,
+    "model": "transformer",
+    "numbers": [],
+    "result": null
+  },
+  {
+    "id": 4,
+    "generated_at": "2026-01-01T11:30:49.892833",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1883,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          2,
+          19,
+          23,
+          49,
+          60
+        ],
+        "analysis": {
+          "sum": 153,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  }
+]

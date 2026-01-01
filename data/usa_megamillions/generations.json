@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "generated_at": "2026-01-01T11:31:12.071693",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          9,
+          20,
+          54,
+          60,
+          64
+        ],
+        "analysis": {
+          "sum": 207,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  }
+]
