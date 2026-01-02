@@ -23,6 +23,39 @@ let session = null;
 let lottoData = null;
 let modelLoaded = false;
 
+// [Lock] 모델 버튼 동시 클릭 방지
+let isGenerating = false;
+const MODEL_BUTTON_IDS = [
+    'card-transformer-v3', 'card-lstm-v3', 'card-physics-v3',
+    'card-transformer-stat', 'card-hot_trend', 'card-cold-stat', 'card-physics-stat'
+];
+
+function lockModelButtons() {
+    isGenerating = true;
+    MODEL_BUTTON_IDS.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+        }
+    });
+    console.log('🔒 Model buttons locked');
+}
+
+function unlockModelButtons() {
+    isGenerating = false;
+    MODEL_BUTTON_IDS.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        }
+    });
+    console.log('🔓 Model buttons unlocked');
+}
+
+window.isGenerating = () => isGenerating; // UI에서 확인용
+
 // 초기화
 document.addEventListener('DOMContentLoaded', async () => {
     console.log(`🚀 AI 로또 분석기 시작 (모드: ${IS_STATIC_MODE ? 'STATIC/ONNX' : 'API/SERVER'})`);
@@ -210,6 +243,12 @@ async function loadModel(modelType) {
 
 // 모델 선택
 async function selectModel(type, isInit = false) {
+    // [Lock] 생성 중이면 무시
+    if (isGenerating && !isInit) {
+        console.log('⏳ Generation in progress, ignoring click');
+        return;
+    }
+
     currentModel = type;
 
     // 버튼 스타일 업데이트
@@ -236,14 +275,22 @@ async function selectModel(type, isInit = false) {
     await loadModel(type);
 
     // [특수 기능] 모든 모델 자동 실행 (초기 로드 시에는 실행 안 함)
-    if (!isInit && ['transformer', 'lstm', 'vector', 'hot_trend'].includes(type)) {
+    if (!isInit && ['transformer', 'lstm', 'vector', 'hot_trend', 'balanced_mix', 'cold_theory', 'physics_bias'].includes(type)) {
         console.log(`⚡ ${type} Card Clicked: Executing Auto-Generate Flow`);
 
-        // [Persistence] 2. Config 저장 (서버) - Dual Save
-        await saveConfigToServer(getLotteryValue(), type);
+        // [Lock] 버튼 잠금
+        lockModelButtons();
 
-        // 2. 번호 생성 (DB 저장 및 결과 표시는 generateNumbers 내부에서 처리됨)
-        await generateNumbers();
+        try {
+            // [Persistence] 2. Config 저장 (서버) - Dual Save
+            await saveConfigToServer(getLotteryValue(), type);
+
+            // 2. 번호 생성 (DB 저장 및 결과 표시는 generateNumbers 내부에서 처리됨)
+            await generateNumbers();
+        } finally {
+            // [Lock] 버튼 잠금 해제 (에러 발생해도 해제)
+            unlockModelButtons();
+        }
     }
 }
 // [Integrate] UI.js와의 호환성을 위해 전역 노출
@@ -308,44 +355,42 @@ async function generateNumbers() {
             generated_data = await res.json();
         }
 
-        // 🎬 Play animation, then show results (supports multiple animation types)
+        // 🎬 Play animation, then show results (await until complete for Lock mechanism)
         const animationContainer = document.getElementById('resultsArea') || document.getElementById('numbersArea');
 
-        if (window.animationManager && animationContainer) {
-            // Get first set of numbers for animation
+        // [Lock] 애니메이션 완료까지 대기하는 Promise
+        await new Promise((resolve) => {
             const firstSetNumbers = generated_data.numbers[0]?.numbers || [];
 
-            // Get animation from manager (respects user preference)
-            const animation = window.animationManager.getAnimation(() => {
-                // After animation, show full results
+            const onAnimationComplete = () => {
                 setTimeout(() => {
                     displayResults(generated_data);
                     saveHistoryEntry(generated_data);
+                    resolve(); // 애니메이션 + 저장 완료 후 resolve
                 }, 500);
-            });
+            };
 
-            // Run animation with first set numbers
-            animation.animate(firstSetNumbers, animationContainer);
-        } else if (window.LotteryAnimation && animationContainer) {
-            // Fallback to direct LotteryAnimation if no manager
-            const firstSetNumbers = generated_data.numbers[0]?.numbers || [];
-            if (!window.lottoAnim) {
-                window.lottoAnim = new LotteryAnimation({
-                    soundEnabled: true,
-                    onComplete: () => {
-                        setTimeout(() => {
-                            displayResults(generated_data);
-                            saveHistoryEntry(generated_data);
-                        }, 500);
-                    }
-                });
+            if (window.animationManager && animationContainer) {
+                const animation = window.animationManager.getAnimation(onAnimationComplete);
+                animation.animate(firstSetNumbers, animationContainer);
+            } else if (window.LotteryAnimation && animationContainer) {
+                if (!window.lottoAnim) {
+                    window.lottoAnim = new LotteryAnimation({
+                        soundEnabled: true,
+                        onComplete: onAnimationComplete
+                    });
+                } else {
+                    // 기존 인스턴스의 콜백 업데이트
+                    window.lottoAnim.onComplete = onAnimationComplete;
+                }
+                window.lottoAnim.animate(firstSetNumbers, animationContainer);
+            } else {
+                // No animation, resolve immediately
+                displayResults(generated_data);
+                saveHistoryEntry(generated_data);
+                resolve();
             }
-            window.lottoAnim.animate(firstSetNumbers, animationContainer);
-        } else {
-            // Fallback: No animation, show directly
-            displayResults(generated_data);
-            saveHistoryEntry(generated_data);
-        }
+        });
 
     } catch (e) {
         console.error('❌ 생성 실패:', e);

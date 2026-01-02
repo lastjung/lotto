@@ -31,33 +31,67 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchAndBuildAnalytics(lotteryId) {
     try {
-        const path = `data/${lotteryId}/draws.json`;
-        const res = await fetch(path);
-        if (!res.ok) return;
+        // [Supabase First] Primary: Supabase, Fallback: JSON
+        let draws = [];
 
-        const json = await res.json();
-        const draws = json.draws || json;
+        // 1. Try Supabase first
+        if (supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('lotto_draws')
+                    .select('*')
+                    .eq('lottery_type', lotteryId)
+                    .order('draw_date', { ascending: false })
+                    .limit(50);
+
+                if (!error && data && data.length > 0) {
+                    console.log(`✅ [Dashboard] Supabase loaded: ${data.length} draws`);
+                    draws = data.map(d => ({
+                        numbers: d.numbers,
+                        bnus_no: d.bonus_number,
+                        date: d.draw_date
+                    }));
+                }
+            } catch (e) {
+                console.warn('⚠️ Dashboard Supabase failed, using JSON fallback:', e);
+            }
+        }
+
+        // 2. Fallback to JSON if Supabase failed
+        if (draws.length === 0) {
+            console.log('📁 [Dashboard] Using JSON fallback');
+            const path = `data/${lotteryId}/draws.json`;
+            const res = await fetch(path);
+            if (!res.ok) return;
+
+            const json = await res.json();
+            draws = json.draws || json;
+        }
 
         // Sort by date desc
         draws.sort((a, b) => new Date(b.date || b.drw_no_date) - new Date(a.date || a.drw_no_date));
         globalDrawData = draws;
 
-        // Build Frequency Map (Last 50 draws)
+        // Build Frequency Map (Last 50 draws) - GENERAL NUMBERS ONLY (no bonus)
         const recent = draws.slice(0, 50);
         numberFrequency = {};
 
         recent.forEach(draw => {
-            const nums = [draw.drwt_no1, draw.drwt_no2, draw.drwt_no3, draw.drwt_no4, draw.drwt_no5, draw.drwt_no6, draw.bnus_no]
-                .filter(n => n !== undefined && n !== null);
-
-            // Fallback for array format
-            if (nums.length === 0 && Array.isArray(draw.numbers)) {
-                draw.numbers.forEach(n => nums.push(n));
+            // Supabase format: draw.numbers is array
+            if (Array.isArray(draw.numbers)) {
+                draw.numbers.forEach(n => {
+                    numberFrequency[n] = (numberFrequency[n] || 0) + 1;
+                });
             }
-
-            nums.forEach(n => {
-                numberFrequency[n] = (numberFrequency[n] || 0) + 1;
-            });
+            // Legacy JSON format: drwt_no1~6
+            else if (draw.drwt_no1) {
+                [draw.drwt_no1, draw.drwt_no2, draw.drwt_no3, draw.drwt_no4, draw.drwt_no5, draw.drwt_no6]
+                    .filter(n => n !== undefined && n !== null)
+                    .forEach(n => {
+                        numberFrequency[n] = (numberFrequency[n] || 0) + 1;
+                    });
+            }
+            // NOTE: Intentionally excluding bonus ball (bnus_no) from frequency map
         });
 
         // Initial Render
@@ -74,8 +108,12 @@ function renderHotNumbersChart() {
     const container = document.getElementById('hotNumbersChart');
     if (!container) return;
 
-    // Get Top 5 Hot Numbers
-    const sorted = Object.entries(numberFrequency).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    // Get ball_count from current lottery config (dynamic)
+    const lotteryId = getLotteryType();
+    const ballCount = window.lotteryConfigs?.[lotteryId]?.ball_count || 6;
+
+    // Get Top N Hot Numbers (based on lottery type)
+    const sorted = Object.entries(numberFrequency).sort((a, b) => b[1] - a[1]).slice(0, ballCount);
     if (sorted.length === 0) return;
 
     const maxFreq = sorted[0][1];

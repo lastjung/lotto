@@ -713,7 +713,7 @@
                         <div>
                             <h1 class="text-2xl font-bold mb-1 text-white" id="analysisTitle">📊 Statistics</h1>
                             <div class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400">
-                                <p>최근 1년(<span id="drawCount" class="text-blue-400 font-bold">0</span>회) 데이터를 기반으로 한
+                                <p>최근 <span id="drawCount" class="text-blue-400 font-bold">0</span>회 데이터를 기반으로 한
                                     통계입니다.</p>
                                 <span class="hidden sm:inline text-gray-600">|</span>
                                 <p class="font-medium text-blue-400">통계 기간: <span id="periodRange"
@@ -1153,6 +1153,12 @@
         // Model Selection UI Handler
         const originalSelectModelUI = window.selectModel;
         window.selectModel = async function (model, isInit = false) {
+            // [Lock] 생성 중이면 클릭 무시
+            if (window.isGenerating && window.isGenerating() && !isInit) {
+                console.log('⏳ [UI] Generation in progress, ignoring click');
+                return;
+            }
+
             // Visual Update for Cards
             document.querySelectorAll('.model-card').forEach(el => {
                 el.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/20');
@@ -1248,14 +1254,33 @@
         let analysisCharts = {};
         let analysisLoaded = false;
 
-        // Lottery configurations with ball counts
-        const lotteryConfigs = {
+        // Lottery configurations - Fallback (will be replaced by dynamic fetch)
+        window.lotteryConfigs = {
             "korea_645": { ball_count: 6, name: "Korea Lotto 6/45" },
             "usa_powerball": { ball_count: 5, name: "USA Powerball" },
             "usa_megamillions": { ball_count: 5, name: "USA Mega Millions" },
             "canada_649": { ball_count: 6, name: "Canada 6/49" },
             "japan_loto6": { ball_count: 6, name: "Japan Loto 6" }
         };
+
+        // Dynamic load from config/lotteries.json (Single Source of Truth)
+        (async function loadLotteryConfigs() {
+            try {
+                let res = await fetch('/config/lotteries.json');
+                if (!res.ok) res = await fetch('config/lotteries.json');
+                if (!res.ok) res = await fetch('../config/lotteries.json');
+
+                if (res.ok) {
+                    const json = await res.json();
+                    window.lotteryConfigs = json;
+                    console.log('✅ Lottery configs loaded from config/lotteries.json');
+                }
+            } catch (e) {
+                console.warn('⚠️ Using fallback lotteryConfigs:', e);
+            }
+        })();
+
+        const lotteryConfigs = window.lotteryConfigs; // Reference for local use
 
         // Hook into lottery change event
         (function () {
@@ -1314,13 +1339,44 @@
                 const lotteryId = window.currentLotteryId || 'korea_645';
                 const config = lotteryConfigs[lotteryId] || { ball_count: 6 };
 
-                // Fetch draws data
-                let res = await fetch(`/data/${lotteryId}/draws.json`);
-                if (!res.ok) res = await fetch(`../data/${lotteryId}/draws.json`);
-                if (!res.ok) throw new Error('Data fetch failed');
+                // [Supabase First] Primary: Supabase, Fallback: JSON
+                let allDraws = [];
 
-                const json = await res.json();
-                const allDraws = json.draws || json;
+                // 1. Try Supabase first
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('lotto_draws')
+                            .select('*')
+                            .eq('lottery_type', lotteryId)
+                            .order('draw_date', { ascending: false })
+                            .limit(52);
+
+                        if (!error && data && data.length > 0) {
+                            console.log(`✅ [History] Supabase loaded: ${data.length} draws`);
+                            allDraws = data.map(d => ({
+                                draw_no: d.draw_number,
+                                draw_date: d.draw_date,
+                                numbers: d.numbers,
+                                bonus: d.bonus_number
+                            }));
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Supabase fetch failed, using JSON fallback:', e);
+                    }
+                }
+
+                // 2. Fallback to JSON if Supabase failed
+                if (allDraws.length === 0) {
+                    console.log('📁 [History] Using JSON fallback');
+                    let res = await fetch(`/data/${lotteryId}/draws.json`);
+                    if (!res.ok) res = await fetch(`../data/${lotteryId}/draws.json`);
+                    if (!res.ok) throw new Error('Data fetch failed');
+
+                    const json = await res.json();
+                    allDraws = json.draws || json;
+                }
+
                 const oneYearDraws = allDraws.slice(-52);
 
                 document.getElementById('drawCount').innerText = oneYearDraws.length;
