@@ -48,3 +48,4 @@ data/**/cache/
 
 # 브라우저 녹화 (필요시 포함)
 # .gemini/
+temp/
