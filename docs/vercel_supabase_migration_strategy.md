@@ -81,9 +81,12 @@ JSON 파일 기반의 데이터를 관계형 데이터베이스(PostgreSQL)로 �
 > 2. Set `ort.env.wasm.wasmPaths` to `window.location.origin + '/wasm/'`.
 > 3. Add `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp` to `devServer` headers.
 
-### [Phase 2] 데이터 마이그레이션
-- [ ] Python 스크립트를 작성하여 기존 `.json` 데이터를 Supabase DB로 전송.
-- [ ] 최신 회차 정보를 읽어오는 크롤러를 Supabase Edge Functions으로 이식.
+### [Phase 2] 데이터 마이그레이션 및 서비스 연결 (To-Do)
+- [ ] Python 스크립트를 작성하여 기존 `.json` 데이터를 Supabase DB로 전송 (Initial Import).
+- [ ] **Backend (`api/main.py`) 연결**: `load_draws` 및 `save_history`를 로컬 JSON 대신 Supabase SDK로 교체.
+- [ ] **Data Collection (`collectors/*.py`) 연결**: 크롤러가 수집한 데이터를 DB에 바로 Insert하도록 수정.
+- [ ] **AI Training (`train.py`) 연결**: 학습 데이터를 DB에서 조회하도록 변경.
+- [ ] **Frontend (`app.js`)**: (완료됨) Supabase 우선 로직 유지 (Fallback으로 로컬 파일 사용).
 
 ### [Phase 3] 프론트엔드 포팅
 - [ ] `web-vue`(Quasar) 프로젝트에 현재의 UI/UX 디자인 적용.
