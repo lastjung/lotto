@@ -34,6 +34,9 @@
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js"></script>
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js for Analysis -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap"
         rel="stylesheet">
@@ -239,7 +242,7 @@
                 <button onclick="switchTab('history')" id="nav-history"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                     <span class="text-lg">📂</span>
-                    <span class="font-medium">History Data</span>
+                    <span class="font-medium">History Analysis</span>
                 </button>
                 <button onclick="switchTab('models')" id="nav-models"
                     class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
@@ -691,12 +694,153 @@
                     </div>
                 </div>
 
-                <!-- HISTORY VIEW (Hidden by default) -->
+                <!-- HISTORY VIEW (Tabbed: Draws Analysis + Generated History) -->
                 <div id="view-history" class="hidden max-w-7xl mx-auto p-4 md:p-8">
-                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span>📂</span> Generated History
-                    </h2>
-                    <div id="historyArea" class="space-y-4"></div>
+                    <!-- Tab Navigation -->
+                    <div class="flex gap-2 mb-6 border-b border-white/10 pb-2">
+                        <button onclick="switchHistoryTab('draws')" id="history-tab-btn-draws"
+                            class="px-4 py-2 rounded-t-lg text-sm font-bold bg-blue-600/20 text-blue-400 border-b-2 border-blue-500 transition-all">
+                            📊 History Statistics
+                        </button>
+                        <button onclick="switchHistoryTab('generated')" id="history-tab-btn-generated"
+                            class="px-4 py-2 rounded-t-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                            📂 Generated History
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Draws Analysis (from hisanal) -->
+                    <div id="history-tab-draws" class="space-y-6">
+                        <div>
+                            <h1 class="text-2xl font-bold mb-1 text-white" id="analysisTitle">📊 Statistics</h1>
+                            <div class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400">
+                                <p>최근 1년(<span id="drawCount" class="text-blue-400 font-bold">0</span>회) 데이터를 기반으로 한
+                                    통계입니다.</p>
+                                <span class="hidden sm:inline text-gray-600">|</span>
+                                <p class="font-medium text-blue-400">통계 기간: <span id="periodRange"
+                                        class="text-gray-300">-</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Hot & Cold Numbers -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Hot Numbers -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="text-xl">🔥</span>
+                                    <h2 class="font-bold text-red-400">Hot Numbers (최다 출현)</h2>
+                                </div>
+                                <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General
+                                    Numbers</div>
+                                <div id="hotNumbers" class="flex justify-between px-2 mb-4 text-white">
+                                    <div class="w-full text-center text-gray-500 py-4">로딩 중...</div>
+                                </div>
+                                <div
+                                    class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">
+                                    Bonus Ball</div>
+                                <div id="hotBonus" class="flex justify-start gap-4 px-2 text-white"></div>
+                            </div>
+                            <!-- Cold Numbers -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="text-xl">🧊</span>
+                                    <h2 class="font-bold text-blue-400">Cold Numbers (최소 출현)</h2>
+                                </div>
+                                <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General
+                                    Numbers</div>
+                                <div id="coldNumbers" class="flex justify-between px-2 mb-4 text-white">
+                                    <div class="w-full text-center text-gray-500 py-4">로딩 중...</div>
+                                </div>
+                                <div
+                                    class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">
+                                    Bonus Ball</div>
+                                <div id="coldBonus" class="flex justify-start gap-4 px-2 text-white"></div>
+                            </div>
+                        </div>
+
+                        <!-- Frequency Chart -->
+                        <div
+                            class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                            <h2 class="font-bold mb-6 text-white">📈 번호별 출현 빈도 (Top 20)</h2>
+                            <div class="h-64 relative w-full">
+                                <canvas id="freqChart"></canvas>
+                            </div>
+                            <p class="text-center text-xs text-gray-500 mt-4">* 상위 20개 번호만 표시됩니다.</p>
+                        </div>
+
+                        <!-- Ratios Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Odd/Even -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                                <h2 class="font-bold mb-4 text-white">🎯 홀짝 비율 (Odd/Even)</h2>
+                                <div class="h-64 flex items-center justify-center">
+                                    <canvas id="oddEvenChart"></canvas>
+                                </div>
+                            </div>
+                            <!-- Low/High -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                                <h2 class="font-bold mb-4 text-white">📊 고저 비율 (Low/High)</h2>
+                                <div class="h-64 flex items-center justify-center">
+                                    <canvas id="lowHighChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trends Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Sum Trend -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                                <h2 class="font-bold mb-4 text-white">📉 합계 추이 (Sum Trend)</h2>
+                                <div class="h-64 w-full">
+                                    <canvas id="sumChart"></canvas>
+                                </div>
+                                <p class="text-center text-xs text-gray-500 mt-2">* 최근 30회차 데이터</p>
+                            </div>
+                            <!-- AC Trend -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                                <h2 class="font-bold mb-4 text-white">🔢 AC값 추이 (AC Value)</h2>
+                                <div class="h-64 w-full">
+                                    <canvas id="acChart"></canvas>
+                                </div>
+                                <p class="text-center text-xs text-gray-500 mt-2">* 산술적 복잡도 (숫자 간격의 불규칙성)</p>
+                            </div>
+                        </div>
+
+                        <!-- Distributions Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Sum Distribution -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                                <h2 class="font-bold mb-4 text-white">📊 합계 분포 (Sum Dist)</h2>
+                                <div class="h-64 w-full">
+                                    <canvas id="sumDistChart"></canvas>
+                                </div>
+                                <p class="text-center text-xs text-gray-500 mt-2">* 전체 기간 합계 빈도 (정규분포)</p>
+                            </div>
+                            <!-- End Digit -->
+                            <div
+                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+                                <h2 class="font-bold mb-4 text-white">🔢 끝수 분석 (End Digit)</h2>
+                                <div class="h-64 w-full">
+                                    <canvas id="endDigitChart"></canvas>
+                                </div>
+                                <p class="text-center text-xs text-gray-500 mt-2">* 번호의 1의 자리 (0~9) 출현 빈도</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Generated History (existing) -->
+                    <div id="history-tab-generated" class="hidden">
+                        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <span>📂</span> Generated History
+                        </h2>
+                        <div id="historyArea" class="space-y-4"></div>
+                    </div>
                 </div>
 
                 <!-- MODELS GUIDE VIEW (Korean) -->
@@ -984,7 +1128,13 @@
             if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all";
 
             // Trigger Loaders
-            if (tabId === 'history' && typeof loadHistory === 'function') loadHistory();
+            if (tabId === 'history') {
+                if (typeof loadHistory === 'function') loadHistory();
+                // Also load draws analysis if it's the visible tab
+                if (!document.getElementById('history-tab-draws')?.classList.contains('hidden')) {
+                    if (typeof loadDrawsAnalysis === 'function') loadDrawsAnalysis();
+                }
+            }
         }
 
         // Toggle Advanced Settings UI
@@ -1092,6 +1242,339 @@
             }
         });
 
+        // ============================================
+        // HISTORY TAB SWITCHING & DRAWS ANALYSIS
+        // ============================================
+        let analysisCharts = {};
+        let analysisLoaded = false;
+
+        // Lottery configurations with ball counts
+        const lotteryConfigs = {
+            "korea_645": { ball_count: 6, name: "Korea Lotto 6/45" },
+            "usa_powerball": { ball_count: 5, name: "USA Powerball" },
+            "usa_megamillions": { ball_count: 5, name: "USA Mega Millions" },
+            "canada_649": { ball_count: 6, name: "Canada 6/49" },
+            "japan_loto6": { ball_count: 6, name: "Japan Loto 6" }
+        };
+
+        // Hook into lottery change event
+        (function () {
+            const desktopSelect = document.getElementById('lotterySelectDesktop');
+            const mobileSelect = document.getElementById('lotterySelectMobile');
+
+            function handleLotteryChange(lotteryId) {
+                window.currentLotteryId = lotteryId;
+                analysisLoaded = false; // Reset so it reloads on next view
+
+                // If currently viewing analysis tab, reload it
+                const drawsTab = document.getElementById('history-tab-draws');
+                if (drawsTab && !drawsTab.classList.contains('hidden')) {
+                    loadDrawsAnalysis();
+                }
+            }
+
+            if (desktopSelect) {
+                desktopSelect.addEventListener('change', (e) => handleLotteryChange(e.target.value));
+            }
+            if (mobileSelect) {
+                mobileSelect.addEventListener('change', (e) => handleLotteryChange(e.target.value));
+            }
+        })();
+
+        function switchHistoryTab(tab) {
+            const drawsTab = document.getElementById('history-tab-draws');
+            const generatedTab = document.getElementById('history-tab-generated');
+            const drawsBtn = document.getElementById('history-tab-btn-draws');
+            const generatedBtn = document.getElementById('history-tab-btn-generated');
+
+            if (tab === 'draws') {
+                drawsTab.classList.remove('hidden');
+                generatedTab.classList.add('hidden');
+                drawsBtn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
+                drawsBtn.classList.remove('text-gray-400', 'font-medium');
+                generatedBtn.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
+                generatedBtn.classList.add('text-gray-400', 'font-medium');
+
+                // Load analysis data if not loaded
+                if (!analysisLoaded) {
+                    loadDrawsAnalysis();
+                }
+            } else {
+                drawsTab.classList.add('hidden');
+                generatedTab.classList.remove('hidden');
+                generatedBtn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
+                generatedBtn.classList.remove('text-gray-400', 'font-medium');
+                drawsBtn.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
+                drawsBtn.classList.add('text-gray-400', 'font-medium');
+            }
+        }
+
+        async function loadDrawsAnalysis() {
+            try {
+                const lotteryId = window.currentLotteryId || 'korea_645';
+                const config = lotteryConfigs[lotteryId] || { ball_count: 6 };
+
+                // Fetch draws data
+                let res = await fetch(`/data/${lotteryId}/draws.json`);
+                if (!res.ok) res = await fetch(`../data/${lotteryId}/draws.json`);
+                if (!res.ok) throw new Error('Data fetch failed');
+
+                const json = await res.json();
+                const allDraws = json.draws || json;
+                const oneYearDraws = allDraws.slice(-52);
+
+                document.getElementById('drawCount').innerText = oneYearDraws.length;
+
+                if (oneYearDraws.length > 0) {
+                    const start = oneYearDraws[0].draw_date || 'Unknown';
+                    const end = oneYearDraws[oneYearDraws.length - 1].draw_date || 'Unknown';
+                    document.getElementById('periodRange').innerText = `${start} ~ ${end}`;
+                }
+
+                analyzeDraws(oneYearDraws, config.ball_count, lotteryId);
+                analysisLoaded = true;
+            } catch (e) {
+                console.error('Analysis load failed:', e);
+                document.getElementById('hotNumbers').innerHTML = '<div class="text-red-400">데이터 로드 실패</div>';
+            }
+        }
+
+        function analyzeDraws(draws, ballCount, lotteryId) {
+            const freq = new Array(80).fill(0);
+            const bonusFreq = new Array(80).fill(0);
+            let maxNum = 0, maxBonus = 0;
+
+            draws.forEach(d => {
+                if (d.numbers) {
+                    d.numbers.forEach(n => { freq[n]++; if (n > maxNum) maxNum = n; });
+                }
+                if (d.bonus !== undefined) {
+                    bonusFreq[d.bonus]++;
+                    if (d.bonus > maxBonus) maxBonus = d.bonus;
+                }
+            });
+
+            // Ranked
+            const ranked = [];
+            for (let i = 1; i <= maxNum; i++) ranked.push({ num: i, count: freq[i] });
+            ranked.sort((a, b) => b.count - a.count);
+
+            const hot = ranked.slice(0, ballCount);
+            const cold = ranked.slice(-ballCount).reverse();
+
+            renderAnalysisBalls('hotNumbers', hot);
+            renderAnalysisBalls('coldNumbers', cold);
+
+            // Bonus
+            if (maxBonus > 0) {
+                const bonusRanked = [];
+                for (let i = 1; i <= maxBonus; i++) bonusRanked.push({ num: i, count: bonusFreq[i] });
+                bonusRanked.sort((a, b) => b.count - a.count);
+                renderAnalysisBalls('hotBonus', bonusRanked.slice(0, 3));
+                renderAnalysisBalls('coldBonus', bonusRanked.slice(-3).reverse());
+            } else {
+                document.getElementById('hotBonus').innerHTML = '<span class="text-xs text-gray-500">데이터 없음</span>';
+                document.getElementById('coldBonus').innerHTML = '<span class="text-xs text-gray-500">데이터 없음</span>';
+            }
+
+            // Charts
+            renderAnalysisFreqChart(ranked.slice(0, 20));
+
+            let odd = 0, even = 0;
+            draws.forEach(d => d.numbers?.forEach(n => n % 2 === 0 ? even++ : odd++));
+            renderAnalysisOddEvenChart(odd, even);
+
+            const midPoint = maxNum / 2;
+            let lowCount = 0, highCount = 0;
+            draws.forEach(d => d.numbers?.forEach(n => n <= midPoint ? lowCount++ : highCount++));
+            renderAnalysisLowHighChart(lowCount, highCount);
+
+            const last30 = draws.slice(-30);
+            const sums = last30.map(d => d.numbers?.reduce((a, b) => a + b, 0) || 0);
+            const labels = last30.map(d => d.draw_no || '');
+            renderAnalysisSumChart(labels, sums);
+
+            const acValues = last30.map(d => calculateAC(d.numbers));
+            renderAnalysisACChart(labels, acValues);
+
+            const allSums = draws.map(d => d.numbers?.reduce((a, b) => a + b, 0) || 0);
+            renderAnalysisSumDistChart(allSums);
+
+            const endDigitFreq = new Array(10).fill(0);
+            draws.forEach(d => d.numbers?.forEach(n => endDigitFreq[n % 10]++));
+            renderAnalysisEndDigitChart(endDigitFreq);
+        }
+
+        function calculateAC(numbers) {
+            if (!numbers || numbers.length < 2) return 0;
+            const diffs = new Set();
+            for (let i = 0; i < numbers.length; i++) {
+                for (let j = i + 1; j < numbers.length; j++) {
+                    diffs.add(Math.abs(numbers[i] - numbers[j]));
+                }
+            }
+            return diffs.size - (numbers.length - 1);
+        }
+
+        function renderAnalysisBalls(id, list) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = list.map(item => `
+                <div class="flex flex-col items-center gap-1">
+                    <div class="lotto-ball-v2 ${getAnalysisBallColor(item.num)} text-sm shadow-md">${item.num}</div>
+                    <span class="text-xs font-bold text-gray-400">${item.count}회</span>
+                </div>
+            `).join('');
+        }
+
+        function getAnalysisBallColor(n) {
+            if (n <= 10) return 'ball-1-10';
+            if (n <= 20) return 'ball-11-20';
+            if (n <= 30) return 'ball-21-30';
+            if (n <= 40) return 'ball-31-40';
+            return 'ball-41-45';
+        }
+
+        function renderAnalysisFreqChart(data) {
+            const ctx = document.getElementById('freqChart')?.getContext('2d');
+            if (!ctx) return;
+            if (analysisCharts.freq) analysisCharts.freq.destroy();
+            analysisCharts.freq = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: data.map(d => d.num), datasets: [{ label: '출현 횟수', data: data.map(d => d.count), backgroundColor: '#6366f1', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function renderAnalysisOddEvenChart(odd, even) {
+            const ctx = document.getElementById('oddEvenChart')?.getContext('2d');
+            if (!ctx) return;
+            if (analysisCharts.oddEven) analysisCharts.oddEven.destroy();
+            const total = odd + even;
+            const oddPct = ((odd / total) * 100).toFixed(1);
+            const evenPct = ((even / total) * 100).toFixed(1);
+            analysisCharts.oddEven = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Odd (홀)', 'Even (짝)'],
+                    datasets: [{ data: [odd, even], backgroundColor: ['#818cf8', '#34d399'], borderWidth: 0 }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    cutout: '55%',
+                    rotation: 180,  // Odd starts at left (9 o'clock)
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#9ca3af' } },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value, ctx) => {
+                                const pct = ((value / total) * 100).toFixed(0) + '%';
+                                return pct;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAnalysisLowHighChart(low, high) {
+            const ctx = document.getElementById('lowHighChart')?.getContext('2d');
+            if (!ctx) return;
+            if (analysisCharts.lowHigh) analysisCharts.lowHigh.destroy();
+            const total = low + high;
+            const highPct = ((high / total) * 100).toFixed(1);
+            const lowPct = ((low / total) * 100).toFixed(1);
+            analysisCharts.lowHigh = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High (고)', 'Low (저)'],
+                    datasets: [{ data: [high, low], backgroundColor: ['#f87171', '#60a5fa'], borderWidth: 0 }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    cutout: '55%',
+                    rotation: -90,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#9ca3af' } },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value) => ((value / total) * 100).toFixed(0) + '%'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAnalysisSumChart(labels, data) {
+            const ctx = document.getElementById('sumChart')?.getContext('2d');
+            if (!ctx) return;
+            if (analysisCharts.sum) analysisCharts.sum.destroy();
+            analysisCharts.sum = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: '합계', data, borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, tension: 0.4, pointRadius: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+            });
+        }
+
+        function renderAnalysisACChart(labels, data) {
+            const ctx = document.getElementById('acChart')?.getContext('2d');
+            if (!ctx) return;
+            if (analysisCharts.ac) analysisCharts.ac.destroy();
+            analysisCharts.ac = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'AC Value', data, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', borderWidth: 2, tension: 0.1, pointRadius: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { suggestedMin: 0, suggestedMax: 10 }, x: { display: false } } }
+            });
+        }
+
+        function renderAnalysisSumDistChart(allSums) {
+            const ctx = document.getElementById('sumDistChart')?.getContext('2d');
+            if (!ctx || allSums.length === 0) return;
+            if (analysisCharts.sumDist) analysisCharts.sumDist.destroy();
+
+            const binSize = 10;
+            const minSum = Math.floor(Math.min(...allSums) / binSize) * binSize;
+            const maxSum = Math.ceil(Math.max(...allSums) / binSize) * binSize;
+            const labels = [], distData = [];
+            for (let i = minSum; i < maxSum; i += binSize) {
+                labels.push(`${i}~${i + binSize - 1}`);
+                distData.push(allSums.filter(s => s >= i && s < i + binSize).length);
+            }
+
+            analysisCharts.sumDist = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: '빈도수', data: distData, backgroundColor: '#a78bfa', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function renderAnalysisEndDigitChart(data) {
+            const ctx = document.getElementById('endDigitChart')?.getContext('2d');
+            if (!ctx) return;
+            if (analysisCharts.endDigit) analysisCharts.endDigit.destroy();
+            analysisCharts.endDigit = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], datasets: [{ label: '빈도', data, backgroundColor: '#60a5fa', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+        });
+        // Reload analysis when lottery changes
+        const originalOnLotteryChange = window.onLotteryChange;
+        window.onLotteryChange = function (id) {
+            if (originalOnLotteryChange) originalOnLotteryChange(id);
+            analysisLoaded = false;
+            if (!document.getElementById('history-tab-draws')?.classList.contains('hidden')) {
+                loadDrawsAnalysis();
+            }
+        };
+
     </script>
     <style>
         .ripple {
@@ -1123,11 +1606,6 @@
             border-radius: 3px;
         }
     </style>
-</body>
-
-</body>
-
-
 </body>
 
 </html>

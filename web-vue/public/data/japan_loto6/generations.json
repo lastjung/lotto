@@ -1,0 +1,60 @@
+[
+  {
+    "id": 1,
+    "generated_at": "2026-01-01T07:17:34.726684",
+    "lottery_id": "japan_loto6",
+    "target_draw": 2065,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          2,
+          15,
+          18,
+          24,
+          37,
+          41
+        ],
+        "analysis": {
+          "sum": 137,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 2,
+    "generated_at": "2026-01-01T11:24:05.108669",
+    "lottery_id": "japan_loto6",
+    "target_draw": 2065,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          4,
+          5,
+          29,
+          30,
+          36,
+          42
+        ],
+        "analysis": {
+          "sum": 146,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      }
+    ],
+    "result": null
+  }
+]

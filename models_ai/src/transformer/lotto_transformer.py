@@ -40,7 +40,7 @@ class LottoTransformer(nn.Module):
     def __init__(
         self,
         ball_ranges: int = 45,        # 로또 번호 범위 (1~45)
-        history_length: int = 10,     # 입력 시퀀스 길이 (이전 N회차)
+        draw_length: int = 10,        # 입력 시퀀스 길이 (이전 N회차)
         ball_count: int = 6,          # 공 개수
         d_model: int = 64,            # 임베딩 차원
         nhead: int = 4,               # 어텐션 헤드 수
@@ -51,7 +51,7 @@ class LottoTransformer(nn.Module):
         super().__init__()
         
         self.ball_ranges = ball_ranges
-        self.history_length = history_length
+        self.draw_length = draw_length
         self.ball_count = ball_count
         self.d_model = d_model
         
@@ -62,7 +62,7 @@ class LottoTransformer(nn.Module):
         self.position_in_draw = nn.Embedding(ball_count, d_model)
         
         # 회차 위치 인코딩
-        self.positional_encoding = PositionalEncoding(d_model, max_len=history_length * ball_count)
+        self.positional_encoding = PositionalEncoding(d_model, max_len=draw_length * ball_count)
         
         # Transformer Encoder
         encoder_layer = nn.TransformerEncoderLayer(
@@ -97,7 +97,7 @@ class LottoTransformer(nn.Module):
         embedded = self.number_embedding(x_flat)  # (batch, seq*6, d_model)
         
         # 번호 위치 임베딩 (0~ball_count-1 반복)
-        positions = torch.arange(self.ball_count).repeat(self.history_length).to(x.device)
+        positions = torch.arange(self.ball_count).repeat(self.draw_length).to(x.device)
         pos_embedded = self.position_in_draw(positions)
         embedded = embedded + pos_embedded
         
@@ -154,16 +154,18 @@ class LottoTransformer(nn.Module):
 
 def create_model(config: dict = None) -> LottoTransformer:
     """모델 생성 헬퍼 함수"""
-    # 이전 변수명 호환성 (num_numbers→ball_ranges, seq_length→history_length)
+    # 이전 변수명 호환성 (num_numbers→ball_ranges, seq_length/history_length→draw_length)
     if config:
         if "num_numbers" in config and "ball_ranges" not in config:
             config["ball_ranges"] = config.pop("num_numbers")
-        if "seq_length" in config and "history_length" not in config:
-            config["history_length"] = config.pop("seq_length")
+        if "seq_length" in config and "draw_length" not in config:
+            config["draw_length"] = config.pop("seq_length")
+        if "history_length" in config and "draw_length" not in config:
+            config["draw_length"] = config.pop("history_length")
     
     default_config = {
         "ball_ranges": 45,
-        "history_length": 10,
+        "draw_length": 10,
         "ball_count": 6,
         "d_model": 64,
         "nhead": 4,

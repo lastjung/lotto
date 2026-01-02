@@ -3,20 +3,7 @@
  * LocalStorage + Supabase 이중 저장
  */
 import { ref, computed } from 'vue'
-import { createClient } from '@supabase/supabase-js'
-
-// Supabase 설정
-const SB_URL = 'https://sfqlshdlqwqlkxdrfdke.supabase.co'
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk'
-
-let supabaseClient = null
-
-function getSupabase() {
-    if (!supabaseClient) {
-        supabaseClient = createClient(SB_URL, SB_KEY)
-    }
-    return supabaseClient
-}
+import { supabase } from 'src/boot/supabase'
 
 const STORAGE_KEY = 'lotto_history'
 const MAX_HISTORY = 100
@@ -69,7 +56,6 @@ export function useHistory() {
 
         // 2. Supabase
         try {
-            const supabase = getSupabase()
             const { error } = await supabase.from('lotto_history').insert([{
                 lottery_type: entry.lottery_type,
                 model: entry.model,

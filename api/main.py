@@ -587,6 +587,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/js", StaticFiles(directory=STATIC_DIR / "js"), name="js")
 app.mount("/css", StaticFiles(directory=STATIC_DIR / "css"), name="css")
 app.mount("/data", StaticFiles(directory=DATA_DIR), name="data")
+app.mount("/hisanal", StaticFiles(directory=STATIC_DIR / "hisanal", html=True), name="hisanal")
 
 @app.get("/")
 async def read_index():

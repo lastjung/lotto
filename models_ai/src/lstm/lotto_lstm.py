@@ -19,7 +19,7 @@ class LottoLSTM(nn.Module):
     def __init__(
         self,
         ball_ranges: int = 45,
-        history_length: int = 10,
+        draw_length: int = 10,
         ball_count: int = 6,
         embedding_dim: int = 64,
         hidden_dim: int = 128,
@@ -29,7 +29,7 @@ class LottoLSTM(nn.Module):
         super().__init__()
         
         self.ball_ranges = ball_ranges
-        self.history_length = history_length
+        self.draw_length = draw_length
         self.ball_count = ball_count
         
         # 번호 임베딩
@@ -51,7 +51,7 @@ class LottoLSTM(nn.Module):
     def forward(self, x):
         """
         Args:
-            x: (batch, history_length, ball_count)
+            x: (batch, draw_length, ball_count)
         Returns:
             (batch, ball_count, ball_ranges)
         """
@@ -59,7 +59,7 @@ class LottoLSTM(nn.Module):
         
         # 임베딩 및 결합: (batch, seq, ball_count, emb) -> (batch, seq, ball_count * emb)
         embedded = self.embedding(x)  # (batch, seq, ball_count, embedding_dim)
-        embedded = embedded.view(batch_size, self.history_length, -1)
+        embedded = embedded.view(batch_size, self.draw_length, -1)
         
         # LSTM
         lstm_out, _ = self.lstm(embedded)  # (batch, seq, hidden_dim)
@@ -96,16 +96,18 @@ class LottoLSTM(nn.Module):
 
 
 def create_model(config: dict = None) -> LottoLSTM:
-    # 이전 변수명 호환성 (num_numbers→ball_ranges, seq_length→history_length)
+    # 이전 변수명 호환성 (num_numbers→ball_ranges, seq_length/history_length→draw_length)
     if config:
         if "num_numbers" in config and "ball_ranges" not in config:
             config["ball_ranges"] = config.pop("num_numbers")
-        if "seq_length" in config and "history_length" not in config:
-            config["history_length"] = config.pop("seq_length")
+        if "seq_length" in config and "draw_length" not in config:
+            config["draw_length"] = config.pop("seq_length")
+        if "history_length" in config and "draw_length" not in config:
+            config["draw_length"] = config.pop("history_length")
     
     default_config = {
         "ball_ranges": 45,
-        "history_length": 10,
+        "draw_length": 10,
         "ball_count": 6,
         "embedding_dim": 64,
         "hidden_dim": 128,

@@ -1,1 +1,99 @@
 // app global css in SCSS form
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at 20% 20%, #2e1065 0%, #0f172a 70%);
+    color: #e2e8f0;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+.heading-font {
+    font-family: 'Outfit', sans-serif;
+}
+
+.glass-panel {
+    background: $glass-bg;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid $glass-border;
+}
+
+.glass-card {
+    background: $card-bg;
+    backdrop-filter: blur(12px);
+    border: 1px solid $glass-border;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+// Animations
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+    }
+}
+
+.pulsing-core {
+    animation: pulse-glow 3s infinite;
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.pop-in {
+    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+// Custom Scrollbar
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}

@@ -12,14 +12,19 @@
 // to match your app's branding.
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
-$primary   : #1976D2;
-$secondary : #26A69A;
-$accent    : #9C27B0;
+$primary : #a855f7; // Purple
+$secondary : #ec4899; // Pink
+$accent : #6366f1; // Indigo
 
-$dark      : #1D1D1D;
-$dark-page : #121212;
+$dark : #1e293b;
+$dark-page : #0f172a; // Deep Space Background
 
-$positive  : #21BA45;
-$negative  : #C10015;
-$info      : #31CCEC;
-$warning   : #F2C037;
+$positive : #10b981; // Green
+$negative : #ef4444; // Red
+$info : #3b82f6; // Blue
+$warning : #f59e0b; // Amber
+
+// Custom Deep Space Variables
+$glass-bg: rgba(255, 255, 255, 0.03);
+$glass-border: rgba(255, 255, 255, 0.05);
+$card-bg: rgba(15, 23, 42, 0.6);
