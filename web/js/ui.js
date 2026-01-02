@@ -98,6 +98,25 @@ async function fetchAndBuildAnalytics(lotteryId) {
         renderHotNumbersChart();
         renderFrequencyMap();
 
+        // Sum Distribution (Histogram)
+        const allSums = recent.map(d => {
+            // Supabase format
+            if (Array.isArray(d.numbers)) {
+                return d.numbers.reduce((a, b) => a + b, 0);
+            }
+            // Legacy JSON format
+            if (d.drwt_no1) {
+                return [d.drwt_no1, d.drwt_no2, d.drwt_no3, d.drwt_no4, d.drwt_no5, d.drwt_no6]
+                    .filter(n => n !== undefined)
+                    .reduce((a, b) => a + b, 0);
+            }
+            return 0;
+        });
+
+        if (allSums.length > 0) {
+            renderSumDistributionChart(allSums);
+        }
+
     } catch (e) {
         console.warn('Analytics build failed:', e);
     }
@@ -131,6 +150,77 @@ function renderHotNumbersChart() {
         </div>
         `;
     }).join('');
+}
+
+// Sum Distribution Chart (Chart.js Bar Chart)
+let sumDistChart = null;
+
+function renderSumDistributionChart(allSums) {
+    const canvas = document.getElementById('sumDistributionChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Calculate histogram bins
+    const binSize = 10;
+    const minSum = Math.min(...allSums);
+    const maxSum = Math.max(...allSums);
+    let startBin = Math.floor(minSum / binSize) * binSize;
+    let endBin = Math.ceil(maxSum / binSize) * binSize;
+
+    const labels = [];
+    const data = [];
+
+    for (let i = startBin; i < endBin; i += binSize) {
+        labels.push(`${i}-${i + binSize - 1}`);
+        data.push(allSums.filter(s => s >= i && s < i + binSize).length);
+    }
+
+    // Find optimal range (100-175 for Korea 6/45)
+    const optimalMin = 100;
+    const optimalMax = 175;
+
+    // Destroy existing chart
+    if (sumDistChart) {
+        sumDistChart.destroy();
+    }
+
+    // Create new chart
+    sumDistChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '빈도수',
+                data: data,
+                borderColor: 'rgba(168, 85, 247, 1)',
+                backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    display: false,
+                    beginAtZero: true
+                },
+                x: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    console.log('📊 Sum Distribution Chart rendered');
 }
 
 // Render the Small Frequency Map
