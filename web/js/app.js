@@ -26,7 +26,7 @@ let modelLoaded = false;
 // [Lock] 모델 버튼 동시 클릭 방지
 let isGenerating = false;
 const MODEL_BUTTON_IDS = [
-    'card-transformer-v3', 'card-lstm-v3', 'card-physics-v3',
+    'card-transformer-v3', 'card-lstm-v3', 'card-physics-v3', 'card-ensemble',
     'card-transformer-stat', 'card-hot_trend', 'card-cold-stat', 'card-physics-stat'
 ];
 
@@ -222,8 +222,8 @@ async function loadModel(modelType) {
     if (statusEl) statusEl.textContent = `📦 ${modelType.toUpperCase()} 모델 로딩 중...`;
 
     try {
-        if (modelType === 'vector' || modelType === 'hot_trend') {
-            // Vector/Hot Trend는 JS로 구현 (ONNX 없음)
+        if (modelType === 'vector' || modelType === 'hot_trend' || modelType === 'ensemble') {
+            // Vector/Hot Trend/Ensemble는 JS로 구현 (ONNX 없음)
             modelLoaded = true;
             if (statusEl) statusEl.textContent = `✅ ${modelType.toUpperCase()} 준비 완료 (JS 구현)`;
             return;
@@ -252,7 +252,7 @@ async function selectModel(type, isInit = false) {
     currentModel = type;
 
     // 버튼 스타일 업데이트
-    ['transformer', 'lstm', 'vector', 'hot_trend'].forEach(m => {
+    ['transformer', 'lstm', 'vector', 'ensemble', 'hot_trend'].forEach(m => {
         const btn = document.getElementById(`btn-${m}`);
         // 구버전/신버전 ID 호환성 체크 (btn- vs card-)
         const cardBtn = document.getElementById(`card-${m}`);
@@ -275,7 +275,7 @@ async function selectModel(type, isInit = false) {
     await loadModel(type);
 
     // [특수 기능] 모든 모델 자동 실행 (초기 로드 시에는 실행 안 함)
-    if (!isInit && ['transformer', 'lstm', 'vector', 'hot_trend', 'balanced_mix', 'cold_theory', 'physics_bias'].includes(type)) {
+    if (!isInit && ['transformer', 'lstm', 'vector', 'ensemble', 'hot_trend', 'balanced_mix', 'cold_theory', 'physics_bias'].includes(type)) {
         console.log(`⚡ ${type} Card Clicked: Executing Auto-Generate Flow`);
 
         // [Lock] 버튼 잠금
