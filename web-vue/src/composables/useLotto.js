@@ -3,10 +3,10 @@ import { supabase } from 'src/boot/supabase'
 
 // 지원하는 로또 종류
 const LOTTERY_OPTIONS = [
-    { id: 'korea_645', name: 'Korea Lotto 6/45', maxNum: 45, pickCount: 6, icon: 'flag' },
-    { id: 'usa_powerball', name: 'USA Powerball', maxNum: 69, pickCount: 5, bonus: 26, icon: 'public' },
-    { id: 'usa_megamillions', name: 'USA Mega Millions', maxNum: 70, pickCount: 5, bonus: 25, icon: 'public' },
-    { id: 'canada_649', name: 'Canada Lotto 6/49', maxNum: 49, pickCount: 6, icon: 'public' }
+    { id: 'korea_645', name: '🇰🇷 Korea Lotto 6/45', maxNum: 45, pickCount: 6, icon: 'flag' },
+    { id: 'usa_powerball', name: '🇺🇸 USA Powerball', maxNum: 69, pickCount: 5, bonus: 26, icon: 'public' },
+    { id: 'usa_megamillions', name: '🇺🇸 USA Mega Millions', maxNum: 70, pickCount: 5, bonus: 25, icon: 'public' },
+    { id: 'canada_649', name: '🇨🇦 Canada Lotto 6/49', maxNum: 49, pickCount: 6, icon: 'public' }
 ]
 
 export function useLotto() {

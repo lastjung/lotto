@@ -100,11 +100,58 @@ export function useAiEngine() {
      * 통계 모델 생성 (JS 구현)
      */
     async function generateWithStat(modelId, lottery, pastDraws) {
-        // TODO: 포팅 작업 (Physics Bias, Cold Theory 등)
-        // 현재는 Mock 구현
-        return Array.from({ length: 15 }, () =>
-            Array.from({ length: lottery.pickCount }, () => Math.floor(Math.random() * lottery.maxNum) + 1).sort((a, b) => a - b)
-        )
+        const results = []
+        const pickCount = lottery.pickCount
+        const maxNum = lottery.maxNum
+
+        // 1. 빈도 분석 (최근 50회차)
+        const freqMap = {}
+        const lastSeen = {}
+        const recentLimit = 50
+
+        pastDraws.slice(0, recentLimit).forEach((draw, idx) => {
+            const nums = draw.numbers || []
+            nums.forEach(n => {
+                freqMap[n] = (freqMap[n] || 0) + 1
+                if (lastSeen[n] === undefined) lastSeen[n] = idx
+            })
+        })
+
+        const sortedByFreq = []
+        for (let i = 1; i <= maxNum; i++) {
+            sortedByFreq.push({ num: i, freq: freqMap[i] || 0, last: lastSeen[i] ?? 999 })
+        }
+
+        // 2. 모델별 로직
+        for (let i = 0; i < 15; i++) {
+            let selected = []
+
+            if (modelId === 'hot_trend') {
+                // 상위 15개 번호 중 랜덤 선택
+                const hotPool = sortedByFreq.sort((a, b) => b.freq - a.freq).slice(0, 15).map(x => x.num)
+                selected = sampleN(hotPool, pickCount)
+            }
+            else if (modelId === 'cold_theory') {
+                // 하위 15개 또는 가장 오래된 번호 중 랜덤 선택
+                const coldPool = sortedByFreq.sort((a, b) => b.last - a.last).slice(0, 15).map(x => x.num)
+                selected = sampleN(coldPool, pickCount)
+            }
+            else {
+                // balanced_mix, physics_bias 등은 랜덤 기반 중복 제거
+                while (selected.length < pickCount) {
+                    const n = Math.floor(Math.random() * maxNum) + 1
+                    if (!selected.includes(n)) selected.push(n)
+                }
+            }
+
+            results.push(selected.sort((a, b) => a - b))
+        }
+        return results
+    }
+
+    function sampleN(pool, n) {
+        const shuffled = [...pool].sort(() => 0.5 - Math.random())
+        return shuffled.slice(0, n)
     }
 
     // --- Helper Functions (From original app.js) ---

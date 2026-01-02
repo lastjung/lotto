@@ -1,68 +1,75 @@
 <template>
-  <q-page class="q-pa-lg">
-    <div class="max-w-[1600px] mx-auto space-y-6">
-      <!-- TOP ROW: VISUALIZATIONS -->
-      <LottoCharts :draws="draws" />
+  <div class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24 md:pb-8 scroll-smooth" id="main-scroll">
+    <div id="view-dashboard" class="space-y-6 max-w-[1600px] mx-auto">
 
-      <!-- BOTTOM ROW: CONFIG & RESULTS -->
-      <div class="row q-col-gutter-lg">
-        <!-- LEFT COL: CONFIGURATION -->
-        <div class="col-12 col-lg-5 col-xl-4 space-y-6">
-          <!-- AI Analysis Engine -->
+      <!-- TOP ROW: VISUALIZATIONS -->
+      <LottoCharts :draws="draws" :max-num="currentLottery.maxNum" />
+
+      <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT COL: CONFIGURATION (Span 4) -->
+        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+
+          <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
           <div>
             <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
               <span class="text-pink-400 text-2xl">🧠</span>
               AI Analysis Engine
             </h3>
+
             <div class="grid grid-cols-2 gap-3">
               <div 
                 v-for="model in aiModels" 
                 :key="model.id"
                 @click="selectModel(model.id)"
-                class="model-card p-4 rounded-xl cursor-pointer transition-all h-36 border relative overflow-hidden"
-                :class="selectedModel === model.id ? 'border-blue-500 bg-blue-500/10' : 'bg-[#1e293b] border-blue-500/30 hover:border-blue-500'"
+                class="model-card p-4 rounded-xl bg-[#1e293b] border transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden cursor-pointer"
+                :class="selectedModel === model.id ? 'border-blue-500 bg-blue-500/10' : 'border-blue-500/30 hover:border-blue-500 hover:bg-blue-500/10'"
               >
-                <div class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2">
+                <div class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
                   {{ model.icon }}
                 </div>
                 <div>
                   <div class="font-bold text-white text-sm">{{ model.name }}</div>
                   <div class="text-[10px] text-gray-500 leading-tight mt-1">{{ model.desc }}</div>
                 </div>
-                <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan"></div>
+                <!-- Active Dot -->
+                <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>
               </div>
             </div>
           </div>
 
-          <!-- Statistical Models -->
+          <!-- 2. Statistical Models -->
           <div>
             <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
               <span class="text-blue-400 text-2xl">📊</span>
               Statistical Models
             </h3>
+
             <div class="grid grid-cols-2 gap-3">
               <div 
                 v-for="model in statModels" 
                 :key="model.id"
                 @click="selectModel(model.id)"
-                class="model-card p-4 rounded-xl cursor-pointer transition-all h-32 border relative overflow-hidden"
-                :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500/10' : 'bg-[#1e293b] border-white/10 hover:border-purple-500'"
+                class="model-card p-4 rounded-xl bg-[#1e293b] border transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden cursor-pointer"
+                :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500/10' : 'border-white/10 hover:border-purple-500 hover:bg-purple-500/10'"
               >
-                <div class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2">
+                <div class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
                   {{ model.icon }}
                 </div>
                 <div>
                   <div class="font-bold text-white text-sm">{{ model.name }}</div>
                   <div class="text-[10px] text-gray-500 leading-tight mt-1">{{ model.desc }}</div>
                 </div>
-                <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple"></div>
+                <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
               </div>
             </div>
           </div>
+
         </div>
 
-        <!-- RIGHT COL: RESULTS AREA -->
-        <div class="col-12 col-lg-7 col-xl-8">
+        <!-- RIGHT COL: RESULTS AREA (Span 8) -->
+        <div class="lg:col-span-7 xl:col-span-8">
           <LottoResultArea
             :results="generatedNumbers"
             :analysis="currentAnalysis"
@@ -72,9 +79,10 @@
             @generate="generate"
           />
         </div>
+
       </div>
     </div>
-  </q-page>
+  </div>
 </template>
 
 <script setup>
@@ -104,7 +112,8 @@ const currentAnalysis = ref(null)
 const aiModels = [
   { id: 'transformer', name: 'Transformer', icon: '⚖️', desc: 'Attention-based Pattern Recognition' },
   { id: 'lstm', name: 'LSTM', icon: '⚡', desc: 'Sequential Time-Series Analysis' },
-  { id: 'vector', name: 'AI Vector', icon: '🌌', desc: 'Dimensional Relation Analysis' }
+  { id: 'vector', name: 'AI Vector', icon: '🌌', desc: 'Vector-based Bias Detection' },
+  { id: 'hybrid', name: 'Hybrid Pro', icon: '🧬', desc: 'Combined Neural & Statistical' }
 ]
 
 const statModels = [
@@ -124,10 +133,8 @@ onMounted(async () => {
     await loadDraws()
   }
   
-  // Await next tick to ensure UI renders first
   setTimeout(async () => {
       try {
-        console.log('🤖 Initializing AI Model...')
         await loadModel(currentLottery.value.id, selectedModel.value)
       } catch (e) {
         console.warn('⚠️ Non-fatal AI Init Error:', e)
@@ -135,7 +142,6 @@ onMounted(async () => {
   }, 100)
 })
 
-// Update model when selection or lottery changes
 watch([selectedModel, () => currentLottery.value.id], async ([newModel, newLotteryId]) => {
   await loadModel(newLotteryId, newModel)
 })
@@ -146,7 +152,6 @@ function selectModel (id) {
 
 async function generate () {
   if (!modelLoaded.value && !['transformer', 'lstm'].includes(selectedModel.value)) {
-    // If not loaded and it's a model that needs loading
     await loadModel(currentLottery.value.id, selectedModel.value)
   }
 
@@ -162,12 +167,10 @@ async function generate () {
       results = await generateWithStat(selectedModel.value, currentLottery.value, draws.value)
     }
 
-    // Wrap in dummy timeout for scanning effect
     setTimeout(async () => {
       loading.value = false
       scanning.value = false
       
-      // Select one set (or top result)
       const topSet = results[0]
       generatedNumbers.value = topSet
       
@@ -193,7 +196,6 @@ async function generate () {
   }
 }
 
-// Helpers
 function calculateAC(numbers) {
   const sorted = [...numbers].sort((a, b) => a - b)
   const diffs = new Set()
@@ -214,34 +216,8 @@ function calculateOddEven(numbers) {
 
 <style lang="scss" scoped>
 .model-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  &:hover {
-    transform: translateY(-2px);
-  }
-}
-
-.shadow-glow-cyan {
-  box-shadow: 0 0 10px #3b82f6;
-}
-
-.shadow-glow-purple {
-  box-shadow: 0 0 10px #a855f7;
-}
-
-.shadow-glow-pink {
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
-}
-
-.btn-glow-primary {
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
-  &:hover {
-    box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
-    transform: translateY(-1px);
-  }
-}
-
-.grid {
-  display: grid;
+  /* Legacy hover effect styles are partly handled by Tailwind classes in template, 
+     but keeping the transition here for smoothness if needed. */
+  transition: all 0.3s ease;
 }
 </style>

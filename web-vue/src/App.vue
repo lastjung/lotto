@@ -1,7 +1,5 @@
 <template>
-  <div id="debug-boot" style="position:fixed;top:0;left:0;z-index:9999;color:lime;background:black;padding:4px;opacity:0.8;pointer-events:none;">
-    Booting... (v{{ version }})
-  </div>
+
   <router-view />
 </template>
 

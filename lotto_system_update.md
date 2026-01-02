@@ -621,3 +621,58 @@ history_length→ draw_length  # 2026-01-01 추가
 ```
 
 
+---
+
+## 11. UI 복구 및 History 최적화 (2026-01-01) - 작성자: 재미나이 프래시 (Gemini Flash)
+
+### 11.1 Tailwind CSS & PostCSS 환경 복구
+- **문제**: PostCSS 설정 오류로 인해 Tailwind 유틸리티 클래스가 Vite에 의해 처리되지 않아 UI가 깨져 보이던 현상.
+- **해결**: `postcss.config.js`를 ESM 기반 객체 설정 구문으로 전환하여 Vite/Quasar 빌드 시스템과의 호환성을 100% 복구함.
+
+### 11.2 History 페이지 프리미엄 디자인 적용
+- 대시보드의 **"Deep Space"** 테마를 History 페이지까지 확장 적용.
+- **주요 개선 항목**:
+    - 커스텀 탭 스위처 (글래스모피즘 및 네온 글로우 효과).
+    - 히스토리 리스트 카드 디자인 고도화 및 호버 애니메이션 추가.
+    - 요약 통계(Summary Stats) 섹션 신설.
+
+### 11.3 데이터 정규화(Data Normalization) 시스템 구축
+- **문제**: Supabase 및 LocalStorage의 데이터 포맷 불일치로 인해, 일부 데이터가 문자열이나 중첩 객체로 인식되어 `LottoBall` 렌더링이 비정상적으로 반복되던 버그(JSON 중복 출력 현상) 해결.
+- **해결**: `useHistory.js`에 데이터 정규화 레이어를 구축하여, 원천 데이터의 형태(String, Object, Array)와 관계없이 항상 정제된 숫자 배열을 프론트엔드에 공급하도록 설계.
+
+### 11.4 프로젝트 안정화 완료
+- 모바일 앱 전환을 위한 UI 레이아웃 안정성 확보.
+
+#### 시각적 증거 (Visual Proof)
+![Dashboard UI](docs/images/dashboard_ui.png)
+*그림 1: 복구된 딥 스페이스 테마 대시보드*
+
+![History UI](docs/images/history_ui.png)
+*그림 2: 데이터 정규화가 적용된 히스토리 리스트 (JSON 중첩 해결)*
+
+---
+
+## 12. 사이드바(왼쪽 날개) UI 전면 개편 (2026-01-01) - 작성자: 재미나이 프래시 (Gemini Flash)
+
+### 12.1 브랜드 및 내비게이션 고도화
+- **브랜드 업데이트**: 로고명을 **"LottoQuantAI"**로 변경하고, "Deep Space" 테마의 폰트 스타일을 적용하여 브랜드 정체성을 강화함.
+- **아이콘 시스템 개선**: 기존의 로딩 문제(COEP)를 유발하던 외부 이미지를 제거하고, 신뢰성 높은 **Quasar/Material** 아이콘으로 교체하여 시스템 안정성을 확보함.
+
+### 12.2 시각적 피드백 및 레이아웃 최적화
+- **Active 상태 강화**: 현재 선택된 메뉴가 한눈에 들어오도록 **솔리드 블루 배경**과 화이트 폰트로 액티브 스타일을 보정함.
+- **국가별 플래그**: 로또 선택기에 국가별 이모지 플래그를 추가하여 직관적인 필터링 경험을 제공함.
+
+### 12.3 시스템 모니터링 패널 확장
+- 시스템 상태 박스에 **"Agent: Connected"** 정보를 추가하여 AI 모델과의 실시간 연결 상태를 사용자에게 명확히 전달하도록 개선함.
+
+#### 시각적 증거 (Visual Proof)
+![Sidebar UI](docs/images/sidebar_ui.png)
+*그림 3: 최종 사이드바 디자인 (LottoQuantAI 브랜드 및 아이콘 복구)*
+
+#### ⚠️ UI 디스크립판시 알림 (Baseline Comparison)
+![Legacy Sidebar](docs/images/legacy_sidebar_8000.png)
+*그림 4: 기존 포트(8000)의 사이드바 디자인 - **현재 신규 버전(9001)과 날개 부분이 완전히 다름***
+
+---
+
+---
