@@ -146,3 +146,22 @@ Powerball 구조:
 ### Phase 3: Special Ball Type (미정)
 - Powerball/Mega Millions 전용 모델 구조
 - 현재는 Vector 폴백으로 충분
+
+---
+
+## 🧠 AI Model Architectures
+
+현재 시스템에서 사용하거나 계획 중인 AI 모델입니다.
+
+| 모델 | 아이콘 | 설명 | 특징 | status |
+|------|--------|------|------|--------|
+| **Transformer** | ⚖️ | Attention-based Pattern Recognition | 전체 과거 데이터의 관계성 파악, 최신 번호 패턴 감지 | ✅ Active |
+| **LSTM** | ⚡ | Sequential Time-Series Analysis | 시계열 순서가 중요한 데이터 분석, 장기 의존성 학습 | ✅ Active |
+| **Physics** | 🎱 | Vector-based Bias Detection | 물리적 바운스 및 기계적 편향 시뮬레이션 | ✅ Active |
+| **Ensemble** | 🔗 | AI Fusion (Weighted Average) | 위 3개 모델의 예측을 가중 평균하여 안정성 확보 | 📅 Planned |
+
+### Ensemble 구현 계획
+- **입력**: Transformer, LSTM, Physics 모델의 상위 15개 추천 번호
+- **처리**: 각 모델의 신뢰도(Confidence)를 가중치로 사용하여 점수 합산
+- **출력**: 최종 Top N 번호 선정
+- **장점**: 단일 모델의 과적합(Overfitting) 방지 및 일반화 성능 향상
