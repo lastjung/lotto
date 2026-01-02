@@ -188,5 +188,5 @@ defineEmits(['generate'])
     transform: translateY(-2px);
     box-shadow: 0 15px 30px -5px rgba(168, 85, 247, 0.6);
   }
+}
 </style>
-
