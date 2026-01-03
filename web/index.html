@@ -312,10 +312,10 @@
                 id="main-scroll">
 
                 <!-- DASHBOARD VIEW -->
-                <div id="view-dashboard" class="space-y-6 max-w-[1600px] mx-auto">
+                <div id="view-dashboard" class="flex flex-col gap-6 max-w-[1600px] mx-auto">
 
-                    <!-- TOP ROW: VISUALIZATIONS -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- TOP ROW: VISUALIZATIONS (Charts) - Mobile: Order 2, Desktop: Order 1 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 order-2 md:order-1">
                         <!-- Chart 1: Hot Numbers (Bar Chart Style) -->
                         <div
                             class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden group">
@@ -370,8 +370,8 @@
                         </div>
                     </div>
 
-                    <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) - Mobile: Order 1, Desktop: Order 2 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 order-1 md:order-2">
 
                         <!-- LEFT COL: CONFIGURATION (Span 4) -->
                         <div class="lg:col-span-5 xl:col-span-4 space-y-6">
