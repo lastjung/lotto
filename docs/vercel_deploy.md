@@ -76,4 +76,4 @@ Supabase 연동을 위해 필요한 키값들을 설정합니다. (프론트엔�
 | **Framework Preset** | `Other` | 자동 감지 실패 시 선택 |
 | **Root Directory** | `web-static` | |
 | **Build Command** | `rm -rf config css data js index.html && cp -RL ../config ../data ../web/css ../web/js ../web/index.html .` | 심볼릭 링크 해결용 |
-| **Output Directory** | (비워둠) 또는 `.` | |
+| **Output Directory** | `.` | (중요) 반드시 점(.) 하나를 입력하세요 |
