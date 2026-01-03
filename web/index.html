@@ -370,11 +370,11 @@
                         </div>
                     </div>
 
-                    <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) - Mobile: Order 1, Desktop: Order 2 -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- CONFIG & RESULTS - Mobile: Results first, Desktop: Side-by-side -->
+                    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6">
 
-                        <!-- LEFT COL: CONFIGURATION (Span 4) -->
-                        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+                        <!-- LEFT COL: CONFIGURATION (Span 5) - Mobile: Order 2 -->
+                        <div class="lg:col-span-5 xl:col-span-4 space-y-6 order-2 lg:order-1">
 
                             <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
                             <div class="mb-8">
@@ -659,8 +659,8 @@
                             </div>
                         </div>
 
-                        <!-- RIGHT COL: RESULTS (Span 8) -->
-                        <div class="lg:col-span-7 xl:col-span-8">
+                        <!-- RIGHT COL: RESULTS (Span 8) - Mobile: Order 1 (First) -->
+                        <div class="lg:col-span-7 xl:col-span-8 order-1 lg:order-2">
                             <div
                                 class="glass-panel h-full min-h-[600px] bg-[#0f172a] border border-white/5 rounded-3xl p-8 relative flex flex-col">
                                 <!-- Background Placeholder -->
