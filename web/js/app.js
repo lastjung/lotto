@@ -471,7 +471,7 @@ async function generateWithONNX() {
     const lotteryId = getLotteryValue();
     const config = window.lotteryConfigs && window.lotteryConfigs[lotteryId] ? window.lotteryConfigs[lotteryId] : { ball_count: 6, ball_range: [1, 45] };
     const ballCount = config.ball_count || 6;
-    const maxNum = config.ball_range[1] || 45;
+    const maxNum = (config.ball_range && config.ball_range[1]) || 45;
 
     const recent = getRecentDraws(10);
     // 입력 데이터: 10회차 * ballCount (Flat Buffer)
@@ -516,7 +516,7 @@ async function generateWithHotTrend() {
     const lotteryId = getLotteryValue();
     const config = window.lotteryConfigs && window.lotteryConfigs[lotteryId] ? window.lotteryConfigs[lotteryId] : { ball_count: 6, ball_range: [1, 45] };
     const ballCount = config.ball_count || 6;
-    const maxNum = config.ball_range[1] || 45;
+    const maxNum = (config.ball_range && config.ball_range[1]) || 45;
 
     const generated = [];
     const recentDraws = getRecentDraws(30); // 최근 30회차 분석
@@ -561,7 +561,7 @@ async function generateWithVector() {
     const lotteryId = getLotteryValue();
     const config = window.lotteryConfigs && window.lotteryConfigs[lotteryId] ? window.lotteryConfigs[lotteryId] : { ball_count: 6, ball_range: [1, 45] };
     const ballCount = config.ball_count || 6;
-    const maxNum = config.ball_range[1] || 45;
+    const maxNum = (config.ball_range && config.ball_range[1]) || 45;
 
     const generated = [];
     const allNumbers = lottoData.map(d => d.numbers);

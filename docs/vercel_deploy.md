@@ -30,7 +30,7 @@ Vercel이 "어떤 폴더를 웹사이트의 시작점(Root)으로 볼 것인가"
 - **위치**: `Settings` -> `General` -> `Build & Development Settings`
 - **설정값**: `Override` 체크 후 아래 명령어 입력
   ```bash
-  cp -RL ../data .
+  rm -rf config css data js index.html && cp -RL ../config ../data ../web/css ../web/js ../web/index.html .
   ```
 - **해석**:
   - `cp`: 복사(Copy) 명령어
@@ -68,5 +68,5 @@ Supabase 연동을 위해 필요한 키값들을 설정합니다. (프론트엔�
 | :--- | :--- | :--- |
 | **Framework Preset** | `Other` | 자동 감지 실패 시 선택 |
 | **Root Directory** | `web-static` | |
-| **Build Command** | `cp -RL ../data .` | 심볼릭 링크 해결용 |
+| **Build Command** | `rm -rf config css data js index.html && cp -RL ../config ../data ../web/css ../web/js ../web/index.html .` | 심볼릭 링크 해결용 |
 | **Output Directory** | (비워둠) 또는 `.` | |

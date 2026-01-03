@@ -1262,11 +1262,11 @@
 
         // Lottery configurations - Fallback (will be replaced by dynamic fetch)
         window.lotteryConfigs = {
-            "korea_645": { ball_count: 6, name: "Korea Lotto 6/45" },
-            "usa_powerball": { ball_count: 5, name: "USA Powerball" },
-            "usa_megamillions": { ball_count: 5, name: "USA Mega Millions" },
-            "canada_649": { ball_count: 6, name: "Canada 6/49" },
-            "japan_loto6": { ball_count: 6, name: "Japan Loto 6" }
+            "korea_645": { ball_count: 6, ball_range: [1, 45], name: "Korea Lotto 6/45" },
+            "usa_powerball": { ball_count: 5, ball_range: [1, 69], name: "USA Powerball" },
+            "usa_megamillions": { ball_count: 5, ball_range: [1, 70], name: "USA Mega Millions" },
+            "canada_649": { ball_count: 6, ball_range: [1, 49], name: "Canada 6/49" },
+            "japan_loto6": { ball_count: 6, ball_range: [1, 43], name: "Japan Loto 6" }
         };
 
         // Dynamic load from config/lotteries.json (Single Source of Truth)
