@@ -1,167 +1,75 @@
-# 🎰 모델 설정 가이드
+# 🎰 모델 설정 및 ONNX 가이드
+> 최종 업데이트: 2026-01-02
 
-> 작성일: 2026-01-01
+## 1. 지원 로또 및 모델 현황
 
-## 변수명 규칙 (재학습 시 적용 예정)
+| 로또 | ID | 공 개수 | 범위 | 모델 지원 현황 |
+|------|----|---------|------|----------------|
+| 🇰🇷 Korea 6/45 | `korea_645` | 6 | 1-45 | ✅ Transformer, LSTM, Vector |
+| 🇺🇸 USA Powerball | `usa_powerball` | 5* | 1-69 | ✅ Transformer, LSTM (Main 5 only) |
+| 🇺🇸 Mega Millions | `usa_megamillions` | 5* | 1-70 | ✅ Transformer, LSTM (Main 5 only) |
+| 🇨🇦 Canada 6/49 | `canada_649` | 6 | 1-49 | ✅ Transformer, LSTM |
+| 🇯🇵 Japan Loto 6 | `japan_loto6` | 6 | 1-43 | ⚠️ LSTM Only (TF 실패 → Korea 대용) |
 
-### 모델 학습 Config (`models_ai/`)
-
-| 현재 이름 | 새 이름 | 설명 | 예시 |
-|-----------|---------|------|------|
-| `num_numbers` | `ball_ranges` | 임베딩 크기 (max값) | 45, 49, 43 |
-| `seq_length` | `history_length` | 입력 회차 수 | 10 |
-| - | `ball_count` | 출력 공 개수 | 6, 5 |
-
-### 로또 설정 Config (`config/lotteries.json`)
-
-| 현재 이름 | 새 이름 | 설명 | 예시 |
-|-----------|---------|------|------|
-| `numbers_count` | `ball_count` | 뽑는 공 개수 | 6 |
-| `number_range` | `ball_range` | 번호 범위 [min, max] | [1, 45] |
+*> 미국 로또의 경우 보너스 볼(Powerball/MegaBall)은 제외하고 메인 5개 번호만 예측합니다.*
 
 ---
 
-## 현재 파일 위치
+## 2. ONNX 정적 모델 구조 (`web-static`)
+
+웹 브라우저(Static Mode)에서 실행되는 모델들은 다음 폴더 구조로 관리됩니다.
 
 ```
-📁 로또 설정
-config/lotteries.json
-
-📁 모델 코드 (기본값 정의)
-models_ai/src/transformer/lotto_transformer.py
-models_ai/src/lstm/lotto_lstm.py
-
-📁 학습된 모델 (config 포함)
-models_ai/trained/transformer/{lottery_id}.pt
-models_ai/trained/lstm/{lottery_id}.pt
+web-static/models/
+├── transformer/
+│   ├── korea_645.onnx
+│   ├── usa_powerball.onnx
+│   └── ...
+├── lstm/
+│   ├── korea_645.onnx
+│   └── ...
+└── (vector, hot_trend 등은 JS 내부 로직으로 구현)
 ```
 
----
-
-## 로또별 설정값
-
-| 로또 | ball_range | ball_count | 모델 호환 |
-|------|------------|------------|-----------|
-| 🇰🇷 Korea 6/45 | [1, 45] | 6 | ✅ Transformer/LSTM |
-| 🇨🇦 Canada 6/49 | [1, 49] | 6 | ⚠️ Vector 폴백 |
-| 🇯🇵 Japan Loto6 | [1, 43] | 6 | ✅ Transformer/LSTM |
-| 🇺🇸 Powerball | [1, 69] | 5 | ⚠️ Vector 폴백 |
-| 🇺🇸 Mega Millions | [1, 70] | 5 | ⚠️ Vector 폴백 |
+### 🔄 동적 로딩 및 Fallback 정책
+1. **Dynamic Loading**: 사용자가 로또를 변경하면 `models/[type]/[lottery_id].onnx`를 로드합니다.
+2. **Fallback**: 만약 전용 모델 파일이 없거나 로드에 실패하면(예: Japan TF), 자동으로 **`korea_645.onnx` (대표 모델)**을 로드하여 서비스 중단을 방지합니다.
+3. **Adaptive Generation**: 불러온 모델이 무엇이든, 현재 선택된 로또의 설정(`ball_count` 등)에 맞춰 번호를 생성합니다. (예: 한국 모델로 미국 로또 생성 시 5개만 출력).
 
 ---
 
-## 학습 설정 파일 (`config/training_config.json`)
+## 3. 학습 설정 가이드 (`config/`)
 
-### 모델 구조 파라미터
+### 로또 설정 (`config/lotteries.json`)
+```json
+{
+  "korea_645": {
+    "name": "Korea Lotto 6/45",
+    "ball_count": 6,
+    "ball_range": [1, 45],
+    "bonus": true
+  }
+}
+```
 
-| 변수 | 기본값 | 설명 |
-|------|--------|------|
+### 학습 파라미터 (`config/training_config.json`)
+| 파라미터 | 기본값 | 설명 |
+|----------|--------|------|
 | `history_length` | 10 | 입력으로 사용할 과거 회차 수 |
-| `d_model` | 64 | 임베딩 차원 (모델 크기) |
-| `nhead` | 4 | 어텐션 헤드 수 (Transformer) |
-| `num_layers` | 2 | Transformer/LSTM 레이어 수 |
-| `dim_feedforward` | 128 | FFN 히든 크기 (Transformer) |
-| `dropout` | 0.1 | 드롭아웃 비율 (과적합 방지) |
-
-### 학습 파라미터
-
-| 변수 | 기본값 | 설명 |
-|------|--------|------|
-| `epochs` | 50 | 총 학습 반복 횟수 |
-| `batch_size` | 32 | 한 번에 처리할 데이터 수 |
-| `learning_rate` | 0.001 | 학습률 |
-| `early_stopping` | 5 | N 에폭 개선 없으면 종료 |
-
-### 자주 조정하는 값
-- `history_length`: 더 긴 과거 참조 실험
-- `epochs`: 학습 시간 조절
-- `learning_rate`: 수렴 속도 조정
+| `d_model` | 64 | 모델 크기 (Transformer Embed Dim) |
+| `epochs` | 50 | 학습 반복 횟수 |
 
 ---
 
-## 로또 유형별 지원 현황
+## 4. 앙상블 (Ensemble)
+여러 모델의 예측 결과를 결합하여 신뢰도를 높입니다.
 
-### ✅ 완전 지원 (Standard Type)
-
-동일 풀에서 N개 선택하는 형태:
-
-| 로또 | 구조 | 학습 가능 |
-|------|------|-----------|
-| 🇰🇷 Korea 6/45 | 6개 from [1-45] | ✅ Transformer/LSTM |
-| 🇨🇦 Canada 6/49 | 6개 from [1-49] | ✅ Transformer/LSTM |
-| 🇯🇵 Japan Loto6 | 6개 from [1-43] | ✅ Transformer/LSTM |
-
-### ⚠️ 제한적 지원 (Special Ball Type)
-
-메인볼 + 특수볼(별도 풀)이 있는 형태:
-
-| 로또 | 구조 | 현재 지원 |
-|------|------|-----------|
-| 🇺🇸 Powerball | 5개 [1-69] + 파워볼 1개 [1-26] | ⚠️ Vector 폴백 |
-| 🇺🇸 Mega Millions | 5개 [1-70] + 메가볼 1개 [1-25] | ⚠️ Vector 폴백 |
-
-**왜 제한적인가?**
-
-```
-Powerball 구조:
-─────────────────────────────
-• 메인볼: 1-69에서 5개 선택 (일반 로또와 유사)
-• 파워볼: 1-26에서 1개 선택 (완전히 별도 추첨)
-• 잭팟: 메인 5개 + 파워볼 모두 일치해야 함
-
-현재 모델 한계:
-─────────────────────────────
-• 모든 슬롯이 동일 범위 가정 (ball_ranges)
-• 듀얼 출력 구조 미지원 (슬롯1-5: 69, 슬롯6: 26)
-
-이론적 해결책:
-─────────────────────────────
-1. 모델 구조 수정 (fc_main: 69, fc_power: 26)
-2. 파워볼 독립이므로 학습해도 자동 파악됨
-3. 그러나 구현 복잡도 대비 ROI 낮음
-
-현실적 결론:
-─────────────────────────────
-• Powerball은 Vector 모델로 폴백 (현재 동작)
-• 또는 메인볼만 학습 + 파워볼은 빈도분석
-• 우선순위: Standard Type 로또 먼저 완성
-```
+- **Weight**: Transformer(0.45) + LSTM(0.35) + Physics/Vector(0.20)
+- **Logic**: 각 모델이 예측한 번호에 가중치 점수를 부여하고, 합산 점수가 높은 Top N개를 최종 추천.
+- **Status**: ✅ 구현 완료 (Python & JS)
 
 ---
 
-## TODO: 모델 재학습
-
-### Phase 1: Standard Type 완성
-1. train.py에 `--lottery` 파라미터 추가
-2. `config/lotteries.json`에서 자동으로 ball_range, ball_count 로드
-3. `config/training_config.json` 기본값 적용 + CLI 오버라이드
-4. korea_645, canada_649, japan_loto6 재학습
-
-### Phase 2: 변수명 통일 (선택)
-1. `num_numbers` → `ball_ranges`
-2. `seq_length` → `history_length`
-3. `numbers_count` → `ball_count`
-4. `number_range` → `ball_range`
-
-### Phase 3: Special Ball Type (미정)
-- Powerball/Mega Millions 전용 모델 구조
-- 현재는 Vector 폴백으로 충분
-
----
-
-## 🧠 AI Model Architectures
-
-현재 시스템에서 사용하거나 계획 중인 AI 모델입니다.
-
-| 모델 | 아이콘 | 설명 | 특징 | status |
-|------|--------|------|------|--------|
-| **Transformer** | ⚖️ | Attention-based Pattern Recognition | 전체 과거 데이터의 관계성 파악, 최신 번호 패턴 감지 | ✅ Active |
-| **LSTM** | ⚡ | Sequential Time-Series Analysis | 시계열 순서가 중요한 데이터 분석, 장기 의존성 학습 | ✅ Active |
-| **Physics** | 🎱 | Vector-based Bias Detection | 물리적 바운스 및 기계적 편향 시뮬레이션 | ✅ Active |
-| **Ensemble** | 🔗 | AI Fusion (Weighted Average) | 위 3개 모델의 예측을 가중 평균하여 안정성 확보 | 📅 Planned |
-
-### Ensemble 구현 계획
-- **입력**: Transformer, LSTM, Physics 모델의 상위 15개 추천 번호
-- **처리**: 각 모델의 신뢰도(Confidence)를 가중치로 사용하여 점수 합산
-- **출력**: 최종 Top N 번호 선정
-- **장점**: 단일 모델의 과적합(Overfitting) 방지 및 일반화 성능 향상
+## 5. 향후 계획 (To-Do)
+- [ ] **Bonus Ball 지원**: 미국 로또 등에서 보너스 볼까지 예측하도록 모델 출력 차원 확장.
+- [ ] **Japan Loto 6 Transformer**: 학습 데이터 점검 및 모델 재학습으로 변환 에러 해결.

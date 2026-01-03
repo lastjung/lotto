@@ -56,5 +56,430 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 3,
+    "generated_at": "2026-01-02T20:54:15.127215",
+    "lottery_id": "japan_loto6",
+    "target_draw": 2065,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          12,
+          13,
+          24,
+          34,
+          37,
+          42
+        ],
+        "analysis": {
+          "sum": 162,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          3,
+          13,
+          14,
+          27,
+          35,
+          41
+        ],
+        "analysis": {
+          "sum": 133,
+          "odd_count": 5,
+          "even_count": 1,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          8,
+          13,
+          19,
+          21,
+          31,
+          40
+        ],
+        "analysis": {
+          "sum": 132,
+          "odd_count": 4,
+          "even_count": 2,
+          "low_count": 4,
+          "high_count": 2,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          15,
+          18,
+          24,
+          26,
+          34
+        ],
+        "analysis": {
+          "sum": 122,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          7,
+          16,
+          26,
+          36,
+          42
+        ],
+        "analysis": {
+          "sum": 129,
+          "odd_count": 1,
+          "even_count": 5,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 4,
+    "generated_at": "2026-01-02T20:54:20.334271",
+    "lottery_id": "japan_loto6",
+    "target_draw": 2065,
+    "model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          1,
+          21,
+          24,
+          28,
+          35,
+          39
+        ],
+        "analysis": {
+          "sum": 148,
+          "odd_count": 4,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          12,
+          15,
+          24,
+          35,
+          37,
+          38
+        ],
+        "analysis": {
+          "sum": 161,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          10,
+          13,
+          20,
+          27,
+          37,
+          38
+        ],
+        "analysis": {
+          "sum": 145,
+          "odd_count": 3,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          12,
+          14,
+          17,
+          24,
+          36,
+          38
+        ],
+        "analysis": {
+          "sum": 141,
+          "odd_count": 1,
+          "even_count": 5,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          11,
+          13,
+          37,
+          38,
+          41
+        ],
+        "analysis": {
+          "sum": 147,
+          "odd_count": 5,
+          "even_count": 1,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 5,
+    "generated_at": "2026-01-02T20:54:25.497842",
+    "lottery_id": "japan_loto6",
+    "target_draw": 2065,
+    "model": "vector",
+    "numbers": [
+      {
+        "numbers": [
+          5,
+          9,
+          22,
+          28,
+          32,
+          42
+        ],
+        "analysis": {
+          "sum": 138,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 7,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.708,
+          "cluster": 4
+        }
+      },
+      {
+        "numbers": [
+          9,
+          11,
+          17,
+          29,
+          31,
+          44
+        ],
+        "analysis": {
+          "sum": 141,
+          "odd_count": 5,
+          "even_count": 1,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.616,
+          "cluster": 4
+        }
+      },
+      {
+        "numbers": [
+          1,
+          13,
+          18,
+          20,
+          32,
+          42
+        ],
+        "analysis": {
+          "sum": 126,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 4,
+          "high_count": 2,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.614,
+          "cluster": 1
+        }
+      },
+      {
+        "numbers": [
+          6,
+          10,
+          31,
+          32,
+          37,
+          44
+        ],
+        "analysis": {
+          "sum": 160,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)",
+          "similarity": 0.704,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          8,
+          19,
+          22,
+          28,
+          30,
+          32
+        ],
+        "analysis": {
+          "sum": 139,
+          "odd_count": 1,
+          "even_count": 5,
+          "low_count": 2,
+          "high_count": 4,
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)",
+          "similarity": 0.63,
+          "cluster": 2
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 6,
+    "generated_at": "2026-01-02T20:54:30.268500",
+    "lottery_id": "japan_loto6",
+    "target_draw": 2065,
+    "model": "cold_theory",
+    "numbers": [
+      {
+        "numbers": [
+          5,
+          17,
+          23,
+          25,
+          32,
+          36
+        ],
+        "analysis": {
+          "sum": 138,
+          "avg_overdue": 16.3,
+          "max_overdue": 34,
+          "overdue_rating": "연체 (추천)",
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          10,
+          12,
+          16,
+          23,
+          28,
+          36
+        ],
+        "analysis": {
+          "sum": 125,
+          "avg_overdue": 14.5,
+          "max_overdue": 34,
+          "overdue_rating": "보통",
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          3,
+          16,
+          26,
+          31,
+          32,
+          36
+        ],
+        "analysis": {
+          "sum": 144,
+          "avg_overdue": 12.7,
+          "max_overdue": 34,
+          "overdue_rating": "보통",
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      },
+      {
+        "numbers": [
+          11,
+          12,
+          17,
+          23,
+          32,
+          36
+        ],
+        "analysis": {
+          "sum": 131,
+          "avg_overdue": 16.3,
+          "max_overdue": 34,
+          "overdue_rating": "연체 (추천)",
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          6,
+          25,
+          26,
+          29,
+          36,
+          37
+        ],
+        "analysis": {
+          "sum": 159,
+          "avg_overdue": 9.2,
+          "max_overdue": 34,
+          "overdue_rating": "보통",
+          "ac_value": 8,
+          "ac_rating": "보통 (괜찮음)"
+        }
+      }
+    ],
+    "result": null
   }
 ]

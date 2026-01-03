@@ -472,5 +472,105 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 13,
+    "generated_at": "2026-01-02T20:51:56.765821",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2463,
+    "model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          8,
+          22,
+          35,
+          57,
+          58
+        ],
+        "analysis": {
+          "sum": 180,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          11,
+          12,
+          48,
+          56,
+          61
+        ],
+        "analysis": {
+          "sum": 188,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          8,
+          22,
+          49,
+          58,
+          69
+        ],
+        "analysis": {
+          "sum": 206,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          10,
+          12,
+          42,
+          57,
+          65
+        ],
+        "analysis": {
+          "sum": 186,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          18,
+          38,
+          56,
+          63
+        ],
+        "analysis": {
+          "sum": 177,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]
