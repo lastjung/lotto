@@ -447,10 +447,10 @@ async def generate_numbers(req: GenerateRequest):
         max_num = lottery_config.get("ball_range", [1, 45])[1]
         ball_count = lottery_config.get("ball_count", 6)
         
-        # 모델의 history_length 가져오기 (기본값 10)
-        history_length = getattr(model, 'history_length', 10)
+        # 모델의 draw_length 가져오기 (기본값 10)
+        draw_length = getattr(model, 'draw_length', 10)
         
-        recent = [d["numbers"] for d in draws[-history_length:]]
+        recent = [d["numbers"] for d in draws[-draw_length:]]
         input_tensor = torch.tensor([recent], dtype=torch.long)
         
         seen = set()

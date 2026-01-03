@@ -143,7 +143,7 @@ def train(lottery_id: str, **overrides):
         if value is not None:
             training_config[key] = value
     
-    draw_length = training_config.get("draw_length") or training_config.get("history_length", 10)
+    draw_length = training_config.get("draw_length", 10)
     epochs = training_config["epochs"]
     batch_size = training_config["batch_size"]
     lr = training_config["learning_rate"]

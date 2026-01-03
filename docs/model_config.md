@@ -55,7 +55,7 @@ web-static/models/
 ### 학습 파라미터 (`config/training_config.json`)
 | 파라미터 | 기본값 | 설명 |
 |----------|--------|------|
-| `history_length` | 10 | 입력으로 사용할 과거 회차 수 |
+| `draw_length` | 10 | 입력으로 사용할 과거 회차 수 |
 | `d_model` | 64 | 모델 크기 (Transformer Embed Dim) |
 | `epochs` | 50 | 학습 반복 횟수 |
 
