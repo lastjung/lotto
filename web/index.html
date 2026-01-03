@@ -208,7 +208,7 @@
     <div class="flex h-screen overflow-hidden">
 
         <!-- SIDEBAR (Desktop Only) -->
-        <aside class="hidden md:flex w-64 flex-col bg-[#1e293b]/50 backdrop-blur-xl border-r border-white/5">
+        <aside class="hidden lg:flex w-64 flex-col bg-[#1e293b]/50 backdrop-blur-xl border-r border-white/5">
             <div class="p-6 pb-2 flex items-center gap-3">
                 <div
                     class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -276,7 +276,7 @@
 
             <!-- TOP HEADER (Mobile Only) -->
             <header
-                class="md:hidden h-16 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-md flex items-center justify-between px-4 z-20">
+                class="lg:hidden h-16 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-md flex items-center justify-between px-4 z-20">
                 <!-- Mobile Logo -->
                 <div class="flex items-center gap-2">
                     <div
@@ -1091,20 +1091,28 @@
         </div>
     </div>
 
-    <!-- MOBILE BOTTOM NAVIGATION (Fixed) -->
-    <nav
-        class="md:hidden fixed bottom-0 left-0 w-full bg-[#1e293b]/90 backdrop-blur-xl border-t border-white/10 flex justify-around p-3 z-50 safe-area-bottom">
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center gap-1 text-blue-400">
+    <!-- MOBILE/TABLET BOTTOM NAVIGATION (Fixed) -->
+    <nav id="bottom-nav"
+        class="lg:hidden fixed bottom-0 left-0 w-full bg-[#1e293b]/95 backdrop-blur-xl border-t border-white/10 flex justify-around py-2 z-50">
+        <button onclick="switchTab('dashboard')" id="bnav-dashboard"
+            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-blue-400">
             <span class="text-xl">📊</span>
-            <span class="text-[10px] font-medium">Dash</span>
+            <span class="text-[10px] font-medium">Dashboard</span>
         </button>
-        <button onclick="switchTab('history')" class="flex flex-col items-center gap-1 text-gray-500">
-            <span class="text-xl">🛑</span>
+        <button onclick="switchTab('history')" id="bnav-history"
+            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500">
+            <span class="text-xl">📂</span>
             <span class="text-[10px] font-medium">History</span>
         </button>
-        <button class="flex flex-col items-center gap-1 text-gray-500">
-            <span class="text-xl">👤</span>
-            <span class="text-[10px] font-medium">My</span>
+        <button onclick="switchTab('models')" id="bnav-models"
+            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500">
+            <span class="text-xl">🤖</span>
+            <span class="text-[10px] font-medium">Models</span>
+        </button>
+        <button onclick="switchTab('settings')" id="bnav-settings"
+            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500">
+            <span class="text-xl">⚙️</span>
+            <span class="text-[10px] font-medium">System</span>
         </button>
     </nav>
 
@@ -1134,6 +1142,17 @@
             });
             const activeBtn = document.getElementById(`nav-${tabId}`);
             if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all";
+
+            // Update Bottom Nav (Mobile/Tablet)
+            document.querySelectorAll('#bottom-nav button').forEach(b => {
+                b.classList.remove('text-blue-400');
+                b.classList.add('text-gray-500');
+            });
+            const activeBtnBottom = document.getElementById(`bnav-${tabId}`);
+            if (activeBtnBottom) {
+                activeBtnBottom.classList.remove('text-gray-500');
+                activeBtnBottom.classList.add('text-blue-400');
+            }
 
             // Trigger Loaders
             if (tabId === 'history') {
