@@ -22,6 +22,7 @@ env/
 *.swo
 .env
 .env.local
+web/js/config.js
 .DS_Store
 venv/
 __pycache__/

@@ -14,8 +14,8 @@ let savedLottery = localStorage.getItem('s_lottery') || 'korea_645';
 let savedModel = localStorage.getItem('s_model') || 'transformer';
 
 // [Config] Supabase (from ui.js)
-const SB_URL = 'https://sfqlshdlqwqlkxdrfdke.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk';
+const SB_URL = window.SUPABASE_CONFIG?.url || 'https://sfqlshdlqwqlkxdrfdke.supabase.co';
+const SB_KEY = window.SUPABASE_CONFIG?.key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmcWxzaGRscXdxbGt4ZHJmZGtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MDM0NzUsImV4cCI6MjA4MTQ3OTQ3NX0.CMbJ_5IUxAifoNIzqdxu_3sz31AtOMw2vRBPxfxZzSk';
 let supabaseClient = null; // [FIX] Renamed to avoid conflict with window.supabase from CDN
 
 let currentModel = savedModel;

@@ -1,0 +1,4 @@
+window.SUPABASE_CONFIG = {
+    url: "YOUR_SUPABASE_URL",
+    key: "YOUR_SUPABASE_ANON_KEY"
+};

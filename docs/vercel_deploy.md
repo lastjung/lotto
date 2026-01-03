@@ -30,7 +30,14 @@ Vercel이 "어떤 폴더를 웹사이트의 시작점(Root)으로 볼 것인가"
 - **위치**: `Settings` -> `General` -> `Build & Development Settings`
 - **설정값**: `Override` 체크 후 아래 명령어 입력
   ```bash
-  rm -rf config css data js index.html && cp -RL ../config ../data ../web/css ../web/js ../web/index.html .
+  # 1. Clean and Prepare
+  rm -rf config css data js index.html
+  
+  # 2. Copy Assets
+  cp -RL ../config ../data ../web/css ../web/js ../web/index.html .
+  
+  # 3. Generate Config from Env Vars
+  echo "window.SUPABASE_CONFIG = { url: '${VITE_SUPABASE_URL}', key: '${VITE_SUPABASE_ANON_KEY}' };" > js/config.js
   ```
 - **해석**:
   - `cp`: 복사(Copy) 명령어
