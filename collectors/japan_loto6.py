@@ -22,6 +22,29 @@ class JapanLoto6Collector(BaseLotteryCollector):
     GITHUB_API = "https://api.github.com/repos/tank1159jhs/jp-lottery-api/contents/data/loto6"
     GITHUB_RAW = "https://raw.githubusercontent.com/tank1159jhs/jp-lottery-api/main/data/loto6"
     
+    def get_latest_draw_no(self) -> int:
+        """최신 회차 번호 조회"""
+        try:
+            # 파일 목록을 가져와서 가장 큰 숫자를 찾음
+            response = requests.get(self.GITHUB_API, timeout=30)
+            if response.status_code != 200:
+                return 0
+            
+            files = response.json()
+            max_no = 0
+            for f in files:
+                name = f['name']
+                if name.endswith('.json'):
+                    try:
+                        no = int(name.replace('.json', ''))
+                        if no > max_no:
+                            max_no = no
+                    except ValueError:
+                        continue
+            return max_no
+        except Exception:
+            return 0
+
     def fetch_draw(self, draw_no: int) -> Draw | None:
         """특정 회차 데이터 조회"""
         try:

@@ -1299,10 +1299,23 @@
         41
       ],
       "bonus": 3
+    },
+    {
+      "draw_no": 2064,
+      "draw_date": "2025-12-29",
+      "numbers": [
+        2,
+        7,
+        24,
+        37,
+        39,
+        41
+      ],
+      "bonus": 3
     }
   ],
-  "updated_at": "2025-12-30T10:33:58.862289",
+  "updated_at": "2026-01-03T09:44:49.610740",
   "lottery_id": "japan_loto6",
-  "lottery_name": "Japan Loto 6",
-  "total_draws": 100
+  "lottery_name": "ロト6",
+  "total_draws": 101
 }

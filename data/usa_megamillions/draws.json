@@ -29543,10 +29543,34 @@
         64
       ],
       "bonus": 7
+    },
+    {
+      "draw_no": 2463,
+      "draw_date": "2025-12-30",
+      "numbers": [
+        18,
+        43,
+        49,
+        63,
+        69
+      ],
+      "bonus": 6
+    },
+    {
+      "draw_no": 2464,
+      "draw_date": "2026-01-02",
+      "numbers": [
+        6,
+        13,
+        34,
+        43,
+        52
+      ],
+      "bonus": 4
     }
   ],
-  "updated_at": "2025-12-30T18:24:29.719602",
+  "updated_at": "2026-01-03T09:42:12.892591",
   "lottery_id": "usa_megamillions",
   "lottery_name": "Mega Millions",
-  "total_draws": 2462
+  "total_draws": 2464
 }

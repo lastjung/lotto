@@ -20,7 +20,13 @@ env/
 .vscode/
 *.swp
 *.swo
+.env
+.env.local
 .DS_Store
+venv/
+__pycache__/
+*.pyc
+
 
 # Jupyter Notebook
 .ipynb_checkpoints/

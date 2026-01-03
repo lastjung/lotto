@@ -34,7 +34,13 @@ class Korea645Collector(BaseLotteryCollector):
         }
         
         try:
-            response = requests.get(self.API_URL, params=params, timeout=10)
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://www.dhlottery.co.kr/',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+            response = requests.get(self.API_URL, params=params, headers=headers, timeout=30)
             response.raise_for_status()
             data = response.json()
             

@@ -20,6 +20,12 @@ class USAMegaMillionsCollector(BaseLotteryCollector):
     # NY Data.gov API (Mega Millions)
     API_URL = "https://data.ny.gov/resource/5xaw-6ayf.json"
     
+    def get_latest_draw_no(self) -> int:
+        """최신 회차 번호 반환 (구현 필수)"""
+        # 이 수집기는 fetch_all_data로 매번 전체를 가져오므로,
+        # 여기서는 단순히 저장된 데이터 중 가장 큰 번호를 반환하거나 0을 반환
+        return 0 
+
     def fetch_draw(self, draw_no: int) -> Draw | None:
         """특정 회차는 지원하지 않음 (API가 날짜 기반)"""
         return None

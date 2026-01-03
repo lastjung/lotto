@@ -24465,10 +24465,23 @@
       "bonus": 21,
       "multiplier": "2",
       "draw_no": 1882
+    },
+    {
+      "draw_date": "2025-12-31",
+      "numbers": [
+        11,
+        18,
+        21,
+        24,
+        38
+      ],
+      "bonus": 26,
+      "multiplier": "10",
+      "draw_no": 1883
     }
   ],
-  "updated_at": "2025-12-30T08:59:43.464782",
+  "updated_at": "2026-01-03T09:39:44.785725",
   "lottery_id": "usa_powerball",
   "lottery_name": "Powerball",
-  "total_draws": 1882
+  "total_draws": 1883
 }
