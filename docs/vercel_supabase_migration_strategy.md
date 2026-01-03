@@ -88,7 +88,7 @@ JSON 파일 기반의 데이터를 관계형 데이터베이스(PostgreSQL)로 �
 - [ ] **AI Training (`train.py`) 연결**: 학습 데이터를 DB에서 조회하도록 변경.
 - [ ] **Frontend (`app.js`)**: (완료됨) Supabase 우선 로직 유지 (Fallback으로 로컬 파일 사용).
 
-### [Phase 3] 프론트엔드 포팅
+### [Phase 3] 프론트엔드 포팅 (Paused / Re-evaluating)
 - [ ] `web-vue`(Quasar) 프로젝트에 현재의 UI/UX 디자인 적용.
 - [ ] Vanilla JS 로직을 Vue Component로 마이그레이션.
 - [ ] ONNX 모델 로딩 로직 고도화 (국가별 파일 선택 로드).
@@ -104,22 +104,19 @@ JSON 파일 기반의 데이터를 관계형 데이터베이스(PostgreSQL)로 �
 
 ---
 
-## 🛑 6. 현재 상황 분석 및 긴급 조치 리포트 (2026-01-01)
-**Reported by 제미나이 프로 (Gemini Pro)**
+## 🛑 6. 전략 수정 및 현황 재분석 (2026-01-03)
+**Updated by User Request**
 
-### 6.1 `web-vue` 중심의 개발 전환 (Code Freeze for Legacy)
-- **현황**: 현재 모든 개발 리소스는 `web-vue` (Port 9001) 폴더에 집중하고 있습니다. 기존 `web` (Port 8000) 폴더는 **레거시(Legacy)**로 분류하여, 참조 용도로만 활용하고 일절 수정하지 않는 것을 원칙으로 합니다.
-- **조치**: `lotto_system_update.md` 등 문서 작업 외에는 **오직 `web-vue` 폴더 내의 코드만 수정**합니다.
+### 6.1 `web` 및 `web-static` 중심 개발 복귀 (Focus Shift)
+- **배경**: `web-vue`(Quasar)의 UI/UX가 기존 `web` (HTML/Vanilla JS) 버전의 완성도와 기능성을 즉각적으로 100% 대체하기 어렵다는 판단.
+- **결정**: 당분간 **`web` 및 `web-static`** 폴더 중심의 개발을 지속하며, 기능 고도화(ONNX 다중 로또 지원 등)를 우선한다.
+- **`web-vue` 상태**: **전략 수정 필요 (Strategy Revision Needed)**. 단순 포팅이 아닌 장기적인 모바일 앱 전환 대책 마련 후 재개.
 
-### 6.2 UI/UX Divergence (8000 vs 9001)
-- **차이점 발생**: 기존 Python 기반 대시보드(8000)와 신규 Quasar 대시보드(9001) 간의 **사이드바 디자인(왼쪽 날개)이 완전히 달라졌습니다.**
-    - **이유**: 단순 포팅이 아닌, "LottoQuantAI" 브랜드 리브랜딩 및 모바일 앱 확장성을 고려한 **전면 재설계(Redesign)**가 적용되었기 때문입니다.
-    - **상태**: 9001 포트의 UI가 최신 표준(Source of Truth)이며, 8000 포트의 디자인은 더 이상 따르지 않습니다.
+### 6.2 `web-vue` 향후 대책
+- 현재 `web` UI를 따라잡기 위한 별도의 UI/UX 디자인 및 구현 전략이 필요함.
+- 향후 하이브리드 앱(Capacitor) 필요성이 대두될 때 재논의.
 
-### 6.3 Supabase 데이터 정규화 (Emergency Fix)
-- **발견된 문제**: Supabase `lotto_history` 테이블에 적재된 데이터가 다양한 포맷(Stringified JSON, Nested Object 등)으로 혼재되어 프론트엔드 렌더링 오류 발생.
-- **대응**: DB 마이그레이션 대신, `web-vue/src/composables/useHistory.js` 내부에 **강력한 데이터 정규화(Data Normalization) 로직**을 구현하여 클라이언트단에서 문제를 원천 차단했습니다.
+### 6.3 현재 우선순위 (Action Item)
+- **ONNX 모델 고도화**: 다중 로또 지원 및 정적 웹 배포 최적화 (✅ 완료).
+- **Backend/DB 연결**: `web` 프론트엔드에서 Supabase 직접 연동 강화.
 
-### 6.4 결론 (Action Item)
-- 현재 `web-vue`는 UI/UX 및 데이터 안정성 측면에서 레거시 시스템을 완전히 대체할 준비가 되었습니다.
-- 향후 작업은 Vercel 배포 최적화 및 모바일 패키징(Capacitor)에 집중할 것을 권장합니다.
