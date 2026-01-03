@@ -145,18 +145,54 @@ async function loadLottoData(lotteryId = 'korea_645') {
     const dataStatus = document.getElementById('data-status');
     if (dataStatus) dataStatus.textContent = `📡 ${lotteryId} 데이터 불러오는 중...`;
 
+    // [Strategy] 1. Supabase에서 먼저 시도 -> 2. 실패시 로컬 JSON (Fallback)
     try {
-        const res = await fetch(`data/${lotteryId}/draws.json`);
-        if (!res.ok) throw new Error('파일을 찾을 수 없습니다.');
+        let loadedData = null;
+        let source = 'Local';
 
-        const json = await res.json();
-        lottoData = json.draws || json;
+        // 1. Supabase 시도
+        if (supabaseClient) {
+            try {
+                // 회차(draw_no) 내림차순 정렬
+                const { data, error } = await supabaseClient
+                    .from('lotto_history')
+                    .select('*')
+                    .eq('lottery_id', lotteryId)
+                    .order('draw_no', { ascending: true }); // 모델 학습용 오름차순 필요할 수 있음 (기존 JSON은 오름차순 가정)
 
-        if (dataStatus) dataStatus.textContent = `✅ ${lotteryId} 데이터 로드 완료 (${lottoData.length}회차)`;
-        console.log(`✅ 로또 데이터 로드 (${lotteryId}): ${lottoData.length}회차`);
+                if (!error && data && data.length > 0) {
+                    loadedData = data;
+                    source = 'Supabase Cloud';
+                    console.log(`✅ Supabase 로드 성공: ${data.length}건`);
+                }
+            } catch (sbError) {
+                console.warn('⚠️ Supabase 로드 실패 (Fallback 진행)', sbError);
+            }
+        }
+
+        // 2. 로컬 JSON Fallback
+        if (!loadedData) {
+            console.log('📂 로컬 파일(JSON)에서 로드 시도...');
+            const res = await fetch(`data/${lotteryId}/draws.json`);
+            if (!res.ok) throw new Error('파일을 찾을 수 없습니다.');
+
+            const json = await res.json();
+            loadedData = json.draws || json;
+            source = 'Local File';
+        }
+
+        // 공통 처리
+        lottoData = loadedData;
+
+        // 정렬 보장 (오름차순)
+        lottoData.sort((a, b) => a.draw_no - b.draw_no);
+
+        if (dataStatus) dataStatus.textContent = `✅ ${lotteryId} 데이터 로드 완료 (${lottoData.length}회차) - ${source}`;
+        console.log(`✅ 로또 데이터 로드 완료 (${lotteryId}): ${lottoData.length}회차 [Source: ${source}]`);
+
     } catch (e) {
         console.error('❌ 데이터 로드 실패:', e);
-        if (dataStatus) dataStatus.textContent = `❌ ${lotteryId} 데이터 로드 실패 (파일 확인 필요)`;
+        if (dataStatus) dataStatus.textContent = `❌ ${lotteryId} 데이터 로드 실패 (DB/파일 확인 필요)`;
     }
 }
 
