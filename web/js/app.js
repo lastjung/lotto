@@ -5,8 +5,9 @@
 
 // 설정 및 환경 감지
 const API_PORT = '8000'; // FastAPI 서버 기본 포트
-// [FIX] 포트가 8000이거나 로컬호스트가 아니면 API 모드 사용 (기존 코드 보존)
-const IS_STATIC_MODE = window.location.port !== '8000' && window.location.port !== '';
+// [FIX] 로컬호스트가 아니거나(Vercel 등), 포트가 8000이 아니면 Static Mode (ONNX) 사용
+const IS_LOCALHOST = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const IS_STATIC_MODE = !IS_LOCALHOST || (window.location.port !== '8000');
 const API_BASE = IS_STATIC_MODE ? '' : 'http://localhost:8000';
 
 // [Persistence] 초기 로드 시 LocalStorage 값 우선 사용
