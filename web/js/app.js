@@ -264,8 +264,9 @@ async function loadModel(modelType) {
 
     const lotteryId = getLotteryValue();
     try {
-        if (modelType === 'vector' || modelType === 'hot_trend' || modelType === 'ensemble') {
-            // Vector/Hot Trend/Ensemble는 JS로 구현 (ONNX 없음)
+        if (modelType === 'vector' || modelType === 'hot_trend' || modelType === 'ensemble' 
+            || modelType === 'physics_bias' || modelType === 'cold_theory' || modelType === 'balanced_mix') {
+            // Vector/Hot Trend/Ensemble/통계모델은 JS로 구현 (ONNX 없음)
             modelLoaded = true;
             if (statusEl) statusEl.textContent = `✅ ${modelType.toUpperCase()} 준비 완료 (JS 구현)`;
             return;
@@ -382,6 +383,9 @@ async function generateNumbers() {
                 raw_numbers = await generateWithVector();
             } else if (currentModel === 'hot_trend') {
                 raw_numbers = await generateWithHotTrend();
+            } else if (currentModel === 'physics_bias' || currentModel === 'cold_theory' || currentModel === 'balanced_mix') {
+                // 통계 모델들은 Hot Trend 알고리즘 기반으로 생성 (클라이언트 사이드)
+                raw_numbers = await generateWithStatistical(currentModel);
             } else {
                 raw_numbers = await generateWithONNX();
             }
@@ -592,6 +596,84 @@ async function generateWithVector() {
 
         const numbers = candidates.slice(0, ballCount).map(c => c.num).sort((a, b) => a - b);
         generated.push(numbers);
+    }
+
+    return generated;
+}
+
+// 통계 모델 생성 (Physics Bias, Cold Theory, Balanced Mix)
+async function generateWithStatistical(modelType) {
+    const lotteryId = getLotteryValue();
+    const config = window.lotteryConfigs && window.lotteryConfigs[lotteryId] ? window.lotteryConfigs[lotteryId] : { ball_count: 6, ball_range: [1, 45] };
+    const ballCount = config.ball_count || 6;
+    const maxNum = (config.ball_range && config.ball_range[1]) || 45;
+
+    const generated = [];
+    const allDraws = lottoData.map(d => d.numbers);
+    const recentDraws = allDraws.slice(-30); // 최근 30회차
+
+    // 전체 빈도 계산
+    const totalFreq = new Array(maxNum + 1).fill(0);
+    allDraws.forEach(draw => {
+        draw.forEach(n => { if (n <= maxNum) totalFreq[n]++; });
+    });
+
+    // 최근 빈도 계산
+    const recentFreq = new Array(maxNum + 1).fill(0);
+    recentDraws.forEach(draw => {
+        draw.forEach(n => { if (n <= maxNum) recentFreq[n]++; });
+    });
+
+    // 연체 번호 계산 (마지막 출현 이후 회차 수)
+    const coldness = new Array(maxNum + 1).fill(allDraws.length);
+    for (let i = allDraws.length - 1; i >= 0; i--) {
+        allDraws[i].forEach(n => {
+            if (n <= maxNum && coldness[n] === allDraws.length) {
+                coldness[n] = allDraws.length - 1 - i;
+            }
+        });
+    }
+
+    for (let set = 0; set < 15; set++) {
+        const weights = new Array(maxNum + 1).fill(0);
+
+        if (modelType === 'physics_bias') {
+            // Physics Bias: 위치별 빈도 + 전체 빈도 가중치
+            for (let n = 1; n <= maxNum; n++) {
+                weights[n] = totalFreq[n] * 2 + recentFreq[n] * 3 + Math.random() * 5;
+            }
+        } else if (modelType === 'cold_theory') {
+            // Cold Theory: 오래 안 나온 번호에 높은 가중치
+            for (let n = 1; n <= maxNum; n++) {
+                weights[n] = coldness[n] * 3 + Math.random() * 5;
+            }
+        } else if (modelType === 'balanced_mix') {
+            // Balanced Mix: 홀짝/고저 균형 + 빈도
+            for (let n = 1; n <= maxNum; n++) {
+                weights[n] = totalFreq[n] + recentFreq[n] + Math.random() * 10;
+            }
+        }
+
+        // 가중치 기반 선택
+        const numbers = new Set();
+        while (numbers.size < ballCount) {
+            let totalWeight = 0;
+            for (let n = 1; n <= maxNum; n++) {
+                if (!numbers.has(n)) totalWeight += weights[n];
+            }
+            
+            let rand = Math.random() * totalWeight;
+            for (let n = 1; n <= maxNum; n++) {
+                if (numbers.has(n)) continue;
+                rand -= weights[n];
+                if (rand <= 0) {
+                    numbers.add(n);
+                    break;
+                }
+            }
+        }
+
+        generated.push([...numbers].sort((a, b) => a - b));
     }
 
     return generated;
