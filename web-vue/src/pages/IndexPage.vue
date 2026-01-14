@@ -150,6 +150,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useLotto } from 'src/composables/useLotto'
 import { useHistory } from 'src/composables/useHistory'
 import { useAiEngine } from 'src/composables/useAiEngine'
+import { useApi } from 'src/composables/useApi'
 import LottoResultArea from 'src/components/LottoResultArea.vue'
 import LottoCharts from 'src/components/LottoCharts.vue'
 
@@ -162,6 +163,7 @@ const {
   loading: aiLoading, 
   modelLoaded 
 } = useAiEngine()
+const { generateNumbers } = useApi()
 
 const loading = ref(false)
 const scanning = ref(false)
@@ -213,43 +215,40 @@ function selectModel (id) {
 }
 
 async function generate () {
-  if (!modelLoaded.value && !['transformer', 'lstm'].includes(selectedModel.value)) {
-    await loadModel(currentLottery.value.id, selectedModel.value)
-  }
-
   loading.value = true
   scanning.value = true
   generatedNumbers.value = null
   
   try {
-    let results = []
-    if (['transformer', 'lstm'].includes(selectedModel.value)) {
-      results = await generateWithAi(currentLottery.value, draws.value)
-    } else {
-      results = await generateWithStat(selectedModel.value, currentLottery.value, draws.value)
-    }
-
+    // 백엔드 API 호출을 통한 번호 생성
+    const response = await generateNumbers(currentLottery.value.id, selectedModel.value)
+    
+    // API 응답 구조: { numbers: [ { numbers: [...], analysis: {...} } ], ... }
+    const topSetData = response.numbers[0]
+    
     setTimeout(async () => {
       loading.value = false
       scanning.value = false
       
-      const topSet = results[0]
-      generatedNumbers.value = topSet
+      generatedNumbers.value = topSetData.numbers
       
+      // 분석 결과 UI 매핑
       currentAnalysis.value = {
-        sum: topSet.reduce((a, b) => a + b, 0),
-        ac_value: calculateAC(topSet),
-        odd_even: calculateOddEven(topSet)
+        sum: topSetData.analysis.sum,
+        ac_value: topSetData.analysis.ac_value,
+        odd_even: `${topSetData.analysis.odd_count}:${topSetData.analysis.even_count}`,
+        fallback: response.fallback
       }
 
       await saveEntry({
         numbers: generatedNumbers.value,
-        model: selectedModel.value,
+        model: response.model, // 실제 사용된 모델 (폴백 포함)
+        requested_model: response.requested_model,
         lotteryType: currentLottery.value.id,
         lotteryName: currentLottery.value.name,
         analysis: currentAnalysis.value
       })
-    }, 2000)
+    }, 1500)
 
   } catch (e) {
     console.error('Generation failed:', e)
