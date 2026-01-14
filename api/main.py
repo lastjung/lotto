@@ -327,12 +327,16 @@ async def generate_numbers(req: GenerateRequest):
             if req.consecutive_filter and has_consecutive(numbers):
                 continue
             
-            # AC 계산 추가
-            ac_value = calculate_ac(numbers)
-            r['analysis']['ac_value'] = ac_value
-            r['analysis']['ac_rating'] = get_ac_rating(numbers)
+            # 분석 데이터 갱신 (일관성 유지)
+            analysis = analyze_numbers(numbers, max_num)
+            analysis["ac_value"] = calculate_ac(numbers)
+            analysis["ac_rating"] = get_ac_rating(numbers)
+            analysis["model"] = "physics_bias"
             
-            generated.append(r)
+            generated.append({
+                "numbers": numbers,
+                "analysis": analysis
+            })
 
     elif actual_model_type == "cold_theory":
         # Cold Theory: 연체 번호 기반 생성
@@ -357,11 +361,16 @@ async def generate_numbers(req: GenerateRequest):
             if req.consecutive_filter and has_consecutive(numbers):
                 continue
             
-            ac_value = calculate_ac(numbers)
-            r['analysis']['ac_value'] = ac_value
-            r['analysis']['ac_rating'] = get_ac_rating(numbers)
+            # 분석 데이터 갱신 (일관성 유지)
+            analysis = analyze_numbers(numbers, max_num)
+            analysis["ac_value"] = calculate_ac(numbers)
+            analysis["ac_rating"] = get_ac_rating(numbers)
+            analysis["model"] = "cold_theory"
             
-            generated.append(r)
+            generated.append({
+                "numbers": numbers,
+                "analysis": analysis
+            })
 
     elif actual_model_type == "balanced_mix":
         # Balanced Mix: 균형 잡힌 번호 생성
@@ -383,11 +392,16 @@ async def generate_numbers(req: GenerateRequest):
             if req.consecutive_filter and has_consecutive(numbers):
                 continue
             
-            ac_value = calculate_ac(numbers)
-            r['analysis']['ac_value'] = ac_value
-            r['analysis']['ac_rating'] = get_ac_rating(numbers)
+            # 분석 데이터 갱신 (일관성 유지)
+            analysis = analyze_numbers(numbers, max_num)
+            analysis["ac_value"] = calculate_ac(numbers)
+            analysis["ac_rating"] = get_ac_rating(numbers)
+            analysis["model"] = "balanced_mix"
             
-            generated.append(r)
+            generated.append({
+                "numbers": numbers,
+                "analysis": analysis
+            })
 
     elif actual_model_type == "hot_trend":
         # Hot Trend: 최근 빈도 기반 가중치

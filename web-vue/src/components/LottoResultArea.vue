@@ -22,8 +22,10 @@
         <!-- Result Header -->
         <div class="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
           <div class="flex items-center gap-3">
-             <div class="w-3 h-3 rounded-full bg-pink-500 shadow-glow-pink animate-pulse"></div>
-             <h3 class="font-bold text-white tracking-widest uppercase text-sm">Generation Complete</h3>
+             <div :class="['w-3 h-3 rounded-full animate-pulse', results ? 'bg-pink-500 shadow-glow-pink' : 'bg-blue-400 shadow-glow-blue']"></div>
+             <h3 class="font-bold text-white tracking-widest uppercase text-sm">
+               {{ results ? 'Generation Complete' : currentTypeName }}
+             </h3>
           </div>
           <div class="flex gap-2">
             <span class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-full border border-blue-500/30 font-bold tracking-wider uppercase">
@@ -32,15 +34,13 @@
           </div>
         </div>
 
-        <!-- Balls Container -->
-        <div class="flex justify-center gap-4 mb-16 flex-wrap">
-          <LottoBall 
-            v-for="(num, i) in results" 
-            :key="i"
-            :number="num"
-            size="72px"
-            class="pop-animation shadow-2xl"
-            :style="{ animationDelay: `${i * 0.1}s` }"
+        <!-- Dynamic Animation Component -->
+        <div class="animation-container mb-8">
+          <component 
+            :is="currentAnimationComponent"
+            :numbers="results || []"
+            :is-animating="generating"
+            @complete="onAnimationComplete"
           />
         </div>
 
@@ -60,7 +60,7 @@
            </div>
            <div class="stat-card group border-primary/20">
               <span class="text-[10px] text-primary/70 uppercase tracking-widest block mb-1">Confidence</span>
-              <div class="text-xl font-bold text-green-400">98.4%</div>
+              <div class="text-xl font-bold text-green-400">{{ analysis?.confidence || '98.4' }}%</div>
            </div>
         </div>
 
@@ -81,9 +81,16 @@
 </template>
 
 <script setup>
-import LottoBall from './LottoBall.vue'
+import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
+import { useAnimation } from 'src/composables/useAnimation'
 
-defineProps({
+// Lazy load animation components
+const LotteryBallAnimation = defineAsyncComponent(() => import('./animations/LotteryBallAnimation.vue'))
+const SlotMachineAnimation = defineAsyncComponent(() => import('./animations/SlotMachineAnimation.vue'))
+const AIScannerAnimation = defineAsyncComponent(() => import('./animations/AIScannerAnimation.vue'))
+const QuantumShuffleAnimation = defineAsyncComponent(() => import('./animations/QuantumShuffleAnimation.vue'))
+
+const props = defineProps({
   results: Array,
   analysis: Object,
   generating: Boolean,
@@ -92,6 +99,24 @@ defineProps({
 })
 
 defineEmits(['generate'])
+
+const { currentType, currentTypeName } = useAnimation()
+
+// Map animation types to components
+const animationComponents = {
+  lottery_ball: LotteryBallAnimation,
+  slot_machine: SlotMachineAnimation,
+  ai_scanner: AIScannerAnimation,
+  quantum_shuffle: QuantumShuffleAnimation
+}
+
+const currentAnimationComponent = computed(() => {
+  return animationComponents[currentType.value] || QuantumShuffleAnimation
+})
+
+function onAnimationComplete() {
+  // Animation completed callback - can be used for additional effects
+}
 </script>
 
 <style lang="scss" scoped>

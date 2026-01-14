@@ -1,0 +1,598 @@
+/**
+ * 🎱 Lottery Animation Styles
+ * Ported from legacy web/css/animation.css
+ */
+
+/* ===== Ball Colors ===== */
+.ball-yellow {
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+}
+
+.ball-blue {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.ball-red {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+}
+
+.ball-gray {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+.ball-green {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+}
+
+/* ========================================
+   🎱 LOTTERY BALL MACHINE STYLES
+   ======================================== */
+
+.lotto-machine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.machine-dome {
+  width: 280px;
+  height: 200px;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(0, 0, 0, 0.2) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 -30px 60px rgba(0, 0, 0, 0.3),
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 2px 20px rgba(255, 255, 255, 0.1);
+}
+
+.machine-dome::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 30%;
+  height: 40%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+  border-radius: 50%;
+}
+
+.mixing-balls {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.mixing-ball {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset -3px -3px 8px rgba(0, 0, 0, 0.3),
+    inset 3px 3px 8px rgba(255, 255, 255, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+}
+
+.mixing-balls.mixing .mixing-ball {
+  animation: bounce-around 0.5s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes bounce-around {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
+  25% { transform: translate(-50%, -50%) translate(calc(var(--x) * 0.3), calc(var(--y) * -0.5)); }
+  50% { transform: translate(-50%, -50%) translate(calc(var(--x) * -0.4), calc(var(--y) * 0.3)); }
+  75% { transform: translate(-50%, -50%) translate(calc(var(--x) * 0.2), calc(var(--y) * 0.4)); }
+}
+
+.mixing-balls.mixing {
+  animation: shake-dome 0.1s linear infinite;
+}
+
+@keyframes shake-dome {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px) rotate(-0.5deg); }
+  75% { transform: translateX(3px) rotate(0.5deg); }
+}
+
+.machine-chute {
+  width: 60px;
+  height: 30px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-radius: 0 0 20px 20px;
+  position: relative;
+  margin-top: -2px;
+}
+
+.chute-opening {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 10px;
+  background: #000;
+  border-radius: 0 0 10px 10px;
+}
+
+.revealed-balls {
+  display: flex;
+  gap: 12px;
+  margin-top: 2rem;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.revealed-ball {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+    inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+    0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.revealed-ball.pop-in {
+  animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0) translateY(-50px); }
+  60% { transform: scale(1.2) translateY(5px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animation-active.complete .revealed-ball {
+  animation: glow-pulse 1s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+      inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+      0 6px 15px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+      inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+      0 6px 15px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(255, 255, 255, 0.4);
+  }
+}
+
+
+/* ========================================
+   🎰 SLOT MACHINE STYLES
+   ======================================== */
+
+.slot-machine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #2d1b4e 0%, #1a0f2e 100%);
+  border-radius: 20px;
+  border: 3px solid #f59e0b;
+  box-shadow:
+    0 0 30px rgba(245, 158, 11, 0.3),
+    inset 0 2px 20px rgba(255, 255, 255, 0.1);
+  position: relative;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.slot-header {
+  background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%);
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.slot-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1a0f2e;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.slot-reels {
+  display: flex;
+  gap: 8px;
+  background: #0f0a1a;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.slot-reel {
+  position: relative;
+  width: 50px;
+  height: 60px;
+  overflow: hidden;
+  background: #1a1025;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.reel-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.reel-strip {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.reel-strip.spinning {
+  animation: spin-reel 0.15s linear infinite;
+}
+
+@keyframes spin-reel {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-60px); }
+}
+
+.reel-strip.stopped {
+  animation: none;
+  bottom: auto;
+  top: 0;
+  transform: translateY(calc(-100% + 56px));
+}
+
+.reel-number {
+  width: 46px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.reel-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 5px 15px rgba(0, 0, 0, 0.5),
+    inset 0 -5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.slot-complete .slot-machine {
+  animation: slot-flash 0.3s ease-in-out 3;
+}
+
+@keyframes slot-flash {
+  0%, 100% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 0 60px rgba(245, 158, 11, 0.8); }
+}
+
+
+/* ========================================
+   🔬 AI SCANNER STYLES
+   ======================================== */
+
+.ai-scanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
+  border-radius: 20px;
+  border: 2px solid #00ff88;
+  box-shadow:
+    0 0 30px rgba(0, 255, 136, 0.2),
+    inset 0 0 30px rgba(0, 255, 136, 0.05);
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.scanner-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.scanner-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.scanner-status {
+  font-size: 0.9rem;
+  color: #00ff88;
+  animation: blink-status 0.5s ease-in-out infinite;
+}
+
+@keyframes blink-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.scanner-slots {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.scanner-slot {
+  position: relative;
+  width: 52px;
+  height: 60px;
+}
+
+.scanner-display {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f1a2b;
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.scanning-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+}
+
+.scanner-slot:not(.locked) .scanning-number {
+  animation: number-flicker 0.1s linear infinite;
+}
+
+@keyframes number-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.scanner-slot.locked .scanner-display {
+  border-color: #fff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.scanner-slot.locked .scanning-number {
+  color: white;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: none;
+}
+
+.scanner-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.scanner-slot.locked .scanner-glow {
+  opacity: 1;
+  animation: glow-pulse-scanner 1s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-scanner {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
+}
+
+.scanner-progress {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 255, 136, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.scanner-progress .progress-bar {
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #00ff88 0%, #00ffcc 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+}
+
+.scanner-complete .ai-scanner {
+  animation: scanner-flash 0.3s ease-in-out 2;
+}
+
+@keyframes scanner-flash {
+  0%, 100% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.2); }
+  50% { box-shadow: 0 0 50px rgba(0, 255, 136, 0.6); }
+}
+
+
+/* ========================================
+   🔮 QUANTUM SHUFFLE STYLES
+   ======================================== */
+
+.quantum-shuffle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+}
+
+.quantum-balls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.quantum-ball {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 24px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+    inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(147, 51, 234, 0.5);
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  transition: all 0.3s ease;
+}
+
+.quantum-ball.shuffling {
+  animation: quantum-flicker 0.08s linear infinite;
+}
+
+@keyframes quantum-flicker {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+.quantum-ball.locked {
+  animation: quantum-lock 0.5s ease-out forwards;
+}
+
+@keyframes quantum-lock {
+  0% { transform: scale(1.2); box-shadow: 0 0 40px rgba(147, 51, 234, 0.8); }
+  100% { transform: scale(1); box-shadow: 0 0 20px rgba(147, 51, 234, 0.5); }
+}
+
+.quantum-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(147, 51, 234, 0.8) 0%, transparent 100%);
+  transform: translateX(-50%);
+  opacity: 0;
+  animation: beam-sweep 1.5s ease-in-out;
+}
+
+@keyframes beam-sweep {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .machine-dome {
+    width: 220px;
+    height: 160px;
+  }
+
+  .mixing-ball {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .revealed-ball {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .slot-machine {
+    padding: 1rem;
+    max-width: 320px;
+  }
+
+  .slot-reel {
+    width: 40px;
+    height: 50px;
+  }
+
+  .reel-number {
+    width: 36px;
+    height: 46px;
+    font-size: 16px;
+  }
+
+  .ai-scanner {
+    padding: 1rem;
+    max-width: 320px;
+  }
+
+  .scanner-slot {
+    width: 42px;
+    height: 50px;
+  }
+
+  .scanning-number {
+    font-size: 1.2rem;
+  }
+
+  .quantum-ball {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+}

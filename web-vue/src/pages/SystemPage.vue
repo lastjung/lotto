@@ -70,6 +70,22 @@
                   </div>
                   <div v-if="selectedAnimation === 'ai_scanner'" class="selected-badge text-xs text-purple-400 font-medium">✓ 선택됨</div>
               </div>
+
+              <!-- Quantum Shuffle (NEW) -->
+              <div 
+                class="animation-option cursor-pointer p-4 rounded-xl border-2 transition-all hover:scale-105"
+                :class="selectedAnimation === 'quantum_shuffle' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-600 bg-gray-800/50 hover:border-purple-400'"
+                @click="selectedAnimation = 'quantum_shuffle'"
+              >
+                  <div class="flex items-center gap-3 mb-2">
+                      <span class="text-3xl">🔮</span>
+                      <div>
+                          <h4 class="font-bold text-white">퀀텀 셔플</h4>
+                          <p class="text-xs text-gray-400">양자 빔과 함께 숫자가 회전</p>
+                      </div>
+                  </div>
+                  <div v-if="selectedAnimation === 'quantum_shuffle'" class="selected-badge text-xs text-purple-400 font-medium">✓ 선택됨</div>
+              </div>
           </div>
       </div>
 
