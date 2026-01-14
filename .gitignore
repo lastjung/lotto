@@ -1,4 +1,4 @@
-# Python 캐시 파일 (Git에서 제외)
+# Python 캐시 파일
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,21 +7,21 @@ __pycache__/
 *.egg-info/
 *.egg
 
-# 가상환경 (Git에서 제외 - 용량이 크고 시스템 종속적임)
+# 가상환경 (모든 경로에서 제외)
 venv/
 env/
 .venv/
 
-# 로컬 설정 및 환경 변수 (Git에서 제외 - 보안 및 로컬 전용)
+# 로컬 설정 및 환경 변수
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-web/js/config.js
-web/config.json
+config.js
+config.json
 
-# IDE 설정 (Git에서 제외)
+# IDE 및 OS 설정
 .idea/
 .vscode/
 *.swp
@@ -29,24 +29,23 @@ web/config.json
 .DS_Store
 .thumbs.db
 
-# 모델 파일 (.pt) 
-# [중요] 배포 시 필요하므로 Git에 포함(Track)합니다. 
-# 만약 제외하고 싶다면 아래 주석을 해제하세요.
+# 모델 파일 (.pt) - 배포를 위해 포함
 # *.pt
 # *.pth
 
-# 임시 파일 및 로그 (Git에서 제외)
+# 임시 파일 및 로그 (모든 경로에서 제외)
 *.log
 *.tmp
 *.bak
 temp/
 .gemini/
+*.temporary.*
 
-# 분석 결과 캐시 (Git에서 제외)
+# 노드 패키지 (모든 경로에서 제외 - 매우 중요!)
+node_modules/
+.quasar/
+dist/
+.npmrc
+
+# 분석 결과 캐시
 data/**/cache/
-
-# Quasar/Vue 빌드 파편 (Git에서 제외)
-web-vue/.quasar/
-web-vue/dist/
-web-vue/node_modules/
-web-vue/quasar.config.*.temporary.compiled*
