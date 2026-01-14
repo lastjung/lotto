@@ -21,10 +21,9 @@ from models_ai.src.lstm.lotto_lstm import create_model as create_lstm
 def convert_model_to_onnx(
     model_type: str,
     pt_path: Path,
-    onnx_path: Path,
-    seq_length: int = 10
+    onnx_path: Path
 ):
-    """모델을 ONNX로 변환하는 공통 함수"""
+    """모델을 ONNX로 변환하는 공통 함수 (config에서 설정 자동 로드)"""
     print(f"📦 {model_type.upper()} 변환 시작: {pt_path.name}")
     
     try:
@@ -32,8 +31,10 @@ def convert_model_to_onnx(
         checkpoint = torch.load(pt_path, map_location="cpu", weights_only=True)
         config = checkpoint.get("config", {})
         
-        # 설정에서 ball_count 읽기 (기본값: 6)
+        # 설정에서 값 읽기 (기본값 포함)
         ball_count = config.get("ball_count", 6)
+        ball_ranges = config.get("ball_ranges", config.get("num_numbers", 45))  # max number
+        draw_length = config.get("draw_length", config.get("seq_length", 10))  # sequence length
         
         # 모델 생성
         if model_type == "transformer":
@@ -46,8 +47,9 @@ def convert_model_to_onnx(
         model.load_state_dict(checkpoint["model_state_dict"])
         model.eval()
         
-        # 더미 입력 생성 (batch=1, seq_length=10, numbers=ball_count)
-        dummy_input = torch.randint(1, 46, (1, seq_length, ball_count))
+        # 더미 입력 생성 (batch=1, draw_length, ball_count) - config 기반 동적 생성
+        # 범위: 1 ~ ball_ranges (모델이 학습된 범위)
+        dummy_input = torch.randint(1, ball_ranges + 1, (1, draw_length, ball_count))
         
         # 출력 폴더 생성
         onnx_path.parent.mkdir(parents=True, exist_ok=True)
@@ -68,7 +70,7 @@ def convert_model_to_onnx(
             },
             dynamo=False
         )
-        print(f"  ✅ 생성 완료 (Balls: {ball_count}): {onnx_path.relative_to(PROJECT_ROOT)}")
+        print(f"  ✅ 생성 완료 (Balls: {ball_count}, Range: 1-{ball_ranges}, Seq: {draw_length}): {onnx_path.relative_to(PROJECT_ROOT)}")
         return True, ball_count
         
     except Exception as e:

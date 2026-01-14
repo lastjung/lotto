@@ -1099,5 +1099,52 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 18,
+    "generated_at": "2026-01-14T12:55:16.198495",
+    "lottery_id": "usa_powerball",
+    "target_draw": 1884,
+    "model": "transformer",
+    "requested_model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          4,
+          17,
+          39,
+          44,
+          59
+        ],
+        "analysis": {
+          "sum": 163,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          3,
+          10,
+          27,
+          55,
+          61
+        ],
+        "analysis": {
+          "sum": 156,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]

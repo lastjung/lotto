@@ -3,13 +3,26 @@
     <div id="view-dashboard" class="space-y-6 max-w-[1600px] mx-auto">
 
       <!-- TOP ROW: VISUALIZATIONS -->
-      <LottoCharts :draws="draws" :max-num="currentLottery.maxNum" />
+      <div v-if="$q.screen.gt.sm">
+        <LottoCharts :draws="draws" :max-num="currentLottery.maxNum" />
+      </div>
+      <q-expansion-item
+        v-else
+        class="glass-panel p-4 rounded-2xl border border-white/5"
+        label="Charts & Trends"
+        header-class="text-white font-bold"
+        expand-icon-class="text-blue-400"
+      >
+        <div class="pt-4">
+          <LottoCharts :draws="draws" :max-num="currentLottery.maxNum" />
+        </div>
+      </q-expansion-item>
 
       <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- LEFT COL: CONFIGURATION (Span 4) -->
-        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+        <div class="lg:col-span-5 xl:col-span-4 space-y-6 order-2 lg:order-1">
 
           <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
           <div>
@@ -116,7 +129,7 @@
         </div>
 
         <!-- RIGHT COL: RESULTS AREA (Span 8) -->
-        <div class="lg:col-span-7 xl:col-span-8">
+        <div class="lg:col-span-7 xl:col-span-8 order-1 lg:order-2">
           <LottoResultArea
             :results="generatedNumbers"
             :analysis="currentAnalysis"

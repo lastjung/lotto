@@ -1,4 +1,4 @@
-# Python
+# Python 캐시 파일 (Git에서 제외)
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,53 +6,47 @@ __pycache__/
 .Python
 *.egg-info/
 *.egg
-dist/
-build/
 
-# Virtual Environment
+# 가상환경 (Git에서 제외 - 용량이 크고 시스템 종속적임)
 venv/
 env/
 .venv/
-.env
 
-# IDE
+# 로컬 설정 및 환경 변수 (Git에서 제외 - 보안 및 로컬 전용)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+web/js/config.js
+web/config.json
+
+# IDE 설정 (Git에서 제외)
 .idea/
 .vscode/
 *.swp
 *.swo
-.env
-.env.local
-web/js/config.js
 .DS_Store
-venv/
-__pycache__/
-*.pyc
+.thumbs.db
 
-
-# Jupyter Notebook
-.ipynb_checkpoints/
-
-# PyTorch Models (학습된 모델은 Git LFS 또는 별도 관리)
+# 모델 파일 (.pt) 
+# [중요] 배포 시 필요하므로 Git에 포함(Track)합니다. 
+# 만약 제외하고 싶다면 아래 주석을 해제하세요.
 # *.pt
 # *.pth
 
-# 임시 파일
+# 임시 파일 및 로그 (Git에서 제외)
 *.log
 *.tmp
 *.bak
+temp/
+.gemini/
 
-# 테스트 커버리지
-.coverage
-htmlcov/
-.pytest_cache/
-
-# 로컬 설정
-*.local
-.env.local
-
-# 분석 결과 캐시
+# 분석 결과 캐시 (Git에서 제외)
 data/**/cache/
 
-# 브라우저 녹화 (필요시 포함)
-# .gemini/
-temp/
+# Quasar/Vue 빌드 파편 (Git에서 제외)
+web-vue/.quasar/
+web-vue/dist/
+web-vue/node_modules/
+web-vue/quasar.config.*.temporary.compiled*

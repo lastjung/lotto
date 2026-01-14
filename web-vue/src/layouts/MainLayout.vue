@@ -94,12 +94,31 @@
 
       <router-view />
     </q-page-container>
+
+    <q-footer v-if="$q.screen.lt.md" class="bg-dark-page/90 backdrop-blur-md border-t border-white/5">
+      <q-tabs
+        align="justify"
+        class="text-gray-400"
+        active-color="blue-4"
+        indicator-color="blue-4"
+      >
+        <q-route-tab
+          v-for="item in mobileMenuItems"
+          :key="item.id"
+          :to="item.to"
+          :label="item.label"
+        />
+      </q-tabs>
+    </q-footer>
   </q-layout>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import { useLotto } from 'src/composables/useLotto'
+
+const $q = useQuasar()
 
 const {
   lotteryOptions,
@@ -108,11 +127,20 @@ const {
   loadDraws
 } = useLotto()
 
+const leftDrawerOpen = ref(false)
+
 const menuItems = [
   { id: 'dash', label: 'Dashboard', icon: '📊', to: '/' },
   { id: 'history', label: 'History Analysis', icon: '📂', to: '/history' },
   { id: 'models', label: 'Models', icon: '🤖', to: '/models' },
   { id: 'system', label: 'System', icon: '⚙️', to: '/system' }
+]
+
+const mobileMenuItems = [
+  { id: 'dash', label: '📊 Dash', to: '/' },
+  { id: 'history', label: '📂 History', to: '/history' },
+  { id: 'models', label: '🤖 Models', to: '/models' },
+  { id: 'system', label: '⚙️ System', to: '/system' }
 ]
 
 onMounted(() => {
@@ -121,7 +149,13 @@ onMounted(() => {
 
 function onLotteryChange (event) {
   selectLottery(selectedLotteryId.value)
-  window.location.reload()
+  if ($q.screen.lt.md) {
+    leftDrawerOpen.value = false
+  }
+}
+
+function toggleLeftDrawer () {
+  leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
 

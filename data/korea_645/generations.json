@@ -14195,5 +14195,54 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 139,
+    "generated_at": "2026-01-14T12:54:50.865077",
+    "lottery_id": "korea_645",
+    "target_draw": 1205,
+    "model": "transformer",
+    "requested_model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          4,
+          10,
+          18,
+          29,
+          42,
+          44
+        ],
+        "analysis": {
+          "sum": 147,
+          "odd_count": 1,
+          "even_count": 5,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 10,
+          "ac_rating": "높음 (추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          7,
+          21,
+          24,
+          40,
+          44
+        ],
+        "analysis": {
+          "sum": 138,
+          "odd_count": 2,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 3,
+          "ac_value": 9,
+          "ac_rating": "높음 (추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]

@@ -65,35 +65,31 @@ def main():
         print(f"🚀 {lottery_id} - {args.model.upper()} 모델 학습 시작...")
         print(f"{'='*50}")
         
-        # 데이터 경로
+        # 데이터 존재 여부 확인
         data_path = PROJECT_ROOT / "data" / lottery_id / "draws.json"
         if not data_path.exists():
             print(f"⚠️ 데이터 파일이 없습니다: {data_path}")
             continue
         
-        # 모델 저장 경로 (trained 폴더)
-        model_save_path = PROJECT_ROOT / "models_ai" / "trained" / args.model / f"{lottery_id}.pt"
-        
         if args.model == "transformer":
             from models_ai.src.transformer.train import train as transformer_train
             transformer_train(
-                data_path=str(data_path),
-                model_save_path=str(model_save_path),
+                lottery_id=lottery_id,
                 epochs=args.epochs,
                 batch_size=args.batch_size,
-                lr=args.lr
+                learning_rate=args.lr
             )
         elif args.model == "lstm":
             from models_ai.src.lstm.train import train as lstm_train
             lstm_train(
-                data_path=str(data_path),
-                model_save_path=str(model_save_path),
+                lottery_id=lottery_id,
                 epochs=args.epochs,
                 batch_size=args.batch_size,
-                lr=args.lr
+                learning_rate=args.lr
             )
         
-        print(f"✅ {lottery_id} 모델 저장: {model_save_path}")
+        # 저장 경로는 train 함수 내부에서 자동 결정됨
+        print(f"✅ {lottery_id} 학습 완료!")
 
     print(f"\n{'='*50}")
     print("🎉 전체 학습 완료!")

@@ -315,7 +315,7 @@ async function selectModel(type, isInit = false) {
     currentModel = type;
 
     // 버튼 스타일 업데이트
-    ['transformer', 'lstm', 'vector', 'ensemble', 'hot_trend'].forEach(m => {
+    ['transformer', 'lstm', 'vector', 'ensemble', 'hot_trend', 'physics_bias', 'cold_theory', 'balanced_mix'].forEach(m => {
         const btn = document.getElementById(`btn-${m}`);
         // 구버전/신버전 ID 호환성 체크 (btn- vs card-)
         const cardBtn = document.getElementById(`card-${m}`);

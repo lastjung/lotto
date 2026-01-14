@@ -140,12 +140,44 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
+      workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
+      injectPwaMetaTags: true,
+      extendManifestJson: {
+        name: 'AI Lotto Analyzer',
+        short_name: 'LottoAI',
+        description: 'AI-powered lottery number generator with deep learning analysis',
+        display: 'standalone',
+        start_url: '.',
+        theme_color: '#0f172a',
+        background_color: '#0f172a',
+        icons: [
+          { src: 'icons/favicon-128x128.png', sizes: '128x128', type: 'image/png' },
+          { src: 'icons/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+          { src: 'icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+          { src: 'icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' }
+        ]
+      },
+      workboxOptions: {
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('.onnx') || url.pathname.endsWith('.wasm'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'onnx-wasm-assets',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          }
+        ]
+      }
       // swFilename: 'sw.js',
       // manifestFilename: 'manifest.json',
-      // extendManifestJson (json) {},
       // useCredentialsForManifestTag: true,
-      // injectPwaMetaTags: false,
       // extendPWACustomSWConf (esbuildConf) {},
       // extendGenerateSWOptions (cfg) {},
       // extendInjectManifestOptions (cfg) {}

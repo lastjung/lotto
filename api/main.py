@@ -64,7 +64,15 @@ def get_model(model_type: str = "transformer", lottery_id: str = "korea_645"):
         # Vector 모델은 실시간 학습 (학습 파일 불필요) - 항상 호환
         if model_type == "vector":
             draws = load_draws(lottery_id)
-            model = LottoVectorModel(n_clusters=5, n_neighbors=10)
+            # 로또별 설정 적용
+            ball_count = lottery_config.get("ball_count", 6)
+            ball_range = tuple(lottery_config.get("ball_range", [1, 45]))
+            model = LottoVectorModel(
+                ball_count=ball_count,
+                ball_range=ball_range,
+                n_clusters=5,
+                n_neighbors=10
+            )
             model.fit([d["numbers"] for d in draws])
             MODELS[cache_key] = (model, True)
             return MODELS[cache_key]
@@ -494,25 +502,33 @@ async def generate_numbers(req: GenerateRequest):
     latest_draw = draws[-1]["draw_no"]
     target_draw = latest_draw + 1
     
-    # 이력 저장
+    # 이력 저장 - 실제 사용된 모델과 요청된 모델 모두 기록
     history = load_history(req.lottery_id)
     record = {
         "id": len(history) + 1,
         "generated_at": datetime.now().isoformat(),
         "lottery_id": req.lottery_id,
         "target_draw": target_draw,
-        "model": req.model_type,  # 선택된 모델 타입 저장
+        "model": actual_model_type,  # 실제 사용된 모델 타입
+        "requested_model": original_model_type,  # 원래 요청된 모델 타입
         "numbers": generated,
         "result": None  # 나중에 비교할 때 채워짐
     }
     history.append(record)
     save_history(history, req.lottery_id)
     
+    # fallback 여부 표시
+    fallback_info = None
+    if actual_model_type != original_model_type:
+        fallback_info = f"{original_model_type} → {actual_model_type} (비호환으로 폴백)"
+    
     return {
         "generated_at": record["generated_at"],
         "lottery_id": req.lottery_id,
         "target_draw": target_draw,
-        "model": req.model_type,
+        "model": actual_model_type,  # 실제 사용된 모델
+        "requested_model": original_model_type,
+        "fallback": fallback_info,
         "numbers": generated,
         "saved": True
     }
