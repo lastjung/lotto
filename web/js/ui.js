@@ -72,8 +72,8 @@ async function fetchAndBuildAnalytics(lotteryId) {
         draws.sort((a, b) => new Date(b.date || b.drw_no_date) - new Date(a.date || a.drw_no_date));
         globalDrawData = draws;
 
-        // Build Frequency Map (Last 50 draws) - GENERAL NUMBERS ONLY (no bonus)
-        const recent = draws.slice(0, 50);
+        // Build Frequency Map (Last 52 draws) - GENERAL NUMBERS ONLY (no bonus)
+        const recent = draws.slice(0, 52);
         numberFrequency = {};
 
         recent.forEach(draw => {

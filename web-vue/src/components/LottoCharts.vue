@@ -10,7 +10,7 @@
           <div v-if="!simpleMode">
             <h3 class="font-bold text-white text-[12px] tracking-[0.2em] flex items-center gap-2 uppercase">
               <div class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]"></div>
-              Hot Numbers (Last 50)
+              Hot Numbers (Last 52)
             </h3>
             <p class="text-[9px] text-gray-500 mt-1 uppercase tracking-widest pl-3.5">Frequency Distribution Matrix</p>
           </div>
