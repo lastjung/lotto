@@ -104,6 +104,47 @@
                 <button @click="genCount < 10 && genCount++" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400">+</button>
               </div>
             </div>
+
+            <!-- Advanced Filters Panel -->
+            <div v-if="showAdvanced" class="pt-4 border-t border-white/5 space-y-4 bg-black/20 -mx-5 px-5 -mb-5 pb-5 rounded-b-2xl">
+              <h4 class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Theoretical Filters</h4>
+              
+              <!-- AC Filter -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-gray-200">AC Theory Filter</span>
+                  <p class="text-[10px] text-gray-500">Pattern complexity (AC ≥ 7)</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer scale-90">
+                  <input type="checkbox" v-model="acFilter" class="sr-only peer">
+                  <div class="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              <!-- Sum Filter -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-gray-200">Sum Range Filter</span>
+                  <p class="text-[10px] text-gray-500">Target balance (100 ~ 175)</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer scale-90">
+                  <input type="checkbox" v-model="sumFilter" class="sr-only peer">
+                  <div class="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+              </div>
+
+              <!-- Consecutive Filter -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-gray-200">Consecutive Restriction</span>
+                  <p class="text-[10px] text-gray-500">Exclude 3+ sequences</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer scale-90">
+                  <input type="checkbox" v-model="consecutiveFilter" class="sr-only peer">
+                  <div class="w-10 h-5 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                </label>
+              </div>
+            </div>
           </div>
 
           <!-- 4. Start Button -->
@@ -132,6 +173,7 @@
         <div class="lg:col-span-7 xl:col-span-8 order-1 lg:order-2">
           <LottoResultArea
             :results="generatedNumbers"
+            :all-sets="generatedSets"
             :analysis="currentAnalysis"
             :generating="loading"
             :scanning="scanning"
@@ -163,15 +205,21 @@ const {
   loading: aiLoading, 
   modelLoaded 
 } = useAiEngine()
-const { generateNumbers } = useApi()
+const { generateNumbers, isStaticMode } = useApi()
 
 const loading = ref(false)
 const scanning = ref(false)
 const selectedModel = ref('transformer')
 const generatedNumbers = ref(null)
+const generatedSets = ref([])  // All generated sets (for multiple display)
 const currentAnalysis = ref(null)
 const genCount = ref(5)
 const showAdvanced = ref(false)
+
+// Advanced filters
+const acFilter = ref(true)
+const sumFilter = ref(false)
+const consecutiveFilter = ref(false)
 
 const aiModels = [
   { id: 'transformer', name: 'Transformer', icon: '⚖️', desc: 'Attention-based Pattern Recognition' },
@@ -222,8 +270,54 @@ async function generate () {
   generatedNumbers.value = null
   
   try {
-    // 백엔드 API 호출을 통한 번호 생성
-    const response = await generateNumbers(currentLottery.value.id, selectedModel.value)
+    let response
+    
+    if (isStaticMode) {
+      // Static Mode: ONNX 브라우저 추론 사용
+      console.log('🔌 Static Mode: Using ONNX/JS inference')
+      
+      const isAiModel = ['transformer', 'lstm', 'hybrid'].includes(selectedModel.value)
+      let rawResults
+      
+      if (isAiModel && modelLoaded.value) {
+        rawResults = await generateWithAi(currentLottery.value, draws.value)
+      } else {
+        rawResults = await generateWithStat(selectedModel.value, currentLottery.value, draws.value)
+      }
+      
+      // 필터 적용
+      const filtered = applyFilters(rawResults).slice(0, genCount.value)
+      
+      // API 응답 형식으로 변환
+      response = {
+        numbers: filtered.map(nums => ({
+          numbers: nums,
+          analysis: {
+            sum: nums.reduce((a, b) => a + b, 0),
+            ac_value: calculateAC(nums),
+            odd_count: nums.filter(n => n % 2 !== 0).length,
+            even_count: nums.filter(n => n % 2 === 0).length
+          }
+        })),
+        lottery_id: currentLottery.value.id,
+        model: selectedModel.value,
+        requested_model: selectedModel.value,
+        generated_at: new Date().toISOString()
+      }
+    } else {
+      // API Mode: FastAPI 백엔드 호출
+      console.log('🌐 API Mode: Calling FastAPI backend')
+      response = await generateNumbers(
+        currentLottery.value.id, 
+        selectedModel.value,
+        {
+          count: genCount.value,
+          acFilter: acFilter.value,
+          sumFilter: sumFilter.value,
+          consecutiveFilter: consecutiveFilter.value
+        }
+      )
+    }
     
     // API 응답 구조: { numbers: [ { numbers: [...], analysis: {...} } ], ... }
     const topSetData = response.numbers[0]
@@ -233,6 +327,7 @@ async function generate () {
       scanning.value = false
       
       generatedNumbers.value = topSetData.numbers
+      generatedSets.value = response.numbers.map(set => set.numbers || set)
       
       // 분석 결과 UI 매핑
       const analysis = topSetData.analysis || {}
@@ -249,7 +344,7 @@ async function generate () {
 
       await saveEntry({
         numbers: generatedNumbers.value,
-        model: response.model, // 실제 사용된 모델 (폴백 포함)
+        model: response.model,
         requested_model: response.requested_model,
         lotteryType: currentLottery.value.id,
         lotteryName: currentLottery.value.name,
@@ -279,6 +374,40 @@ function calculateOddEven(numbers) {
   const odd = numbers.filter(n => n % 2 !== 0).length
   const even = numbers.length - odd
   return `${odd}:${even}`
+}
+
+// Static Mode용 필터 적용 함수
+function applyFilters(numbersList) {
+  return numbersList.filter(numbers => {
+    // AC 필터
+    if (acFilter.value && calculateAC(numbers) < 7) return false
+
+    // 합계 필터
+    if (sumFilter.value) {
+      const sum = numbers.reduce((a, b) => a + b, 0)
+      if (sum < 100 || sum > 175) return false
+    }
+
+    // 연속번호 필터
+    if (consecutiveFilter.value && hasConsecutive(numbers)) return false
+
+    return true
+  })
+}
+
+function hasConsecutive(numbers, minCount = 3) {
+  const sorted = [...numbers].sort((a, b) => a - b)
+  let consecutive = 1
+
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] - sorted[i - 1] === 1) {
+      consecutive++
+      if (consecutive >= minCount) return true
+    } else {
+      consecutive = 1
+    }
+  }
+  return false
 }
 </script>
 

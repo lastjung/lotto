@@ -96,10 +96,16 @@ async function animate(numbers) {
   emit('complete')
 }
 
-// Watch for numbers
-watch(() => props.numbers, (newNumbers) => {
+// Watch for numbers change - trigger animation with sound
+watch(() => props.numbers, (newNumbers, oldNumbers) => {
   if (newNumbers && newNumbers.length > 0) {
-    animate(newNumbers)
+    const numbersChanged = !oldNumbers || 
+      oldNumbers.length !== newNumbers.length ||
+      newNumbers.some((n, i) => n !== oldNumbers[i])
+    
+    if (numbersChanged) {
+      animate(newNumbers)
+    }
   }
 }, { immediate: true })
 

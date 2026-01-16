@@ -74,18 +74,18 @@ async function revealNumbers(numbers) {
   emit('complete')
 }
 
-// Watch for animation start
-watch(() => props.isAnimating, (val) => {
-  if (val) {
-    generateMixingBalls()
-    revealedNumbers.value = []
-  }
-})
-
-// Watch for numbers to reveal
-watch(() => props.numbers, (newNumbers) => {
-  if (newNumbers && newNumbers.length > 0 && !props.isAnimating) {
-    revealNumbers(newNumbers)
+// Watch for numbers change - always trigger animation with sound
+watch(() => props.numbers, (newNumbers, oldNumbers) => {
+  if (newNumbers && newNumbers.length > 0) {
+    // Check if numbers actually changed
+    const numbersChanged = !oldNumbers || 
+      oldNumbers.length !== newNumbers.length ||
+      newNumbers.some((n, i) => n !== oldNumbers[i])
+    
+    if (numbersChanged) {
+      generateMixingBalls()
+      revealNumbers(newNumbers)
+    }
   }
 }, { immediate: true })
 

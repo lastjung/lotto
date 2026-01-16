@@ -1,10 +1,24 @@
 /**
  * useApi - API 통신 composable
  * FastAPI 백엔드와의 모든 통신을 담당
+ * 비로컬 환경에서는 Static Mode (ONNX 브라우저 추론) 사용
  */
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
-const API_BASE = 'http://localhost:8000'
+// 환경 감지 (web/js/app.js와 동일한 로직)
+const IS_LOCALHOST = typeof window !== 'undefined' && 
+    ['localhost', '127.0.0.1'].includes(window.location?.hostname)
+const IS_DEV_PORT = typeof window !== 'undefined' && 
+    ['8000', '9000'].includes(window.location?.port)
+
+// Static Mode: 비로컬이거나 개발 포트가 아닌 경우 (Vercel 등 배포 환경)
+const IS_STATIC_MODE = !IS_LOCALHOST || !IS_DEV_PORT
+const API_BASE = IS_STATIC_MODE ? '' : 'http://localhost:8000'
+
+// 상태 로깅
+if (typeof window !== 'undefined') {
+    console.log(`🌐 API Mode: ${IS_STATIC_MODE ? 'STATIC/ONNX' : 'API/SERVER'} (Base: ${API_BASE || 'local'})`)
+}
 
 export function useApi() {
     const loading = ref(false)
@@ -14,10 +28,10 @@ export function useApi() {
      * 번호 생성 API 호출
      * @param {string} lotteryId - 로또 종류 (korea_645, japan_loto6 등)
      * @param {string} modelType - 모델 종류 (transformer, lstm, vector, hot_trend)
-     * @param {object} filters - 필터 옵션 { acFilter, sumFilter, consecutiveFilter }
+     * @param {object} options - 옵션 { count, acFilter, sumFilter, consecutiveFilter }
      * @returns {Promise<object>} 생성 결과
      */
-    async function generateNumbers(lotteryId, modelType, filters = {}) {
+    async function generateNumbers(lotteryId, modelType, options = {}) {
         loading.value = true
         error.value = null
 
@@ -27,11 +41,11 @@ export function useApi() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     lottery_id: lotteryId,
-                    count: 5,
+                    count: options.count ?? 5,
                     model_type: modelType,
-                    ac_filter: filters.acFilter ?? false,
-                    sum_filter: filters.sumFilter ?? false,
-                    consecutive_filter: filters.consecutiveFilter ?? false
+                    ac_filter: options.acFilter ?? false,
+                    sum_filter: options.sumFilter ?? false,
+                    consecutive_filter: options.consecutiveFilter ?? false
                 })
             })
 
@@ -90,6 +104,8 @@ export function useApi() {
         error,
         generateNumbers,
         saveConfig,
-        loadLotteryData
+        loadLotteryData,
+        isStaticMode: IS_STATIC_MODE,
+        apiBase: API_BASE
     }
 }

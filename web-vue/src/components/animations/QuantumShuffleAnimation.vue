@@ -86,22 +86,18 @@ async function startShuffle(finalNumbers) {
   emit('complete')
 }
 
-// Watch for animation trigger
-watch(() => props.isAnimating, (val) => {
-  if (val && props.numbers && props.numbers.length > 0) {
-    startShuffle(props.numbers)
-  }
-})
-
-// Watch for numbers change when not animating
-watch(() => props.numbers, (newNumbers) => {
-  if (newNumbers && newNumbers.length > 0 && !props.isAnimating) {
-    // If numbers provided without animation, just display them
-    displayNumbers.value = newNumbers.map(n => ({
-      number: n,
-      shuffling: false,
-      locked: true
-    }))
+// Watch for numbers change - always trigger animation with sound
+watch(() => props.numbers, (newNumbers, oldNumbers) => {
+  if (newNumbers && newNumbers.length > 0) {
+    // Check if numbers actually changed (not just initial load with same values)
+    const numbersChanged = !oldNumbers || 
+      oldNumbers.length !== newNumbers.length ||
+      newNumbers.some((n, i) => n !== oldNumbers[i])
+    
+    if (numbersChanged) {
+      // Always play animation with sound when new numbers arrive
+      startShuffle(newNumbers)
+    }
   }
 }, { immediate: true })
 

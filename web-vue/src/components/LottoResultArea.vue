@@ -34,8 +34,8 @@
           </div>
         </div>
 
-        <!-- Dynamic Animation Component -->
-        <div class="animation-container mb-8">
+        <!-- Primary Set: Dynamic Animation Component -->
+        <div class="animation-container mb-6">
           <component 
             :is="currentAnimationComponent"
             :numbers="results || []"
@@ -44,27 +44,55 @@
           />
         </div>
 
-        <!-- Analysis Grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-           <div class="stat-card group">
-              <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Sum Total</span>
-              <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.sum || '-' }}</div>
-           </div>
-           <div class="stat-card group">
-              <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">AC Value</span>
-              <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.ac_value || '-' }}</div>
-           </div>
-           <div class="stat-card group">
-              <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Odd:Even</span>
-              <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.odd_even || '-' }}</div>
-           </div>
-           <div class="stat-card group border-primary/20">
-              <span class="text-[10px] text-primary/70 uppercase tracking-widest block mb-1">Confidence</span>
-              <div class="text-xl font-bold text-green-400">{{ analysis?.confidence || '98.4' }}%</div>
-           </div>
-        </div>
+        <!-- Analysis Grid (First Set Only) - Show after animation -->
+        <Transition name="fade-slide">
+          <div v-if="showStats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-8">
+             <div class="stat-card group">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Sum Total</span>
+                <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.sum || '-' }}</div>
+             </div>
+             <div class="stat-card group">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">AC Value</span>
+                <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.ac_value || '-' }}</div>
+             </div>
+             <div class="stat-card group">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Odd:Even</span>
+                <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.odd_even || '-' }}</div>
+             </div>
+             <div class="stat-card group border-primary/20">
+                <span class="text-[10px] text-primary/70 uppercase tracking-widest block mb-1">Confidence</span>
+                <div class="text-xl font-bold text-green-400">{{ analysis?.confidence || '98.4' }}%</div>
+             </div>
+          </div>
+        </Transition>
 
-        <div class="mt-12 text-center">
+        <!-- Additional Sets (2nd ~ 5th) - Show sequentially after stats -->
+        <Transition name="fade-slide">
+          <div v-if="showStats && allSets && allSets.length > 1" class="mt-6 pt-6 border-t border-white/10">
+            <div class="text-xs text-gray-500 uppercase tracking-widest mb-4">Additional Combinations</div>
+            <div class="space-y-3">
+              <TransitionGroup name="list">
+                <div 
+                  v-for="(set, idx) in visibleSets" 
+                  :key="idx"
+                  class="flex items-center gap-4 bg-black/20 rounded-xl p-3"
+                >
+                  <span class="text-xs text-gray-500 font-bold w-6">#{{ idx + 2 }}</span>
+                  <div class="flex gap-2 flex-wrap">
+                    <span 
+                      v-for="num in set" 
+                      :key="num"
+                      :class="['w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold', getBallColor(num)]"
+                    >{{ num }}</span>
+                  </div>
+                  <span class="ml-auto text-xs text-gray-500">Σ {{ set.reduce((a, b) => a + b, 0) }}</span>
+                </div>
+              </TransitionGroup>
+            </div>
+          </div>
+        </Transition>
+
+        <div class="mt-10 text-center">
            <q-btn
               flat
               rounded
@@ -92,6 +120,10 @@ const QuantumShuffleAnimation = defineAsyncComponent(() => import('./animations/
 
 const props = defineProps({
   results: Array,
+  allSets: {
+    type: Array,
+    default: () => []
+  },
   analysis: Object,
   generating: Boolean,
   scanning: Boolean,
@@ -101,6 +133,16 @@ const props = defineProps({
 defineEmits(['generate'])
 
 const { currentType, currentTypeName } = useAnimation()
+
+// Sequential display state
+const showStats = ref(false)
+const visibleSetCount = ref(0)
+
+// Visible additional sets (2nd to 5th)
+const visibleSets = computed(() => {
+  if (!props.allSets || props.allSets.length <= 1) return []
+  return props.allSets.slice(1, 1 + visibleSetCount.value)
+})
 
 // Map animation types to components
 const animationComponents = {
@@ -114,8 +156,35 @@ const currentAnimationComponent = computed(() => {
   return animationComponents[currentType.value] || QuantumShuffleAnimation
 })
 
+// Reset on new generation
+watch(() => props.generating, (isGenerating) => {
+  if (isGenerating) {
+    showStats.value = false
+    visibleSetCount.value = 0
+  }
+})
+
+// Called when animation component emits 'complete'
 function onAnimationComplete() {
-  // Animation completed callback - can be used for additional effects
+  // Only show stats after animation is fully complete
+  showStats.value = true
+  
+  // Show additional sets one by one  
+  const additionalCount = (props.allSets?.length || 1) - 1
+  for (let i = 1; i <= additionalCount; i++) {
+    setTimeout(() => {
+      visibleSetCount.value = i
+    }, i * 300) // 300ms delay between each set
+  }
+}
+
+// Ball color based on number range
+function getBallColor(n) {
+  if (n <= 10) return 'bg-yellow-500 text-black'
+  if (n <= 20) return 'bg-blue-500 text-white'
+  if (n <= 30) return 'bg-red-500 text-white'
+  if (n <= 40) return 'bg-gray-500 text-white'
+  return 'bg-green-500 text-white'
 }
 </script>
 
@@ -214,4 +283,35 @@ function onAnimationComplete() {
     box-shadow: 0 15px 30px -5px rgba(168, 85, 247, 0.6);
   }
 }
+
+// Sequential reveal transitions
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.4s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+// List item transitions
+.list-enter-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.list-move {
+  transition: transform 0.3s ease;
+}
 </style>
+
