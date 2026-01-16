@@ -18,129 +18,194 @@
       </button>
     </div>
 
-    <!-- Tab 1: Draws Analysis -->
+    <!-- Content Area -->
     <div v-if="activeTab === 'draws'" class="space-y-6">
-      <div>
-        <h1 class="text-2xl font-bold mb-1 text-white">📊 Statistics</h1>
-        <div class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400">
-          <p>최근 <span class="text-blue-400 font-bold">{{ recentDraws.length }}</span>회 데이터 기반 (약 1년)</p>
-          <span class="hidden sm:inline text-gray-600">|</span>
-          <p class="font-medium text-blue-400">기간: <span class="text-gray-300">{{ periodRange }}</span></p>
+      <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
+        <div>
+          <h1 class="text-2xl font-bold mb-1 text-white">📊 Statistics</h1>
+          <div class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400">
+            <p>최근 <span class="text-blue-400 font-bold">{{ recentDraws.length }}</span>회 데이터 기반 (약 1년)</p>
+            <span class="hidden sm:inline text-gray-600">|</span>
+            <p class="font-medium text-blue-400">기간: <span class="text-gray-300">{{ periodRange }}</span></p>
+          </div>
         </div>
+
+        <!-- Sub Tabs (Mobile Optimized) -->
+        <q-btn-toggle
+          v-model="activeSubTab"
+          flatten
+          unelevated
+          toggle-color="blue-6"
+          color="white"
+          text-color="gray-400"
+          toggle-text-color="white"
+          class="bg-white/5 rounded-xl border border-white/10"
+          :options="[
+            { value: 'summary', slot: 'summary' },
+            { value: 'details', slot: 'details' }
+          ]"
+        >
+          <template v-slot:summary>
+            <div class="row items-center no-wrap">
+              <q-icon name="dashboard_customize" size="18px" class="q-mr-xs" />
+              <div class="text-center font-bold">Summary</div>
+            </div>
+          </template>
+          <template v-slot:details>
+            <div class="row items-center no-wrap">
+              <q-icon name="analytics" size="18px" class="q-mr-xs" />
+              <div class="text-center font-bold">Details</div>
+            </div>
+          </template>
+        </q-btn-toggle>
       </div>
 
-      <!-- Hot & Cold Numbers -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Hot Numbers -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="text-xl">🔥</span>
-            <h2 class="font-bold text-red-400">Hot Numbers (최다 출현)</h2>
-          </div>
-          <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General Numbers</div>
-          <div class="flex justify-between px-2 mb-4">
-            <div v-for="item in hotNumbers" :key="item.num" class="flex flex-col items-center gap-1">
-              <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
-              <span class="text-xs font-bold text-gray-400">{{ item.count }}회</span>
+      <!-- Tab 1-1: Summary Content -->
+      <div v-if="activeSubTab === 'summary'" class="space-y-6 animate-fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Hot Numbers -->
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xl">🔥</span>
+              <h2 class="font-bold text-red-400">Hot Numbers (최다 출현)</h2>
+            </div>
+            <div class="mb-4 text-xs text-gray-500 font-bold uppercase tracking-wider flex items-center gap-2">
+              General Numbers
+              <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+                <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 52회 중 가장 많이 출현한 번호입니다.</q-tooltip>
+              </q-icon>
+            </div>
+            <div class="flex justify-between px-2 mb-4 overflow-x-auto gap-2">
+              <div v-for="item in hotNumbers" :key="item.num" class="flex flex-col items-center gap-1">
+                <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
+                <div class="flex items-center gap-0.5 mt-1">
+                  <span class="text-[10px] font-bold text-gray-400">{{ item.count }}</span>
+                  <span v-if="item.trend > 0" class="text-[9px] text-red-500 font-bold">▲</span>
+                  <span v-else-if="item.trend < 0" class="text-[9px] text-blue-400 font-bold">▼</span>
+                </div>
+              </div>
+            </div>
+            <div class="mb-4 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">Bonus Ball</div>
+            <div class="flex justify-start gap-4 px-2">
+              <div v-for="item in hotBonus" :key="item.num" class="flex flex-col items-center gap-1">
+                <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
+                <span class="text-[10px] font-bold text-gray-400">{{ item.count }}</span>
+              </div>
             </div>
           </div>
-          <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">Bonus Ball</div>
-          <div class="flex justify-start gap-4 px-2">
-            <div v-for="item in hotBonus" :key="item.num" class="flex flex-col items-center gap-1">
-              <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
-              <span class="text-xs font-bold text-gray-400">{{ item.count }}회</span>
+
+          <!-- Cold Numbers -->
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-xl">🧊</span>
+              <h2 class="font-bold text-blue-400">Cold Numbers (최소 출현)</h2>
             </div>
-            <span v-if="hotBonus.length === 0" class="text-xs text-gray-500">데이터 없음</span>
-          </div>
-        </div>
-        <!-- Cold Numbers -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="text-xl">🧊</span>
-            <h2 class="font-bold text-blue-400">Cold Numbers (최소 출현)</h2>
-          </div>
-          <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General Numbers</div>
-          <div class="flex justify-between px-2 mb-4">
-            <div v-for="item in coldNumbers" :key="item.num" class="flex flex-col items-center gap-1">
-              <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
-              <span class="text-xs font-bold text-gray-400">{{ item.count }}회</span>
+            <div class="mb-4 text-xs text-gray-500 font-bold uppercase tracking-wider flex items-center gap-2">
+              General Numbers
+              <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+                <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 52회 중 가장 적게 출현한 번호입니다.</q-tooltip>
+              </q-icon>
+            </div>
+            <div class="flex justify-between px-2 mb-4 overflow-x-auto gap-2">
+              <div v-for="item in coldNumbers" :key="item.num" class="flex flex-col items-center gap-1">
+                <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
+                <div class="flex items-center gap-0.5 mt-1">
+                  <span class="text-[10px] font-bold text-gray-400">{{ item.count }}</span>
+                  <span v-if="item.trend > 0" class="text-[9px] text-red-500 font-bold">▲</span>
+                  <span v-else-if="item.trend < 0" class="text-[9px] text-blue-400 font-bold">▼</span>
+                </div>
+              </div>
+            </div>
+            <div class="mb-4 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">Bonus Ball</div>
+            <div class="flex justify-start gap-4 px-2">
+              <div v-for="item in coldBonus" :key="item.num" class="flex flex-col items-center gap-1">
+                <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
+                <span class="text-[10px] font-bold text-gray-400">{{ item.count }}</span>
+              </div>
             </div>
           </div>
-          <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">Bonus Ball</div>
-          <div class="flex justify-start gap-4 px-2">
-            <div v-for="item in coldBonus" :key="item.num" class="flex flex-col items-center gap-1">
-              <div :class="['ball', getBallColorClass(item.num)]">{{ item.num }}</div>
-              <span class="text-xs font-bold text-gray-400">{{ item.count }}회</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 rounded-2xl p-6">
+            <h2 class="font-bold mb-4 text-white text-sm">🎯 홀짝 및 고저 요약</h2>
+            <div class="flex justify-around items-center h-48">
+               <canvas ref="oddEvenChartRef"></canvas>
+               <canvas ref="lowHighChartRef"></canvas>
             </div>
-            <span v-if="coldBonus.length === 0" class="text-xs text-gray-500">데이터 없음</span>
+          </div>
+          <div class="glass-panel bg-blue-600/10 border border-blue-500/20 rounded-2xl p-6 flex flex-col justify-center">
+            <h3 class="text-blue-400 font-bold text-lg mb-2">분석 가이드 💡</h3>
+            <p class="text-gray-300 text-sm leading-relaxed">
+              상세 탭에서는 더 많은 통계 그래프를 확인하실 수 있습니다.
+            </p>
+            <q-btn flat color="blue-4" label="View Detailed Analysis" class="q-mt-md" @click="activeSubTab = 'details'" />
           </div>
         </div>
       </div>
 
-      <!-- Frequency Chart -->
-      <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-        <h2 class="font-bold mb-6 text-white">📈 번호별 출현 빈도 (Top 20)</h2>
-        <div class="h-64 relative w-full">
-          <canvas ref="freqChartRef"></canvas>
+      <!-- Tab 1-2: Details Content -->
+      <div v-else class="space-y-6 animate-fade-in">
+        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+          <h2 class="font-bold mb-6 text-white text-sm flex items-center gap-2">
+            📈 번호별 출현 빈도 (Top 20)
+            <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+              <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 52회 기준 상위 20개 번호입니다.</q-tooltip>
+            </q-icon>
+          </h2>
+          <div class="h-64 relative w-full">
+            <canvas ref="freqChartRef"></canvas>
+          </div>
         </div>
-        <p class="text-center text-xs text-gray-500 mt-4">* 상위 20개 번호만 표시됩니다.</p>
-      </div>
 
-      <!-- Ratios Row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Odd/Even -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-          <h2 class="font-bold mb-4 text-white">🎯 홀짝 비율 (Odd/Even)</h2>
-          <div class="h-64 flex items-center justify-center">
-            <canvas ref="oddEvenChartRef"></canvas>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+            <h2 class="font-bold mb-4 text-white text-sm flex items-center gap-2">
+              📉 합계 추이 (Sum Trend)
+              <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+                <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 30회차 합계 변화입니다.</q-tooltip>
+              </q-icon>
+            </h2>
+            <div class="h-64 w-full">
+              <canvas ref="sumChartRef"></canvas>
+            </div>
+          </div>
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+            <h2 class="font-bold mb-4 text-white text-sm flex items-center gap-2">
+              🔢 AC값 추이 (AC Value)
+              <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+                <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 30회차 AC(복잡도) 추이입니다.</q-tooltip>
+              </q-icon>
+            </h2>
+            <div class="h-64 w-full">
+              <canvas ref="acChartRef"></canvas>
+            </div>
           </div>
         </div>
-        <!-- Low/High -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-          <h2 class="font-bold mb-4 text-white">📊 고저 비율 (Low/High)</h2>
-          <div class="h-64 flex items-center justify-center">
-            <canvas ref="lowHighChartRef"></canvas>
-          </div>
-        </div>
-      </div>
 
-      <!-- Trends Row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Sum Trend -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-          <h2 class="font-bold mb-4 text-white">📉 합계 추이 (Sum Trend)</h2>
-          <div class="h-64 w-full">
-            <canvas ref="sumChartRef"></canvas>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+            <h2 class="font-bold mb-4 text-white text-sm flex items-center gap-2">
+              📊 합계 분포 (Sum Dist)
+              <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+                <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 52회 합계 빈도 분포입니다.</q-tooltip>
+              </q-icon>
+            </h2>
+            <div class="h-64 w-full">
+              <canvas ref="sumDistChartRef"></canvas>
+            </div>
           </div>
-          <p class="text-center text-xs text-gray-500 mt-2">* 최근 30회차 데이터</p>
-        </div>
-        <!-- AC Trend -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-          <h2 class="font-bold mb-4 text-white">🔢 AC값 추이 (AC Value)</h2>
-          <div class="h-64 w-full">
-            <canvas ref="acChartRef"></canvas>
+          <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+            <h2 class="font-bold mb-4 text-white text-sm flex items-center gap-2">
+              🔢 끝수 분석 (End Digit)
+              <q-icon name="info_outline" size="12px" class="cursor-pointer text-gray-600">
+                <q-tooltip class="bg-black/90 text-xs shadow-xl border border-white/10">최근 52회 번호의 끝수(0~9) 빈도입니다.</q-tooltip>
+              </q-icon>
+            </h2>
+            <div class="h-64 w-full">
+              <canvas ref="endDigitChartRef"></canvas>
+            </div>
           </div>
-          <p class="text-center text-xs text-gray-500 mt-2">* 산술적 복잡도 (숫자 간격의 불규칙성)</p>
-        </div>
-      </div>
-
-      <!-- Distributions Row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Sum Distribution -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-          <h2 class="font-bold mb-4 text-white">📊 합계 분포 (Sum Dist)</h2>
-          <div class="h-64 w-full">
-            <canvas ref="sumDistChartRef"></canvas>
-          </div>
-          <p class="text-center text-xs text-gray-500 mt-2">* 전체 기간 합계 빈도 (정규분포)</p>
-        </div>
-        <!-- End Digit -->
-        <div class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-          <h2 class="font-bold mb-4 text-white">🔢 끝수 분석 (End Digit)</h2>
-          <div class="h-64 w-full">
-            <canvas ref="endDigitChartRef"></canvas>
-          </div>
-          <p class="text-center text-xs text-gray-500 mt-2">* 번호의 1의 자리 (0~9) 출현 빈도</p>
         </div>
       </div>
     </div>
@@ -199,6 +264,7 @@ const { currentLottery, draws, loadDraws } = useLotto()
 const { sortedHistory, loadHistory } = useHistory()
 
 const activeTab = ref('draws')
+const activeSubTab = ref('summary')
 
 // Chart refs
 const freqChartRef = ref(null)
@@ -220,14 +286,14 @@ onMounted(async () => {
 })
 
 // Watch for tab changes to re-render charts
-watch(activeTab, async (newTab) => {
-  if (newTab === 'draws') {
+watch([activeTab, activeSubTab], async () => {
+  if (activeTab.value === 'draws') {
     await nextTick()
     renderAllCharts()
   }
 })
 
-// Watch for lottery data changes to re-render charts
+// Watch for lottery data changes (deep: true removed for performance)
 watch(draws, async () => {
   await nextTick()
   if (activeTab.value === 'draws') {
@@ -235,13 +301,11 @@ watch(draws, async () => {
   }
 }, { deep: false })
 
-// Period range
-// Limit to recent 52 draws (approx 1 year) like web version
+// Period range (approx 1 year = 52 weeks)
 const recentDraws = computed(() => {
   return draws.value.slice(0, 52)
 })
 
-// Period range (based on recent draws)
 const periodRange = computed(() => {
   if (recentDraws.value.length === 0) return '-'
   const dates = recentDraws.value.map(d => d.draw_date || d.date).filter(Boolean)
@@ -249,13 +313,11 @@ const periodRange = computed(() => {
   return `${dates[dates.length - 1]} ~ ${dates[0]}`
 })
 
-// Calculate frequencies (based on recent 52 draws)
+// Calculate frequencies
 const numberFreqs = computed(() => {
   const freqs = {}
   recentDraws.value.forEach(d => {
-    (d.numbers || []).forEach(n => {
-      freqs[n] = (freqs[n] || 0) + 1
-    })
+    (d.numbers || []).forEach(n => freqs[n] = (freqs[n] || 0) + 1)
   })
   return freqs
 })
@@ -264,25 +326,59 @@ const bonusFreqs = computed(() => {
   const freqs = {}
   recentDraws.value.forEach(d => {
     const bonus = d.bonus_number || d.bonus
-    if (bonus) {
-      freqs[bonus] = (freqs[bonus] || 0) + 1
-    }
+    if (bonus) freqs[bonus] = (freqs[bonus] || 0) + 1
   })
   return freqs
 })
 
-// Hot/Cold calculations
+// Trend calculation (Recent 10 vs Previous 42)
+const recent10Count = 10
+const previous42Count = 42
+
+const frequenciesRecent10 = computed(() => {
+  const freqs = {}
+  draws.value.slice(0, recent10Count).forEach(d => {
+    (d.numbers || []).forEach(n => freqs[n] = (freqs[n] || 0) + 1)
+  })
+  return freqs
+})
+
+const frequenciesPrevious42 = computed(() => {
+  const freqs = {}
+  draws.value.slice(recent10Count, recent10Count + previous42Count).forEach(d => {
+    (d.numbers || []).forEach(n => freqs[n] = (freqs[n] || 0) + 1)
+  })
+  return freqs
+})
+
 const hotNumbers = computed(() => {
   return Object.entries(numberFreqs.value)
-    .map(([num, count]) => ({ num: parseInt(num), count }))
+    .map(([num, count]) => {
+      const n = parseInt(num)
+      const r10 = frequenciesRecent10.value[n] || 0
+      const p42 = frequenciesPrevious42.value[n] || 0
+      const r10Avg = r10 / recent10Count
+      const p42Avg = p42 / previous42Count
+      const trend = r10Avg > p42Avg ? 1 : r10Avg < p42Avg ? -1 : 0
+      return { num: n, count, trend }
+    })
     .sort((a, b) => b.count - a.count)
     .slice(0, 6)
 })
 
 const coldNumbers = computed(() => {
-  const allNums = Array.from({ length: currentLottery.value.maxNum || 45 }, (_, i) => i + 1)
+  const maxNum = currentLottery.value.maxNum || 45
+  const allNums = Array.from({ length: maxNum }, (_, i) => i + 1)
   return allNums
-    .map(n => ({ num: n, count: numberFreqs.value[n] || 0 }))
+    .map(n => {
+      const count = numberFreqs.value[n] || 0
+      const r10 = frequenciesRecent10.value[n] || 0
+      const p42 = frequenciesPrevious42.value[n] || 0
+      const r10Avg = r10 / recent10Count
+      const p42Avg = p42 / previous42Count
+      const trend = r10Avg > p42Avg ? 1 : r10Avg < p42Avg ? -1 : 0
+      return { num: n, count, trend }
+    })
     .sort((a, b) => a.count - b.count)
     .slice(0, 6)
 })
@@ -295,21 +391,17 @@ const hotBonus = computed(() => {
 })
 
 const coldBonus = computed(() => {
-  // Include ALL possible bonus numbers (1 to maxNum), even those with 0 appearances
   const maxNum = currentLottery.value.maxNum || 45
   const allBonusNums = []
-  
   for (let n = 1; n <= maxNum; n++) {
     allBonusNums.push({ num: n, count: bonusFreqs.value[n] || 0 })
   }
-  
-  // Sort by frequency ascending (least frequent first, including 0)
   return allBonusNums
     .sort((a, b) => a.count - b.count)
     .slice(0, 3)
 })
 
-// Ball color class for styled balls
+// Styled ball helpers
 function getBallColorClass(n) {
   if (n <= 10) return 'bg-ball-yellow'
   if (n <= 20) return 'bg-ball-blue'
@@ -318,7 +410,6 @@ function getBallColorClass(n) {
   return 'bg-ball-green'
 }
 
-// Ball color for history list
 function getBallColor(n) {
   if (n <= 10) return 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20'
   if (n <= 20) return 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
@@ -327,7 +418,7 @@ function getBallColor(n) {
   return 'bg-green-500 text-white shadow-lg shadow-green-500/20'
 }
 
-// AC Value calculation
+// AC Value calculation: Set of (n[i]-n[j]) size - (count-1)
 function calculateAC(numbers) {
   if (!numbers || numbers.length < 2) return 0
   const diffs = new Set()
@@ -339,63 +430,60 @@ function calculateAC(numbers) {
   return diffs.size - (numbers.length - 1)
 }
 
-// Render all charts (using recentDraws for consistency with period display)
 function renderAllCharts() {
   if (recentDraws.value.length === 0) return
 
-  // Frequency Chart (Top 20) - already uses numberFreqs which is based on recentDraws
+  // Freq Top 20
   const top20 = Object.entries(numberFreqs.value)
     .map(([num, count]) => ({ num: parseInt(num), count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 20)
   renderFreqChart(top20)
 
-  // Odd/Even (based on recentDraws)
+  // Odd/Even
   let odd = 0, even = 0
   recentDraws.value.forEach(d => (d.numbers || []).forEach(n => n % 2 === 0 ? even++ : odd++))
   renderOddEvenChart(odd, even)
 
-  // Low/High (based on recentDraws)
+  // Low/High
   const midPoint = (currentLottery.value.maxNum || 45) / 2
   let lowCount = 0, highCount = 0
   recentDraws.value.forEach(d => (d.numbers || []).forEach(n => n <= midPoint ? lowCount++ : highCount++))
   renderLowHighChart(lowCount, highCount)
 
-  // Sum Trend (Last 30 from recentDraws)
-  const last30 = recentDraws.value.slice(0, 30).reverse()
-  const sums = last30.map(d => (d.numbers || []).reduce((a, b) => a + b, 0))
-  const labels = last30.map(d => d.draw_no || d.draw_number || '')
-  renderSumChart(labels, sums)
+  // Trends & Distributions (Details)
+  if (activeSubTab.value === 'details') {
+    const last30 = recentDraws.value.slice(0, 30).reverse()
+    const sums = last30.map(d => (d.numbers || []).reduce((a, b) => a + b, 0))
+    const labels = last30.map(d => d.draw_no || d.draw_number || '')
+    renderSumChart(labels, sums)
+    renderACChart(labels, last30.map(d => calculateAC(d.numbers || [])))
 
-  // AC Trend (Last 30 from recentDraws)
-  const acValues = last30.map(d => calculateAC(d.numbers || []))
-  renderACChart(labels, acValues)
-
-  // Sum Distribution (based on recentDraws)
-  const allSums = recentDraws.value.map(d => (d.numbers || []).reduce((a, b) => a + b, 0))
-  if (allSums.length > 0) {
-    const binSize = 10
-    const minSum = Math.min(...allSums)
-    const maxSum = Math.max(...allSums)
-    const startBin = Math.floor(minSum / binSize) * binSize
-    const endBin = Math.ceil(maxSum / binSize) * binSize
-
-    const labelsDist = []
-    const dataDist = []
-    for (let i = startBin; i < endBin; i += binSize) {
-      labelsDist.push(`${i}~${i + binSize - 1}`)
-      dataDist.push(allSums.filter(s => s >= i && s < i + binSize).length)
+    // Sum Distribution
+    const allSums = recentDraws.value.map(d => (d.numbers || []).reduce((a, b) => a + b, 0))
+    if (allSums.length > 0) {
+      const binSize = 10
+      const minSum = Math.min(...allSums)
+      const maxSum = Math.max(...allSums)
+      const startBin = Math.floor(minSum / binSize) * binSize
+      const endBin = Math.ceil(maxSum / binSize) * binSize
+      const labelsDist = []
+      const dataDist = []
+      for (let i = startBin; i < endBin; i += binSize) {
+        labelsDist.push(`${i}~${i + binSize - 1}`)
+        dataDist.push(allSums.filter(s => s >= i && s < i + binSize).length)
+      }
+      renderSumDistChart(labelsDist, dataDist)
     }
-    renderSumDistChart(labelsDist, dataDist)
-  }
 
-  // End Digit (based on recentDraws)
-  const endDigitFreq = new Array(10).fill(0)
-  recentDraws.value.forEach(d => (d.numbers || []).forEach(n => endDigitFreq[n % 10]++))
-  renderEndDigitChart(endDigitFreq)
+    // End Digit
+    const endDigitFreq = new Array(10).fill(0)
+    recentDraws.value.forEach(d => (d.numbers || []).forEach(n => endDigitFreq[n % 10]++))
+    renderEndDigitChart(endDigitFreq)
+  }
 }
 
-// Chart renderers
+// Chart renderers (Simplified)
 function renderFreqChart(data) {
   if (!freqChartRef.value) return
   const ctx = freqChartRef.value.getContext('2d')
@@ -404,21 +492,13 @@ function renderFreqChart(data) {
     type: 'bar',
     data: {
       labels: data.map(d => d.num),
-      datasets: [{
-        label: '출현 횟수',
-        data: data.map(d => d.count),
-        backgroundColor: '#6366f1',
-        borderRadius: 4
-      }]
+      datasets: [{ label: '회수', data: data.map(d => d.count), backgroundColor: '#6366f1', borderRadius: 4 }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false }, datalabels: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
-        x: { grid: { display: false } }
-      }
+      scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
     }
   })
 }
@@ -426,29 +506,20 @@ function renderFreqChart(data) {
 function renderOddEvenChart(odd, even) {
   if (!oddEvenChartRef.value) return
   const ctx = oddEvenChartRef.value.getContext('2d')
-  const total = odd + even
   if (charts.oddEven) charts.oddEven.destroy()
   charts.oddEven = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Odd (홀)', 'Even (짝)'],
-      datasets: [{
-        data: [odd, even],
-        backgroundColor: ['#818cf8', '#34d399'],
-        borderWidth: 0
-      }]
+      labels: ['홀', '짝'],
+      datasets: [{ data: [odd, even], backgroundColor: ['#818cf8', '#34d399'], borderWidth: 0 }]
     },
     options: {
-      rotation: -90,
-      circumference: 360,
+      responsive: true,
+      maintainAspectRatio: false,
       cutout: '60%',
       plugins: {
-        legend: { position: 'bottom', labels: { usePointStyle: true } },
-        datalabels: {
-          color: 'white',
-          font: { weight: 'bold', size: 14 },
-          formatter: (value) => total === 0 ? '0%' : ((value / total) * 100).toFixed(1) + '%'
-        }
+        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+        datalabels: { color: 'white', font: { weight: 'bold', size: 12 }, formatter: (v) => ((v/(odd+even))*100).toFixed(0) + '%' }
       }
     }
   })
@@ -457,29 +528,20 @@ function renderOddEvenChart(odd, even) {
 function renderLowHighChart(low, high) {
   if (!lowHighChartRef.value) return
   const ctx = lowHighChartRef.value.getContext('2d')
-  const total = low + high
   if (charts.lowHigh) charts.lowHigh.destroy()
   charts.lowHigh = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['High (고)', 'Low (저)'],
-      datasets: [{
-        data: [high, low],
-        backgroundColor: ['#f87171', '#60a5fa'],
-        borderWidth: 0
-      }]
+      labels: ['고', '저'],
+      datasets: [{ data: [high, low], backgroundColor: ['#f87171', '#60a5fa'], borderWidth: 0 }]
     },
     options: {
-      rotation: -90,
-      circumference: 360,
+      responsive: true,
+      maintainAspectRatio: false,
       cutout: '60%',
       plugins: {
-        legend: { position: 'bottom', labels: { usePointStyle: true } },
-        datalabels: {
-          color: 'white',
-          font: { weight: 'bold', size: 14 },
-          formatter: (value) => total === 0 ? '0%' : ((value / total) * 100).toFixed(1) + '%'
-        }
+        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+        datalabels: { color: 'white', font: { weight: 'bold', size: 12 }, formatter: (v) => ((v/(low+high))*100).toFixed(0) + '%' }
       }
     }
   })
@@ -491,30 +553,8 @@ function renderSumChart(labels, data) {
   if (charts.sum) charts.sum.destroy()
   charts.sum = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: '합계',
-        data,
-        borderColor: '#34d399',
-        backgroundColor: 'rgba(52, 211, 153, 0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 3,
-        pointBackgroundColor: 'white',
-        pointBorderColor: '#34d399',
-        pointBorderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, datalabels: { display: false } },
-      scales: {
-        y: { grid: { borderDash: [2, 2] } },
-        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
-      }
-    }
+    data: { labels, datasets: [{ data, borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, tension: 0.4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } }
   })
 }
 
@@ -524,27 +564,8 @@ function renderACChart(labels, data) {
   if (charts.ac) charts.ac.destroy()
   charts.ac = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'AC Value',
-        data,
-        borderColor: '#ec4899',
-        backgroundColor: 'rgba(236, 72, 153, 0.1)',
-        borderWidth: 2,
-        tension: 0.1,
-        pointRadius: 3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, datalabels: { display: false } },
-      scales: {
-        y: { beginAtZero: false, suggestedMin: 0, suggestedMax: 10, grid: { borderDash: [2, 2] } },
-        x: { display: false }
-      }
-    }
+    data: { labels, datasets: [{ data, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', tension: 0.1 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } }
   })
 }
 
@@ -554,24 +575,8 @@ function renderSumDistChart(labels, data) {
   if (charts.sumDist) charts.sumDist.destroy()
   charts.sumDist = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: '빈도수',
-        data,
-        backgroundColor: '#a78bfa',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, datalabels: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
-        x: { grid: { display: false } }
-      }
-    }
+    data: { labels, datasets: [{ data, backgroundColor: '#a78bfa' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } }
   })
 }
 
@@ -581,24 +586,8 @@ function renderEndDigitChart(data) {
   if (charts.endDigit) charts.endDigit.destroy()
   charts.endDigit = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-      datasets: [{
-        label: '출현 빈도',
-        data,
-        backgroundColor: '#fbbf24',
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, datalabels: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
-        x: { grid: { display: false } }
-      }
-    }
+    data: { labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], datasets: [{ data, backgroundColor: '#fbbf24' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } } }
   })
 }
 </script>
@@ -627,4 +616,13 @@ function renderEndDigitChart(data) {
 .bg-ball-red { background-color: #ef4444; }
 .bg-ball-gray { background-color: #6b7280; }
 .bg-ball-green { background-color: #22c55e; }
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>

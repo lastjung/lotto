@@ -31,32 +31,7 @@
         </button>
       </div>
 
-      <!-- Result Sticky Summary Bar (Mobile Only) -->
-      <transition 
-        enter-active-class="animated slideInDown"
-        leave-active-class="animated slideOutUp"
-      >
-        <div 
-          v-if="showStickySummary && generatedNumbers && $q.screen.lt.md"
-          class="fixed top-[56px] left-0 right-0 z-[100] bg-dark-page/80 backdrop-blur-xl border-b border-blue-500/20 px-4 py-2 flex items-center justify-between shadow-2xl"
-        >
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1">
-              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Sum</span>
-              <span class="text-xs font-mono text-white bg-blue-500/20 px-1.5 py-0.5 rounded">{{ currentAnalysis?.sum }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">AC</span>
-              <span class="text-xs font-mono text-white bg-purple-500/20 px-1.5 py-0.5 rounded">{{ currentAnalysis?.ac_value }}</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">O:E</span>
-              <span class="text-xs font-mono text-white bg-green-500/20 px-1.5 py-0.5 rounded">{{ currentAnalysis?.odd_even }}</span>
-            </div>
-          </div>
-          <button @click="scrollToResults" class="text-[10px] font-bold text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-full uppercase active:bg-blue-500/10">View Balls</button>
-        </div>
-      </transition>
+
 
       <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -64,59 +39,83 @@
         <!-- LEFT COL: CONFIGURATION (Span 4) -->
         <div class="lg:col-span-5 xl:col-span-4 space-y-6 order-2 lg:order-1">
 
-          <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
-          <div>
-            <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-              <span class="text-pink-400 text-2xl">🧠</span>
-              AI Analysis Engine
-            </h3>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div 
-                v-for="model in aiModels" 
-                :key="model.id"
-                @click="selectModel(model.id)"
-                class="model-card p-4 rounded-xl bg-[#1e293b] border transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden cursor-pointer"
-                :class="selectedModel === model.id ? 'border-blue-500 bg-blue-500/10' : 'border-blue-500/30 hover:border-blue-500 hover:bg-blue-500/10'"
-              >
-                <div class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                  {{ model.icon }}
+          <!-- 1. AI Analysis Models -->
+          <div class="glass-panel p-4 rounded-2xl border border-white/5 bg-blue-500/5">
+            <q-expansion-item
+              group="models"
+              default-opened
+              header-class="text-white font-bold p-0"
+              expand-icon-class="text-blue-400"
+            >
+              <template v-slot:header>
+                <div class="flex items-center gap-2">
+                  <span class="text-pink-400 text-2xl">🧠</span>
+                  <div class="column">
+                    <span class="text-sm font-bold text-white">AI Analysis Engine</span>
+                    <span class="text-[10px] text-gray-500 font-normal">Deep Learning Based Inference</span>
+                  </div>
                 </div>
-                <div>
-                  <div class="font-bold text-white text-sm">{{ model.name }}</div>
-                  <div class="text-[10px] text-gray-500 leading-tight mt-1">{{ model.desc }}</div>
+              </template>
+              
+              <div class="grid grid-cols-2 gap-3 pt-4">
+                <div 
+                  v-for="model in aiModels" 
+                  :key="model.id"
+                  @click="selectModel(model.id)"
+                  class="model-card p-3 rounded-xl bg-[#0f172a] border transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden cursor-pointer"
+                  :class="selectedModel === model.id ? 'border-blue-500 bg-blue-500/20' : 'border-white/10 hover:border-blue-500/40 hover:bg-blue-500/10'"
+                >
+                  <div class="w-7 h-7 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-md mb-1 group-hover:scale-110 transition-transform">
+                    {{ model.icon }}
+                  </div>
+                  <div>
+                    <div class="font-bold text-white text-[12px] leading-tight">{{ model.name }}</div>
+                    <div class="text-[9px] text-gray-500 leading-tight mt-1 opacity-0 group-hover:opacity-100 transition-opacity" v-if="selectedModel !== model.id">{{ model.desc }}</div>
+                    <div class="text-[9px] text-blue-300 leading-tight mt-1" v-else>{{ model.desc }}</div>
+                  </div>
+                  <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></div>
                 </div>
-                <!-- Active Dot -->
-                <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)]"></div>
               </div>
-            </div>
+            </q-expansion-item>
           </div>
 
           <!-- 2. Statistical Models -->
-          <div>
-            <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-              <span class="text-blue-400 text-2xl">📊</span>
-              Statistical Models
-            </h3>
+          <div class="glass-panel p-4 rounded-2xl border border-white/5 bg-purple-500/5">
+            <q-expansion-item
+              group="models"
+              header-class="text-white font-bold p-0"
+              expand-icon-class="text-purple-400"
+            >
+              <template v-slot:header>
+                <div class="flex items-center gap-2">
+                  <span class="text-blue-400 text-2xl">📊</span>
+                  <div class="column">
+                    <span class="text-sm font-bold text-white">Statistical Models</span>
+                    <span class="text-[10px] text-gray-500 font-normal">Mathematical Probability Models</span>
+                  </div>
+                </div>
+              </template>
 
-            <div class="grid grid-cols-2 gap-3">
-              <div 
-                v-for="model in statModels" 
-                :key="model.id"
-                @click="selectModel(model.id)"
-                class="model-card p-4 rounded-xl bg-[#1e293b] border transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden cursor-pointer"
-                :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500/10' : 'border-white/10 hover:border-purple-500 hover:bg-purple-500/10'"
-              >
-                <div class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
-                  {{ model.icon }}
+              <div class="grid grid-cols-2 gap-3 pt-4">
+                <div 
+                  v-for="model in statModels" 
+                  :key="model.id"
+                  @click="selectModel(model.id)"
+                  class="model-card p-3 rounded-xl bg-[#0f172a] border transition-all text-left flex flex-col justify-between h-30 group relative overflow-hidden cursor-pointer"
+                  :class="selectedModel === model.id ? 'border-purple-500 bg-purple-500/20' : 'border-white/10 hover:border-purple-500/40 hover:bg-purple-500/10'"
+                >
+                  <div class="w-7 h-7 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-md mb-1 group-hover:scale-110 transition-transform">
+                    {{ model.icon }}
+                  </div>
+                  <div>
+                    <div class="font-bold text-white text-[12px] leading-tight">{{ model.name }}</div>
+                    <div class="text-[9px] text-gray-500 leading-tight mt-1 opacity-0 group-hover:opacity-100 transition-opacity" v-if="selectedModel !== model.id">{{ model.desc }}</div>
+                    <div class="text-[9px] text-purple-300 leading-tight mt-1" v-else>{{ model.desc }}</div>
+                  </div>
+                  <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_#a855f7]"></div>
                 </div>
-                <div>
-                  <div class="font-bold text-white text-sm">{{ model.name }}</div>
-                  <div class="text-[10px] text-gray-500 leading-tight mt-1">{{ model.desc }}</div>
-                </div>
-                <div v-if="selectedModel === model.id" class="absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
               </div>
-            </div>
+            </q-expansion-item>
           </div>
 
           <!-- 3. Analysis Settings -->
@@ -222,8 +221,40 @@
             @generate="generate"
           />
         </div>
-
       </div>
+
+    <Transition name="fade">
+      <div 
+        v-if="showStickySummary && generatedNumbers && currentAnalysis && $q.screen.lt.md"
+        class="fixed top-[60px] left-0 right-0 z-[100] px-4 py-2"
+      >
+        <div class="glass-panel bg-[#1e293b]/90 border border-white/10 backdrop-blur-lg flex items-center justify-between p-3 rounded-2xl shadow-2xl">
+          <div class="flex items-center gap-4">
+            <div class="column">
+              <span class="text-[10px] text-gray-400 uppercase font-bold">Sum</span>
+              <span class="text-xs font-bold text-blue-400">{{ currentAnalysis.sum }}</span>
+            </div>
+            <div class="column">
+              <span class="text-[10px] text-gray-400 uppercase font-bold">AC</span>
+              <span class="text-xs font-bold text-purple-400">{{ currentAnalysis.ac_value }}</span>
+            </div>
+            <div class="column">
+              <span class="text-[10px] text-gray-400 uppercase font-bold">O:E</span>
+              <span class="text-xs font-bold text-green-400">{{ currentAnalysis.odd_even }}</span>
+            </div>
+          </div>
+          <q-btn 
+            round 
+            flat 
+            color="blue-4" 
+            icon="arrow_upward" 
+            size="sm"
+            @click="scrollToResults"
+            class="bg-blue-500/10"
+          />
+        </div>
+      </div>
+    </Transition>
     </div>
   </div>
 </template>
@@ -295,14 +326,26 @@ onMounted(async () => {
       }
   }, 100)
 
-  // Scroll listener for sticky summary
+  // Scroll listener for sticky summary on #main-scroll
   const scrollEl = document.getElementById('main-scroll')
-  if (scrollEl) {
-    scrollEl.addEventListener('scroll', () => {
-      showStickySummary.value = scrollEl.scrollTop > 250
-    })
+  const handleScroll = () => {
+    if (scrollEl) {
+      showStickySummary.value = scrollEl.scrollTop > 300
+    }
   }
+  
+  if (scrollEl) {
+    scrollEl.addEventListener('scroll', handleScroll)
+  }
+  
+  onUnmounted(() => {
+    if (scrollEl) {
+      scrollEl.removeEventListener('scroll', handleScroll)
+    }
+  })
 })
+
+import { onUnmounted } from 'vue'
 
 function scrollToResults() {
   const el = document.getElementById('result-area-target')

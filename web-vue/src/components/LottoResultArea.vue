@@ -1,5 +1,5 @@
 <template>
-  <div class="lotto-result-area glass-panel p-10 relative overflow-hidden group">
+  <div class="lotto-result-area glass-panel p-6 md:p-10 relative overflow-hidden group">
     <!-- Scanner Glow Effect -->
     <div v-if="scanning" class="scanner-line"></div>
     
@@ -7,28 +7,28 @@
     <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/20 transition-colors"></div>
     <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-colors"></div>
 
-    <div class="flex flex-col items-center justify-center min-h-[450px] relative z-10">
+    <div class="flex flex-col items-center justify-center min-h-[400px] relative z-10">
       <div v-if="!results && !generating" class="text-center">
         <div class="orb-container mb-10" @click="$emit('generate')">
           <div class="main-orb pulsing-core"></div>
           <div class="orb-glow"></div>
           <span class="orb-icon">🔮</span>
         </div>
-        <h2 class="text-3xl font-bold text-white mb-3 heading-font tracking-tight">Ready for Analysis</h2>
+        <h2 class="text-2xl md:text-3xl font-bold text-white mb-3 heading-font tracking-tight">Ready for Analysis</h2>
         <p class="text-gray-400 max-w-xs mx-auto mb-10 text-sm leading-relaxed">Select a strategy on the left and start the Multi-Layer Analysis.</p>
       </div>
 
       <div v-else class="w-full">
         <!-- Result Header -->
-        <div class="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+        <div class="flex justify-between items-center mb-6 md:mb-10 border-b border-white/5 pb-6">
           <div class="flex items-center gap-3">
-             <div :class="['w-3 h-3 rounded-full animate-pulse', results ? 'bg-pink-500 shadow-glow-pink' : 'bg-blue-400 shadow-glow-blue']"></div>
-             <h3 class="font-bold text-white tracking-widest uppercase text-sm">
+             <div :class="['w-2.5 h-2.5 rounded-full animate-pulse', results ? 'bg-pink-500 shadow-glow-pink' : 'bg-blue-400 shadow-glow-blue']"></div>
+             <h3 class="font-bold text-white tracking-widest uppercase text-[10px] md:text-sm">
                {{ results ? 'Generation Complete' : currentTypeName }}
              </h3>
           </div>
           <div class="flex gap-2">
-            <span class="text-[10px] bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-full border border-blue-500/30 font-bold tracking-wider uppercase">
+            <span class="text-[9px] md:text-[10px] bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded-full border border-blue-500/30 font-bold tracking-wider uppercase">
                {{ modelName }}
             </span>
           </div>
@@ -46,60 +46,66 @@
 
         <!-- Analysis Grid (First Set Only) - Show after animation -->
         <Transition name="fade-slide">
-          <div v-if="showStats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 mb-8">
+          <div v-if="showStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mt-6 mb-8">
              <div class="stat-card group">
-                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Sum Total</span>
-                <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.sum || '-' }}</div>
+                <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Sum Total</span>
+                <div class="text-lg md:text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.sum || '-' }}</div>
              </div>
              <div class="stat-card group">
-                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">AC Value</span>
-                <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.ac_value || '-' }}</div>
+                <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">AC Value</span>
+                <div class="text-lg md:text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.ac_value || '-' }}</div>
              </div>
              <div class="stat-card group">
-                <span class="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Odd:Even</span>
-                <div class="text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.odd_even || '-' }}</div>
+                <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-1">Odd:Even</span>
+                <div class="text-lg md:text-xl font-bold text-white group-hover:text-primary transition-colors">{{ analysis?.odd_even || '-' }}</div>
              </div>
-             <div class="stat-card group border-primary/20">
-                <span class="text-[10px] text-primary/70 uppercase tracking-widest block mb-1">Confidence</span>
-                <div class="text-xl font-bold text-green-400">{{ analysis?.confidence || '98.4' }}%</div>
+             <div class="stat-card group border-green-500/20">
+                <span class="text-[9px] text-green-400/70 uppercase tracking-widest block mb-1">Confidence</span>
+                <div class="text-lg md:text-xl font-bold text-green-400">{{ analysis?.confidence || '98.4' }}%</div>
              </div>
           </div>
         </Transition>
 
         <!-- Additional Sets (2nd ~ 5th) - Show sequentially after stats -->
         <Transition name="fade-slide">
-          <div v-if="showStats && allSets && allSets.length > 1" class="mt-6 pt-6 border-t border-white/10">
-            <div class="text-xs text-gray-500 uppercase tracking-widest mb-4">Additional Combinations</div>
-            <div class="space-y-3">
+          <div v-if="showStats && allSets && allSets.length > 1" class="mt-6 pt-6 border-t border-white/5">
+            <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-4 font-bold flex items-center gap-2">
+              <q-icon name="plus_one" size="14px" />
+              Additional Combinations
+            </div>
+            <div class="space-y-4">
               <TransitionGroup name="list">
                 <div 
                   v-for="(set, idx) in visibleSets" 
                   :key="idx"
-                  class="flex items-center gap-4 bg-black/20 rounded-xl p-3"
+                  class="flex flex-col sm:flex-row sm:items-center gap-3 bg-white/5 md:bg-black/20 rounded-2xl p-4 border border-white/5"
                 >
-                  <span class="text-xs text-gray-500 font-bold w-6">#{{ idx + 2 }}</span>
-                  <div class="flex gap-2 flex-wrap">
+                  <div class="flex items-center justify-between sm:justify-start gap-3">
+                    <span class="text-[10px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded">SET #{{ idx + 2 }}</span>
+                    <span class="sm:hidden text-[10px] text-gray-500">Σ {{ set.reduce((a, b) => a + b, 0) }}</span>
+                  </div>
+                  <div class="flex gap-2 flex-wrap justify-center sm:justify-start">
                     <span 
                       v-for="num in set" 
                       :key="num"
-                      :class="['w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold', getBallColor(num)]"
+                      :class="['w-11 h-11 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-[10px] font-bold shadow-xl transition-transform hover:scale-110 cursor-pointer touch-manipulation', getBallColor(num)]"
                     >{{ num }}</span>
                   </div>
-                  <span class="ml-auto text-xs text-gray-500">Σ {{ set.reduce((a, b) => a + b, 0) }}</span>
+                  <span class="hidden sm:inline ml-auto text-[10px] text-gray-500 font-mono">SUM: {{ set.reduce((a, b) => a + b, 0) }}</span>
                 </div>
               </TransitionGroup>
             </div>
           </div>
         </Transition>
 
-        <div class="mt-10 text-center">
+        <div class="mt-8 text-center">
            <q-btn
               flat
               rounded
-              color="gray-4"
+              color="blue-4"
               icon="refresh"
               label="Re-analyze Quantum Space"
-              class="text-xs uppercase tracking-widest opacity-60 hover:opacity-100"
+              class="text-[10px] uppercase tracking-widest opacity-60 hover:opacity-100"
               @click="$emit('generate')"
            />
         </div>
