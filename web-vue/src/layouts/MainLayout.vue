@@ -74,7 +74,7 @@
     <q-page-container>
       <!-- Mobile Header -->
       <q-header v-if="$q.screen.lt.md" class="bg-dark-page/80 backdrop-blur-md border-b border-white/5">
-        <q-toolbar>
+        <q-toolbar class="q-px-md">
           <q-btn
             flat
             dense
@@ -82,13 +82,18 @@
             icon="menu"
             aria-label="Menu"
             @click="toggleLeftDrawer"
+            class="text-blue-400"
           />
-          <q-toolbar-title class="flex items-center justify-center">
-             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center q-mr-sm">
-              <span class="text-white">🧬</span>
+          <q-toolbar-title class="text-center">
+            <div class="column items-center">
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-[0.2em]">{{ currentPageTitle }}</span>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]"></div>
+                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">System Online</span>
+              </div>
             </div>
           </q-toolbar-title>
-          <q-btn flat round dense icon="notifications" />
+          <q-btn flat round dense icon="notifications" class="text-gray-400" />
         </q-toolbar>
       </q-header>
 
@@ -98,27 +103,34 @@
     <q-footer v-if="$q.screen.lt.md" class="bg-dark-page/90 backdrop-blur-md border-t border-white/5">
       <q-tabs
         align="justify"
-        class="text-gray-400"
+        class="text-gray-400 mobile-tabs"
         active-color="blue-4"
-        indicator-color="blue-4"
+        indicator-color="transparent"
       >
         <q-route-tab
           v-for="item in mobileMenuItems"
           :key="item.id"
           :to="item.to"
-          :label="item.label"
-        />
+          class="mobile-tab-item"
+        >
+          <div class="column items-center q-py-xs">
+            <span class="text-xl mb-0.5 tab-icon transition-transform">{{ item.icon }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-tight">{{ item.label }}</span>
+          </div>
+        </q-route-tab>
       </q-tabs>
     </q-footer>
   </q-layout>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRoute } from 'vue-router'
 import { useLotto } from 'src/composables/useLotto'
 
 const $q = useQuasar()
+const route = useRoute()
 
 const {
   lotteryOptions,
@@ -137,11 +149,16 @@ const menuItems = [
 ]
 
 const mobileMenuItems = [
-  { id: 'dash', label: '📊 Dash', to: '/' },
-  { id: 'history', label: '📂 History', to: '/history' },
-  { id: 'models', label: '🤖 Models', to: '/models' },
-  { id: 'system', label: '⚙️ System', to: '/system' }
+  { id: 'dash', label: 'Dashboard', icon: '📊', to: '/' },
+  { id: 'history', label: 'History', icon: '📂', to: '/history' },
+  { id: 'models', label: 'Models', icon: '🤖', to: '/models' },
+  { id: 'system', label: 'System', icon: '⚙️', to: '/system' }
 ]
+
+const currentPageTitle = computed(() => {
+  const item = menuItems.find(m => m.to === route.path)
+  return item ? item.label : 'AI Lotto Analyzer'
+})
 
 onMounted(() => {
   loadDraws()
@@ -207,5 +224,44 @@ function toggleLeftDrawer () {
     font-size: 0.85rem;
     letter-spacing: -0.025em;
   }
+}
+
+/* Mobile Tab Enhancements */
+.mobile-tabs {
+  .q-tab--active {
+    .mobile-tab-item {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 3px;
+        background: #60a5fa;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(96, 165, 250, 0.6);
+      }
+    }
+    
+    .tab-icon {
+      transform: scale(1.2) translateY(-2px);
+      filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.4));
+    }
+    
+    .q-tab__label {
+      color: #60a5fa;
+    }
+  }
+}
+
+.mobile-tab-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 4px;
+  min-height: 52px;
 }
 </style>

@@ -18,6 +18,46 @@
         </div>
       </q-expansion-item>
 
+      <!-- 0. Mobile Quick Start Button (Only on Mobile) -->
+      <div v-if="$q.screen.lt.md" class="mt-2">
+        <button 
+          @click="generateAndScroll" 
+          :disabled="loading"
+          class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600/90 to-purple-600/90 text-white font-bold text-lg shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+        >
+          <span v-if="!loading" class="text-xl">🚀</span>
+          <span v-else class="animate-spin">⏳</span>
+          {{ loading ? 'Analyzing...' : 'Quick AI Analysis' }}
+        </button>
+      </div>
+
+      <!-- Result Sticky Summary Bar (Mobile Only) -->
+      <transition 
+        enter-active-class="animated slideInDown"
+        leave-active-class="animated slideOutUp"
+      >
+        <div 
+          v-if="showStickySummary && generatedNumbers && $q.screen.lt.md"
+          class="fixed top-[56px] left-0 right-0 z-[100] bg-dark-page/80 backdrop-blur-xl border-b border-blue-500/20 px-4 py-2 flex items-center justify-between shadow-2xl"
+        >
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1">
+              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Sum</span>
+              <span class="text-xs font-mono text-white bg-blue-500/20 px-1.5 py-0.5 rounded">{{ currentAnalysis?.sum }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">AC</span>
+              <span class="text-xs font-mono text-white bg-purple-500/20 px-1.5 py-0.5 rounded">{{ currentAnalysis?.ac_value }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">O:E</span>
+              <span class="text-xs font-mono text-white bg-green-500/20 px-1.5 py-0.5 rounded">{{ currentAnalysis?.odd_even }}</span>
+            </div>
+          </div>
+          <button @click="scrollToResults" class="text-[10px] font-bold text-blue-400 border border-blue-500/30 px-2.5 py-1 rounded-full uppercase active:bg-blue-500/10">View Balls</button>
+        </div>
+      </transition>
+
       <!-- BOTTOM ROW: CONFIG (Left) & RESULTS (Right) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -171,6 +211,7 @@
 
         <!-- RIGHT COL: RESULTS AREA (Span 8) -->
         <div class="lg:col-span-7 xl:col-span-8 order-1 lg:order-2">
+          <div id="result-area-target"></div>
           <LottoResultArea
             :results="generatedNumbers"
             :all-sets="generatedSets"
@@ -215,6 +256,7 @@ const generatedSets = ref([])  // All generated sets (for multiple display)
 const currentAnalysis = ref(null)
 const genCount = ref(5)
 const showAdvanced = ref(false)
+const showStickySummary = ref(false)
 
 // Advanced filters
 const acFilter = ref(true)
@@ -252,7 +294,28 @@ onMounted(async () => {
         console.warn('⚠️ Non-fatal AI Init Error:', e)
       }
   }, 100)
+
+  // Scroll listener for sticky summary
+  const scrollEl = document.getElementById('main-scroll')
+  if (scrollEl) {
+    scrollEl.addEventListener('scroll', () => {
+      showStickySummary.value = scrollEl.scrollTop > 250
+    })
+  }
 })
+
+function scrollToResults() {
+  const el = document.getElementById('result-area-target')
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+async function generateAndScroll() {
+  await generate()
+  // Wait a bit for analysis to appear then scroll
+  setTimeout(scrollToResults, 1000)
+}
 
 watch([selectedModel, () => currentLottery.value.id], async ([newModel, newLotteryId]) => {
   await loadModel(newLotteryId, newModel)
