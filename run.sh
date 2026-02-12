@@ -14,4 +14,4 @@ fi
 # API 서버 실행 (FastAPI + Uvicorn)
 echo "🚀 AI 로또 분석기 서버를 시작합니다..."
 echo "📍 접속 주소: http://localhost:8000"
-uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir ./api --reload-dir ./models_ai --reload-dir ./models_stat --reload-dir ./config

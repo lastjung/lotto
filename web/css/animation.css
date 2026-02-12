@@ -7,701 +7,861 @@
 
 /* ===== Machine Container ===== */
 .lotto-machine {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
 }
 
 /* ===== Machine Dome (Glass Bowl) ===== */
 .machine-dome {
-    width: 280px;
-    height: 200px;
-    background: linear-gradient(180deg,
-            rgba(255, 255, 255, 0.1) 0%,
-            rgba(255, 255, 255, 0.05) 50%,
-            rgba(0, 0, 0, 0.2) 100%);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
-    position: relative;
-    overflow: hidden;
-    box-shadow:
-        inset 0 -30px 60px rgba(0, 0, 0, 0.3),
-        0 10px 40px rgba(0, 0, 0, 0.4),
-        inset 0 2px 20px rgba(255, 255, 255, 0.1);
+  width: 280px;
+  height: 200px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 -30px 60px rgba(0, 0, 0, 0.3),
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 2px 20px rgba(255, 255, 255, 0.1);
 }
 
 /* Glass reflection */
 .machine-dome::before {
-    content: '';
-    position: absolute;
-    top: 10%;
-    left: 15%;
-    width: 30%;
-    height: 40%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
-    border-radius: 50%;
+  content: "";
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 30%;
+  height: 40%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 50%
+  );
+  border-radius: 50%;
 }
 
 /* ===== Mixing Balls Container ===== */
 .mixing-balls {
-    width: 100%;
-    height: 100%;
-    position: relative;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 /* Individual mixing ball */
 .mixing-ball {
-    position: absolute;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    box-shadow:
-        inset -3px -3px 8px rgba(0, 0, 0, 0.3),
-        inset 3px 3px 8px rgba(255, 255, 255, 0.3),
-        0 4px 8px rgba(0, 0, 0, 0.3);
-    left: var(--x, 50%);
-    top: var(--y, 50%);
-    transform: translate(-50%, -50%);
-    opacity: 0.9;
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset -3px -3px 8px rgba(0, 0, 0, 0.3),
+    inset 3px 3px 8px rgba(255, 255, 255, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
 }
 
 /* Mixing animation */
 .mixing-balls.mixing .mixing-ball {
-    animation: bounce-around 0.5s ease-in-out infinite;
-    animation-delay: var(--delay, 0s);
+  animation: bounce-around 0.5s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
 }
 
 @keyframes bounce-around {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translate(0, 0);
+  }
 
-    0%,
-    100% {
-        transform: translate(-50%, -50%) translate(0, 0);
-    }
+  25% {
+    transform: translate(-50%, -50%)
+      translate(calc(var(--x) * 0.3), calc(var(--y) * -0.5));
+  }
 
-    25% {
-        transform: translate(-50%, -50%) translate(calc(var(--x) * 0.3), calc(var(--y) * -0.5));
-    }
+  50% {
+    transform: translate(-50%, -50%)
+      translate(calc(var(--x) * -0.4), calc(var(--y) * 0.3));
+  }
 
-    50% {
-        transform: translate(-50%, -50%) translate(calc(var(--x) * -0.4), calc(var(--y) * 0.3));
-    }
-
-    75% {
-        transform: translate(-50%, -50%) translate(calc(var(--x) * 0.2), calc(var(--y) * 0.4));
-    }
+  75% {
+    transform: translate(-50%, -50%)
+      translate(calc(var(--x) * 0.2), calc(var(--y) * 0.4));
+  }
 }
 
 /* Shake the whole dome when mixing */
 .mixing-balls.mixing {
-    animation: shake-dome 0.1s linear infinite;
+  animation: shake-dome 0.1s linear infinite;
 }
 
 @keyframes shake-dome {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
 
-    0%,
-    100% {
-        transform: translateX(0);
-    }
+  25% {
+    transform: translateX(-3px) rotate(-0.5deg);
+  }
 
-    25% {
-        transform: translateX(-3px) rotate(-0.5deg);
-    }
-
-    75% {
-        transform: translateX(3px) rotate(0.5deg);
-    }
+  75% {
+    transform: translateX(3px) rotate(0.5deg);
+  }
 }
 
 /* ===== Machine Chute ===== */
 .machine-chute {
-    width: 60px;
-    height: 30px;
-    background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-top: none;
-    border-radius: 0 0 20px 20px;
-    position: relative;
-    margin-top: -2px;
+  width: 60px;
+  height: 30px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: none;
+  border-radius: 0 0 20px 20px;
+  position: relative;
+  margin-top: -2px;
 }
 
 .chute-opening {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 10px;
-    background: #000;
-    border-radius: 0 0 10px 10px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 10px;
+  background: #000;
+  border-radius: 0 0 10px 10px;
 }
 
 /* ===== Revealed Balls Area ===== */
 .revealed-balls {
-    display: flex;
-    gap: 12px;
-    margin-top: 2rem;
-    min-height: 60px;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 12px;
+  margin-top: 2rem;
+  min-height: 60px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 /* Individual revealed ball */
 .revealed-ball {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 18px;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    box-shadow:
-        inset -4px -4px 10px rgba(0, 0, 0, 0.3),
-        inset 4px 4px 10px rgba(255, 255, 255, 0.3),
-        0 6px 15px rgba(0, 0, 0, 0.4);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 18px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+    inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+    0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Pop-in animation for revealed balls */
 .revealed-ball.pop-in {
-    animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 @keyframes pop-in {
-    0% {
-        opacity: 0;
-        transform: scale(0) translateY(-50px);
-    }
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(-50px);
+  }
 
-    60% {
-        transform: scale(1.2) translateY(5px);
-    }
+  60% {
+    transform: scale(1.2) translateY(5px);
+  }
 
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* ===== Ball Colors ===== */
 .ball-yellow {
-    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
 }
 
 .ball-blue {
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
 }
 
 .ball-red {
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
 }
 
 .ball-gray {
-    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
 }
 
 .ball-green {
-    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
 }
 
 /* ===== Complete State ===== */
 .animation-active.complete .revealed-balls {
-    animation: celebrate 0.5s ease-in-out;
+  animation: celebrate 0.5s ease-in-out;
 }
 
 @keyframes celebrate {
+  0%,
+  100% {
+    transform: scale(1);
+  }
 
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .animation-active.complete .revealed-ball {
-    animation: glow-pulse 1s ease-in-out infinite;
+  animation: glow-pulse 1s ease-in-out infinite;
 }
 
 @keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+      inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+      0 6px 15px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(255, 255, 255, 0.2);
+  }
 
-    0%,
-    100% {
-        box-shadow:
-            inset -4px -4px 10px rgba(0, 0, 0, 0.3),
-            inset 4px 4px 10px rgba(255, 255, 255, 0.3),
-            0 6px 15px rgba(0, 0, 0, 0.4),
-            0 0 20px rgba(255, 255, 255, 0.2);
-    }
-
-    50% {
-        box-shadow:
-            inset -4px -4px 10px rgba(0, 0, 0, 0.3),
-            inset 4px 4px 10px rgba(255, 255, 255, 0.3),
-            0 6px 15px rgba(0, 0, 0, 0.4),
-            0 0 30px rgba(255, 255, 255, 0.4);
-    }
+  50% {
+    box-shadow:
+      inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+      inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+      0 6px 15px rgba(0, 0, 0, 0.4),
+      0 0 30px rgba(255, 255, 255, 0.4);
+  }
 }
 
 @media (max-width: 640px) {
-    .machine-dome {
-        width: 220px;
-        height: 160px;
-    }
+  .machine-dome {
+    width: 220px;
+    height: 160px;
+  }
 
-    .mixing-ball {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
+  .mixing-ball {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
 
-    .revealed-ball {
-        width: 42px;
-        height: 42px;
-        font-size: 16px;
-    }
+  .revealed-ball {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
 
-    .revealed-balls {
-        gap: 8px;
-    }
+  .revealed-balls {
+    gap: 8px;
+  }
 }
-
 
 /* ========================================
    🎰 SLOT MACHINE ANIMATION STYLES
    ======================================== */
 
 .slot-machine {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5rem;
-    background: linear-gradient(180deg, #2d1b4e 0%, #1a0f2e 100%);
-    border-radius: 20px;
-    border: 3px solid #f59e0b;
-    box-shadow:
-        0 0 30px rgba(245, 158, 11, 0.3),
-        inset 0 2px 20px rgba(255, 255, 255, 0.1);
-    position: relative;
-    max-width: 400px;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #2d1b4e 0%, #1a0f2e 100%);
+  border-radius: 20px;
+  border: 3px solid #f59e0b;
+  box-shadow:
+    0 0 30px rgba(245, 158, 11, 0.3),
+    inset 0 2px 20px rgba(255, 255, 255, 0.1);
+  position: relative;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 /* Header */
 .slot-header {
-    background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%);
-    padding: 0.5rem 1.5rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
+  background: linear-gradient(90deg, #f59e0b 0%, #fcd34d 50%, #f59e0b 100%);
+  padding: 0.5rem 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
 }
 
 .slot-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #1a0f2e;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1a0f2e;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 /* Reels Container */
 .slot-reels {
-    display: flex;
-    gap: 8px;
-    background: #0f0a1a;
-    padding: 10px;
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 8px;
+  background: #0f0a1a;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Individual Reel */
 .slot-reel {
-    position: relative;
-    width: 50px;
-    height: 60px;
-    overflow: hidden;
-    background: #1a1025;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  width: 50px;
+  height: 60px;
+  overflow: hidden;
+  background: #1a1025;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 .reel-container {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .reel-strip {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    width: 100%;
-    bottom: 0;
-    transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 /* Spinning state */
 .reel-strip.spinning {
-    animation: spin-reel 0.15s linear infinite;
+  animation: spin-reel 0.15s linear infinite;
 }
 
 @keyframes spin-reel {
-    0% {
-        transform: translateY(0);
-    }
+  0% {
+    transform: translateY(0);
+  }
 
-    100% {
-        transform: translateY(-60px);
-    }
+  100% {
+    transform: translateY(-60px);
+  }
 }
 
 /* Stopped state - show last item (bottom of strip) */
 .reel-strip.stopped {
-    animation: none;
-    /* Move strip up so last item (final number) is visible in the 60px window */
-    bottom: auto;
-    top: 0;
-    transform: translateY(calc(-100% + 56px));
+  animation: none;
+  /* Move strip up so last item (final number) is visible in the 60px window */
+  bottom: auto;
+  top: 0;
+  transform: translateY(calc(-100% + 56px));
 }
 
 /* Reel Numbers */
 .reel-number {
-    width: 46px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 20px;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    border-radius: 6px;
-    margin: 2px;
+  width: 46px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  border-radius: 6px;
+  margin: 2px;
 }
 
 /* Reel Frame overlay */
 .reel-frame {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    border-radius: 8px;
-    box-shadow:
-        inset 0 5px 15px rgba(0, 0, 0, 0.5),
-        inset 0 -5px 15px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 5px 15px rgba(0, 0, 0, 0.5),
+    inset 0 -5px 15px rgba(0, 0, 0, 0.5);
 }
 
 /* Lever */
 .slot-lever {
-    position: absolute;
-    right: -30px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .lever-ball {
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-    border-radius: 50%;
-    box-shadow:
-        inset -2px -2px 5px rgba(0, 0, 0, 0.3),
-        inset 2px 2px 5px rgba(255, 255, 255, 0.3),
-        0 3px 6px rgba(0, 0, 0, 0.3);
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  border-radius: 50%;
+  box-shadow:
+    inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 5px rgba(255, 255, 255, 0.3),
+    0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .lever-stick {
-    width: 8px;
-    height: 40px;
-    background: linear-gradient(90deg, #9ca3af 0%, #e5e7eb 50%, #9ca3af 100%);
-    border-radius: 4px;
-    margin-top: -2px;
+  width: 8px;
+  height: 40px;
+  background: linear-gradient(90deg, #9ca3af 0%, #e5e7eb 50%, #9ca3af 100%);
+  border-radius: 4px;
+  margin-top: -2px;
 }
 
 /* Slot Complete State */
 .slot-complete .slot-machine {
-    animation: slot-flash 0.3s ease-in-out 3;
+  animation: slot-flash 0.3s ease-in-out 3;
 }
 
 @keyframes slot-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+  }
 
-    0%,
-    100% {
-        box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
-    }
-
-    50% {
-        box-shadow: 0 0 60px rgba(245, 158, 11, 0.8);
-    }
+  50% {
+    box-shadow: 0 0 60px rgba(245, 158, 11, 0.8);
+  }
 }
 
 .slot-complete .reel-number {
-    animation: slot-win-pulse 0.5s ease-in-out infinite alternate;
+  animation: slot-win-pulse 0.5s ease-in-out infinite alternate;
 }
 
 @keyframes slot-win-pulse {
-    0% {
-        transform: scale(1);
-    }
+  0% {
+    transform: scale(1);
+  }
 
-    100% {
-        transform: scale(1.05);
-    }
+  100% {
+    transform: scale(1.05);
+  }
 }
 
 /* Responsive */
 @media (max-width: 640px) {
-    .slot-machine {
-        padding: 1rem;
-        max-width: 320px;
-    }
+  .slot-machine {
+    padding: 1rem;
+    max-width: 320px;
+  }
 
-    .slot-reel {
-        width: 40px;
-        height: 50px;
-    }
+  .slot-reel {
+    width: 40px;
+    height: 50px;
+  }
 
-    .reel-number {
-        width: 36px;
-        height: 46px;
-        font-size: 16px;
-    }
+  .reel-number {
+    width: 36px;
+    height: 46px;
+    font-size: 16px;
+  }
 
-    .slot-lever {
-        right: -20px;
-    }
+  .slot-lever {
+    right: -20px;
+  }
 
-    .lever-ball {
-        width: 18px;
-        height: 18px;
-    }
+  .lever-ball {
+    width: 18px;
+    height: 18px;
+  }
 
-    .lever-stick {
-        width: 6px;
-        height: 30px;
-    }
+  .lever-stick {
+    width: 6px;
+    height: 30px;
+  }
 }
-
 
 /* ========================================
    🔬 AI SCANNER ANIMATION STYLES
    ======================================== */
 
 .ai-scanner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5rem;
-    background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
-    border-radius: 20px;
-    border: 2px solid #00ff88;
-    box-shadow:
-        0 0 30px rgba(0, 255, 136, 0.2),
-        inset 0 0 30px rgba(0, 255, 136, 0.05);
-    max-width: 420px;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #0a1628 0%, #0d2137 100%);
+  border-radius: 20px;
+  border: 2px solid #00ff88;
+  box-shadow:
+    0 0 30px rgba(0, 255, 136, 0.2),
+    inset 0 0 30px rgba(0, 255, 136, 0.05);
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 .scanner-header {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 1rem;
-    padding: 0.5rem 1rem;
-    background: rgba(0, 255, 136, 0.1);
-    border-radius: 10px;
-    border: 1px solid rgba(0, 255, 136, 0.3);
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
 }
 
 .scanner-title {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #00ff88;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .scanner-status {
-    font-size: 0.9rem;
-    color: #00ff88;
-    animation: blink-status 0.5s ease-in-out infinite;
+  font-size: 0.9rem;
+  color: #00ff88;
+  animation: blink-status 0.5s ease-in-out infinite;
 }
 
 @keyframes blink-status {
+  0%,
+  100% {
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .scanner-slots {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 1rem;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
 }
 
 .scanner-slot {
-    position: relative;
-    width: 52px;
-    height: 60px;
+  position: relative;
+  width: 52px;
+  height: 60px;
 }
 
 .scanner-display {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0f1a2b;
-    border: 2px solid rgba(0, 255, 136, 0.3);
-    border-radius: 10px;
-    transition: all 0.3s ease;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f1a2b;
+  border: 2px solid rgba(0, 255, 136, 0.3);
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 .scanning-number {
-    font-size: 1.5rem;
-    font-weight: bold;
-    font-family: 'Courier New', monospace;
-    color: #00ff88;
-    text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: "Courier New", monospace;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
 }
 
 .scanner-slot:not(.locked) .scanning-number {
-    animation: number-flicker 0.1s linear infinite;
+  animation: number-flicker 0.1s linear infinite;
 }
 
 @keyframes number-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .scanner-slot.locked .scanner-display {
-    border-color: #fff;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  border-color: #fff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
 .scanner-slot.locked .scanning-number {
-    color: white;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-    animation: none;
+  color: white;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  animation: none;
 }
 
 .scanner-glow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 10px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .scanner-slot.locked .scanner-glow {
-    opacity: 1;
-    animation: glow-pulse-scanner 1s ease-in-out infinite;
+  opacity: 1;
+  animation: glow-pulse-scanner 1s ease-in-out infinite;
 }
 
 @keyframes glow-pulse-scanner {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
 
-    0%,
-    100% {
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    }
-
-    50% {
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-    }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+  }
 }
 
 .scanner-progress {
-    width: 100%;
-    height: 6px;
-    background: rgba(0, 255, 136, 0.2);
-    border-radius: 3px;
-    overflow: hidden;
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 255, 136, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
 .scanner-progress .progress-bar {
-    width: 0;
-    height: 100%;
-    background: linear-gradient(90deg, #00ff88 0%, #00ffcc 100%);
-    border-radius: 3px;
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #00ff88 0%, #00ffcc 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
 }
 
 /* Scanner complete state */
 .scanner-complete .ai-scanner {
-    animation: scanner-flash 0.3s ease-in-out 2;
+  animation: scanner-flash 0.3s ease-in-out 2;
 }
 
 @keyframes scanner-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+  }
 
-    0%,
-    100% {
-        box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
-    }
-
-    50% {
-        box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
-    }
+  50% {
+    box-shadow: 0 0 50px rgba(0, 255, 136, 0.6);
+  }
 }
 
 .scanner-complete .scanner-status {
-    color: #00ffcc;
-    animation: none;
+  color: #00ffcc;
+  animation: none;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
-    .ai-scanner {
-        padding: 1rem;
-        max-width: 320px;
-    }
+  .ai-scanner {
+    padding: 1rem;
+    max-width: 320px;
+  }
 
-    .scanner-slot {
-        width: 42px;
-        height: 50px;
-    }
+  .scanner-slot {
+    width: 42px;
+    height: 50px;
+  }
 
-    .scanning-number {
-        font-size: 1.2rem;
-    }
+  .scanning-number {
+    font-size: 1.2rem;
+  }
 
-    .scanner-title {
-        font-size: 0.9rem;
-    }
+  .scanner-title {
+    font-size: 0.9rem;
+  }
 
-    .scanner-status {
-        font-size: 0.75rem;
-    }
+  .scanner-status {
+    font-size: 0.75rem;
+  }
+}
+
+/* ========================================
+   🌀 QUANTUM SHUFFLE ANIMATION STYLES
+   ======================================== */
+
+.quantum-shuffle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px; /* Fixed height to prevent shift */
+  position: relative;
+  padding: 2rem 1rem;
+}
+
+.quantum-balls {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+  /* Fixed position */
+  transform: none;
+  opacity: 1;
+}
+
+.quantum-ball {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 24px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  box-shadow:
+    inset -4px -4px 10px rgba(0, 0, 0, 0.3),
+    inset 4px 4px 10px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(147, 51, 234, 0.5);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy spring effect */
+  opacity: 0.6; /* Dimmed initially */
+  transform: scale(0.95);
+  position: relative; /* For beam positioning relative to ball if needed */
+  z-index: 2;
+}
+
+.quantum-ball.shuffling {
+  /* No shake, just rapid number change */
+  animation: quantum-shake 0.1s linear infinite;
+}
+
+@keyframes quantum-shake {
+  0% { transform: scale(0.9) rotate(0deg); }
+  25% { transform: scale(0.9) rotate(5deg); }
+  75% { transform: scale(0.9) rotate(-5deg); }
+  100% { transform: scale(0.9) rotate(0deg); }
+}
+
+.quantum-ball.locked {
+  opacity: 1;
+  transform: scale(1.1); /* Slightly larger */
+  box-shadow: 0 0 30px rgba(147, 51, 234, 0.8);
+  z-index: 10;
+}
+
+/* Horizontal Scanning Beam */
+.quantum-scan-line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #00ff88;
+  box-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88;
+  opacity: 0;
+  z-index: 20;
+  top: 0;
+}
+
+.quantum-scan-line.scanning {
+  opacity: 1;
+  animation: scan-once 3.0s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+}
+
+@keyframes scan-once {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Vertical Lock Beam (Optional / Subtle) */
+.quantum-beam {
+  display: none; /* Hide vertical beam for now as requested */
+}
+
+/* Quantum Stats Cards */
+.quantum-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 2rem;
+  opacity: 0.3;
+  transition: opacity 0.5s ease;
+}
+
+.quantum-stats.active {
+  opacity: 1;
+}
+
+.quantum-stat-card {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 16px 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.quantum-stat-card:hover {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(147, 51, 234, 0.2);
+  transform: translateY(-3px);
+}
+
+.quantum-stat-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.quantum-stat-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+}
+
+.quantum-stat-card.confidence .quantum-stat-label {
+  color: rgba(74, 222, 128, 0.7);
+}
+
+.quantum-stat-card.confidence .quantum-stat-value {
+  color: #4ade80;
+}
+
+@media (max-width: 640px) {
+  .quantum-ball {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .quantum-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

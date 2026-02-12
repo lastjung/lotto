@@ -428,21 +428,42 @@ async function generateNumbers() {
         // 🎬 Play animation, then show results (await until complete for Lock mechanism)
         const animationContainer = document.getElementById('resultsArea') || document.getElementById('numbersArea');
 
+        // [Title] 애니메이션 중에도 소제목 표시
+        const lotteryLabel = (function () {
+            const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
+            return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.trim() : 'Korea Lotto 6/45';
+        })();
+        const titleHTML = `<div class="flex items-center justify-between mb-4">
+            <div class="text-base md:text-lg text-gray-300">
+                <span class="text-blue-400 font-bold mr-1">${lotteryLabel}</span>
+                | <span class="text-purple-400 font-bold">${(generated_data.model || currentModel || 'AI').toUpperCase()}</span>
+                | Next Draw
+            </div>
+        </div>`;
+
         // [Lock] 애니메이션 완료까지 대기하는 Promise
         await new Promise((resolve) => {
             const firstSetNumbers = generated_data.numbers[0]?.numbers || [];
 
             const onAnimationComplete = () => {
                 setTimeout(() => {
-                    displayResults(generated_data);
+                    // 애니메이션 유지, 추가 세트를 아래에 append
+                    appendAdditionalSets(generated_data, animationContainer);
                     saveHistoryEntry(generated_data);
-                    resolve(); // 애니메이션 + 저장 완료 후 resolve
+                    resolve();
                 }, 500);
             };
 
             if (window.animationManager && animationContainer) {
+                // 소제목 먼저 삽입 후, 애니메이션은 별도 div에서 실행
+                animationContainer.innerHTML = titleHTML + '<div id="animationArea"></div>';
+                const animArea = document.getElementById('animationArea');
                 const animation = window.animationManager.getAnimation(onAnimationComplete);
-                animation.animate(firstSetNumbers, animationContainer);
+                window.currentAnimation = animation; // Save globally for sound access
+                animation.animate(firstSetNumbers, animArea);
+            } else if (window.LotteryAnimation && animationContainer) {
+                const animation = window.animationManager.getAnimation(onAnimationComplete);
+                animation.animate(firstSetNumbers, animArea);
             } else if (window.LotteryAnimation && animationContainer) {
                 if (!window.lottoAnim) {
                     window.lottoAnim = new LotteryAnimation({
@@ -450,7 +471,6 @@ async function generateNumbers() {
                         onComplete: onAnimationComplete
                     });
                 } else {
-                    // 기존 인스턴스의 콜백 업데이트
                     window.lottoAnim.onComplete = onAnimationComplete;
                 }
                 window.lottoAnim.animate(firstSetNumbers, animationContainer);
@@ -800,6 +820,70 @@ function hasConsecutive(numbers, minCount = 3) {
     return false;
 }
 
+// 추가 세트를 애니메이션 영역 아래에 append (순차적 등장 효과 + 사운드)
+function appendAdditionalSets(data, container) {
+    if (!data.numbers || data.numbers.length <= 1 || !container) return;
+
+    // Hide placeholder
+    const placeholder = document.getElementById('resultsPlaceholder');
+    if (placeholder) placeholder.classList.add('hidden');
+
+    const additionalSets = data.numbers.slice(1);
+    
+    // Create wrapper for additional sets
+    const wrapper = document.createElement('div');
+    wrapper.className = "mt-8 opacity-0 transition-opacity duration-1000"; // 전체 페이드인 준비
+    
+    // Generate inner HTML - transition delays increased to 400ms for clearer sound intervals
+    wrapper.innerHTML = `
+        <div class="flex items-center gap-2 mb-4 pl-2">
+            <span class="text-purple-400 font-bold">+${additionalSets.length}</span>
+            <span class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Additional Combinations</span>
+        </div>
+        <div class="space-y-3">
+            ${additionalSets.map((item, i) => {
+                const nums = item.numbers;
+                return `
+                <div class="additional-set-item bg-white/5 rounded-2xl p-4 border border-white/5 opacity-0 transform translate-y-4 transition-all duration-500 ease-out" style="transition-delay: ${i * 400}ms">
+                    <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                        <span class="text-xs font-mono text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded whitespace-nowrap">SET #${i + 2}</span>
+                        <div class="flex gap-2 sm:gap-3 justify-center">
+                            ${nums.map(n => `
+                                <span class="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full text-sm sm:text-base font-bold text-white shadow-lg ${getBallClass(n)}">
+                                    ${n}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+
+    container.appendChild(wrapper);
+
+    // Trigger Fade In & Play Sounds
+    requestAnimationFrame(() => {
+        wrapper.classList.remove('opacity-0');
+        
+        const items = wrapper.querySelectorAll('.additional-set-item');
+        items.forEach((item, i) => {
+            // Remove CSS classes to trigger transition
+            item.classList.remove('opacity-0', 'translate-y-4');
+            
+            // Play sound for each item appearance
+            setTimeout(() => {
+                if (window.currentAnimation && typeof window.currentAnimation.playSound === 'function') {
+                    window.currentAnimation.playSound('lock');
+                } else if (window.animationManager && typeof window.animationManager.playSound === 'function') {
+                    window.animationManager.playSound('lock'); // Fallback
+                }
+            }, i * 400); // Sync with CSS transition-delay
+        });
+    });
+}
+
 // 결과 표시 (UI)
 function displayResults(data) {
     const area = document.getElementById('resultsArea') || document.getElementById('numbersArea');
@@ -816,7 +900,7 @@ function displayResults(data) {
 
     area.innerHTML = `
         <div class="flex items-center justify-between mb-4">
-            <div class="text-sm text-gray-400">
+            <div class="text-base md:text-lg text-gray-300">
                 <span class="text-blue-400 font-bold mr-1">
                     ${(function () {
             const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
@@ -824,7 +908,7 @@ function displayResults(data) {
         })()}
                 </span>
                 | <span class="text-purple-400 font-bold">${data.model ? data.model.toUpperCase() : 'AI'}</span>
-                | Draw ${data.target_draw || 'Next'}
+                | Next Draw
             </div>
             <span class="text-xs text-gray-600">${new Date().toLocaleTimeString()}</span>
         </div>

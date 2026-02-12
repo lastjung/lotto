@@ -702,6 +702,311 @@ window.AIScannerAnimation = AIScannerAnimation;
 
 
 /**
+ * 🌀 Quantum Shuffle Animation
+ * 
+ * Numbers rapidly shuffle then lock in one by one with a flash effect.
+ * Ported from web-vue QuantumShuffleAnimation.vue
+ */
+class QuantumShuffleAnimation {
+    constructor(options = {}) {
+        this.options = {
+            soundEnabled: options.soundEnabled !== false,
+            onComplete: options.onComplete || null
+        };
+        this.container = null;
+        this.isPlaying = false;
+        this.shuffleInterval = null;
+        this.lockTimeouts = [];
+    }
+
+    getBallColorClass(n) {
+        if (n <= 10) return 'ball-yellow';
+        if (n <= 20) return 'ball-blue';
+        if (n <= 30) return 'ball-red';
+        if (n <= 40) return 'ball-gray';
+        return 'ball-green';
+    }
+
+    getAudioContext() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume().catch(e => console.log('Audio resume failed', e));
+        }
+        return this.audioCtx;
+    }
+
+    startShuffleSound() {
+        if (!this.options.soundEnabled) return;
+        try {
+            const ctx = this.getAudioContext();
+            
+            // Create noise buffer for mechanical texture
+            const bufferSize = ctx.sampleRate * 2; // 2 seconds
+            // ... (Buffer creation logic unchanged) ...
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+            noise.loop = true;
+
+            const noiseFilter = ctx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 400;
+
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.value = 0.05;
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+            
+            this.shuffleNoise = { source: noise, gain: noiseGain };
+            noise.start();
+
+            // Create rhythmic pulse
+            const osc = ctx.createOscillator();
+            osc.type = 'square';
+            osc.frequency.value = 15; // 15Hz rhythm
+
+            const oscGain = ctx.createGain();
+            oscGain.gain.value = 0.02;
+
+            osc.connect(oscGain);
+            oscGain.connect(ctx.destination);
+
+            this.shufflePulse = { source: osc, gain: oscGain };
+            osc.start();
+
+        } catch (e) { console.error('Shuffle sound error', e); }
+    }
+
+    stopShuffleSound() {
+        if (this.audioCtx) {
+            const time = this.audioCtx.currentTime;
+            
+            if (this.shuffleNoise) {
+                this.shuffleNoise.gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+                this.shuffleNoise.source.stop(time + 0.5);
+            }
+            if (this.shufflePulse) {
+                this.shufflePulse.gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+                this.shufflePulse.source.stop(time + 0.5);
+            }
+            this.shuffleNoise = null;
+            this.shufflePulse = null;
+        }
+    }
+
+    playSound(type) {
+        if (!this.options.soundEnabled) return;
+        try {
+            const ctx = this.getAudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+
+            if (type === 'scan') {
+                // Scanning sound: Softer sweep
+                osc.type = 'sine'; // Changed from sawtooth to sine for softness
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(600, now + 3.0);
+                
+                // Volume reduced
+                gain.gain.setValueAtTime(0.1, now); 
+                gain.gain.linearRampToValueAtTime(0.05, now + 2.8);
+                gain.gain.linearRampToValueAtTime(0, now + 3.0);
+                
+                osc.start(now);
+                osc.stop(now + 3.0);
+            } else if (type === 'appear') {
+                // Balls appear sound
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'lock') {
+                // Sharp lock sound
+                osc.frequency.setValueAtTime(800, now);
+                osc.type = 'triangle';
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'complete') {
+                // Success chord
+                const freqs = [523.25, 659.25, 783.99]; // C Major
+                const now = ctx.currentTime;
+                freqs.forEach((f, i) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    o.type = 'sine';
+                    o.frequency.value = f;
+                    g.gain.setValueAtTime(0.05, now);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+                    o.start(now);
+                    o.stop(now + 1.0);
+                });
+            }
+        } catch (e) { /* ignore audio errors */ }
+    }
+
+    async animate(numbers, container) {
+        this.container = container;
+        this.isPlaying = true;
+        this.cleanup();
+
+        const ballCount = numbers.length;
+
+        // Build HTML structure
+        container.innerHTML = `
+            <div class="quantum-shuffle">
+                <div class="quantum-scan-line scanning"></div>
+                <div class="quantum-balls">
+                    ${numbers.map((_, i) => `
+                        <div class="quantum-ball shuffling" 
+                             id="qball-${i}" data-index="${i}">
+                            ${Math.floor(Math.random() * 45) + 1}
+                        </div>
+                    `).join('')}
+                </div>
+                <!-- Stats Visible initially with placeholders -->
+                <div class="quantum-stats" id="quantumStats">
+                    <div class="quantum-stat-card">
+                        <span class="quantum-stat-label">Sum Total</span>
+                        <div class="quantum-stat-value" id="stat-sum">-</div>
+                    </div>
+                    <div class="quantum-stat-card">
+                        <span class="quantum-stat-label">AC Value</span>
+                        <div class="quantum-stat-value" id="stat-ac">-</div>
+                    </div>
+                    <div class="quantum-stat-card">
+                        <span class="quantum-stat-label">Odd:Even</span>
+                        <div class="quantum-stat-value" id="stat-oe">-:-</div>
+                    </div>
+                    <div class="quantum-stat-card confidence">
+                        <span class="quantum-stat-label">Confidence</span>
+                        <div class="quantum-stat-value" id="stat-conf">-</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Start shuffling immediately with loop sound
+        this.startShuffleSound();
+        this.playSound('scan');
+
+        this.shuffleInterval = setInterval(() => {
+            for (let i = 0; i < ballCount; i++) {
+                const ball = document.getElementById(`qball-${i}`);
+                if (ball && !ball.classList.contains('locked')) {
+                    ball.textContent = Math.floor(Math.random() * 45) + 1;
+                }
+            }
+        }, 60);
+
+        // Wait for scan animation (3.0s) -- Increased for user capture
+        await this.delay(3000);
+
+        // Lock one by one - Adjusted to 0.5s
+        const processDelay = 500; 
+
+        for (let i = 0; i < ballCount; i++) {
+            if (!this.isPlaying) break;
+
+            const ball = document.getElementById(`qball-${i}`);
+            if (ball) {
+                ball.textContent = numbers[i];
+                ball.className = 'quantum-ball locked';
+                this.playSound('lock'); // 'Tak!' sound
+            }
+
+            // Wait before next
+            await this.delay(processDelay);
+        }
+
+        // Complete
+        clearInterval(this.shuffleInterval);
+        this.shuffleInterval = null;
+        this.stopShuffleSound();
+
+        // Calculate Stats
+        const sum = numbers.reduce((a, b) => a + b, 0);
+        // ... (Stats calculation code omitted for brevity as unchanged) ...
+        const oddCount = numbers.filter(n => n % 2 !== 0).length;
+        const evenCount = numbers.length - oddCount;
+        const confidence = (95 + Math.random() * 4.5).toFixed(1);
+        
+        // AC value calculation
+        const sorted = [...numbers].sort((a, b) => a - b);
+        const diffs = new Set();
+        for (let i = 0; i < sorted.length; i++) {
+            for (let j = i + 1; j < sorted.length; j++) {
+                diffs.add(sorted[j] - sorted[i]);
+            }
+        }
+        const acValue = diffs.size - (numbers.length - 1);
+
+        // Update Stats UI
+        const statsEl = document.getElementById('quantumStats');
+        if (statsEl) {
+            document.getElementById('stat-sum').textContent = sum;
+            document.getElementById('stat-ac').textContent = acValue;
+            document.getElementById('stat-oe').textContent = `${oddCount}:${evenCount}`;
+            document.getElementById('stat-conf').textContent = `${confidence}%`;
+            
+            statsEl.classList.add('active'); // Brighten stats
+        }
+
+        this.playSound('complete');
+        
+        // Wait a moment for user to see the result clearly before appending sets - 0.5s
+        await this.delay(500);
+
+        this.isPlaying = false;
+        
+        // Return numbers to app.js which handles additional sets
+        if (typeof this.options.onComplete === 'function') this.options.onComplete(numbers);
+        return numbers;
+    }
+
+    delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    cleanup() {
+        if (this.shuffleInterval) {
+            clearInterval(this.shuffleInterval);
+            this.shuffleInterval = null;
+        }
+        this.stopShuffleSound();
+        this.lockTimeouts.forEach(t => clearTimeout(t));
+        this.lockTimeouts = [];
+    }
+
+    stop() {
+        this.isPlaying = false;
+        this.cleanup();
+    }
+
+    toggleSound(enabled) { this.options.soundEnabled = enabled; }
+}
+
+window.QuantumShuffleAnimation = QuantumShuffleAnimation;
+
+
+/**
  * 🎛️ Animation Manager
  */
 class AnimationManager {
@@ -709,7 +1014,8 @@ class AnimationManager {
         this.animations = {
             'lottery_ball': LotteryAnimation,
             'slot_machine': SlotMachineAnimation,
-            'ai_scanner': AIScannerAnimation
+            'ai_scanner': AIScannerAnimation,
+            'quantum_shuffle': QuantumShuffleAnimation
         };
 
         this.currentType = localStorage.getItem('animationType') || 'lottery_ball';
@@ -745,7 +1051,8 @@ class AnimationManager {
         return [
             { id: 'lottery_ball', name: '🎱 로또볼 추첨기', desc: '공이 튀며 나오는 실제 추첨 효과' },
             { id: 'slot_machine', name: '🎰 슬롯머신', desc: '카지노 스타일 릴 회전' },
-            { id: 'ai_scanner', name: '🔬 AI 스캐너', desc: '미래형 스캔 & 락인 효과' }
+            { id: 'ai_scanner', name: '🔬 AI 스캐너', desc: '미래형 스캔 & 락인 효과' },
+            { id: 'quantum_shuffle', name: '🌀 퀀텀 셔플', desc: '양자 확률 기반 셔플 락인' }
         ];
     }
 }

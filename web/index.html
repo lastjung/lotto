@@ -1,34 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🎱 AI 로또 분석기 V2 - Deep Space</title>
     <!-- Tailwind CSS with CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'void-navy': '#0f172a',
-                        'midnight-purple': '#2e1065',
-                        'neon-cyan': '#06b6d4',
-                        'vivid-pink': '#ec4899',
-                        'amber-gold': '#f59e0b',
-                    },
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-                        'glow-pink': '0 0 15px rgba(236, 72, 153, 0.5)',
-                        'glow-cyan': '0 0 15px rgba(6, 182, 212, 0.5)',
-                    },
-                    fontFamily: {
-                        'sans': ['Pretendard', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-                    }
-                }
-            }
-        }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "void-navy": "#0f172a",
+              "midnight-purple": "#2e1065",
+              "neon-cyan": "#06b6d4",
+              "vivid-pink": "#ec4899",
+              "amber-gold": "#f59e0b",
+            },
+            boxShadow: {
+              glass: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+              "glow-pink": "0 0 15px rgba(236, 72, 153, 0.5)",
+              "glow-cyan": "0 0 15px rgba(6, 182, 212, 0.5)",
+            },
+            fontFamily: {
+              sans: [
+                "Pretendard",
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "Roboto",
+                "Helvetica Neue",
+                "Arial",
+                "sans-serif",
+              ],
+            },
+          },
+        },
+      };
     </script>
     <!-- ONNX Runtime Web -->
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.0/dist/ort.min.js"></script>
@@ -38,1086 +49,1623 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap"
-        rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at 20% 20%, #2e1065 0%, #0f172a 70%);
-            color: #e2e8f0;
-            overflow-x: hidden;
+      body {
+        font-family: "Inter", sans-serif;
+        background: radial-gradient(circle at 20% 20%, #2e1065 0%, #0f172a 70%);
+        color: #e2e8f0;
+        overflow-x: hidden;
+      }
+
+      h1,
+      h2,
+      h3,
+      .heading-font {
+        font-family: "Outfit", sans-serif;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow:
+          0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .glass-card {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      .lotto-ball-v2 {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 16px;
+        color: white;
+        position: relative;
+        box-shadow:
+          inset -2px -2px 6px rgba(0, 0, 0, 0.4),
+          inset 2px 2px 4px rgba(255, 255, 255, 0.3),
+          0 4px 8px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      /* 3D Orb Colors */
+      .ball-1-10 {
+        background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b);
+      }
+
+      .ball-11-20 {
+        background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb);
+      }
+
+      .ball-21-30 {
+        background: radial-gradient(circle at 30% 30%, #f87171, #dc2626);
+      }
+
+      .ball-31-40 {
+        background: radial-gradient(circle at 30% 30%, gray, #4b5563);
+      }
+
+      .ball-41-45 {
+        background: radial-gradient(circle at 30% 30%, #34d399, #059669);
+      }
+
+      .btn-glow-primary {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        transition: all 0.3s ease;
+      }
+
+      .btn-glow-primary:hover {
+        box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+        transform: translateY(-1px);
+      }
+
+      /* Animations */
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
         }
 
-        h1,
-        h2,
-        h3,
-        .heading-font {
-            font-family: 'Outfit', sans-serif;
+        50% {
+          transform: translateY(-10px);
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      .floating {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
         }
 
-        .glass-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        50% {
+          box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+        }
+      }
+
+      .pulsing-core {
+        animation: pulse-glow 3s infinite;
+      }
+
+      .spinning {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .pop-in {
+        animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+
+      @keyframes pop {
+        0% {
+          transform: scale(0);
+          opacity: 0;
         }
 
-        .lotto-ball-v2 {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 16px;
-            color: white;
-            position: relative;
-            box-shadow: inset -2px -2px 6px rgba(0, 0, 0, 0.4), inset 2px 2px 4px rgba(255, 255, 255, 0.3), 0 4px 8px rgba(0, 0, 0, 0.5);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        100% {
+          transform: scale(1);
+          opacity: 1;
         }
+      }
 
-        /* 3D Orb Colors */
-        .ball-1-10 {
-            background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b);
-        }
+      /* Hide scrollbar for clean look */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
 
-        .ball-11-20 {
-            background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb);
-        }
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+      }
 
-        .ball-21-30 {
-            background: radial-gradient(circle at 30% 30%, #f87171, #dc2626);
-        }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+      }
 
-        .ball-31-40 {
-            background: radial-gradient(circle at 30% 30%, gray, #4b5563);
-        }
-
-        .ball-41-45 {
-            background: radial-gradient(circle at 30% 30%, #34d399, #059669);
-        }
-
-        .btn-glow-primary {
-            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .btn-glow-primary:hover {
-            box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
-            transform: translateY(-1px);
-        }
-
-        /* Animations */
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        .floating {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes pulse-glow {
-
-            0%,
-            100% {
-                box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
-            }
-
-            50% {
-                box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
-            }
-        }
-
-        .pulsing-core {
-            animation: pulse-glow 3s infinite;
-        }
-
-        .spinning {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .pop-in {
-            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes pop {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        /* Hide scrollbar for clean look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
     </style>
-</head>
+  </head>
 
-<body class="min-h-screen text-gray-300 overflow-x-hidden bg-[#0f172a]">
+  <body class="min-h-screen text-gray-300 overflow-x-hidden bg-[#0f172a]">
     <!-- Background Gradient -->
     <div
-        class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0f172a] to-[#0f172a]">
-    </div>
+      class="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0f172a] to-[#0f172a]"
+    ></div>
 
     <!-- MAIN LAYOUT WRAPPER -->
     <div class="flex h-screen overflow-hidden">
-
-        <!-- SIDEBAR (Desktop Only) -->
-        <aside class="hidden lg:flex w-64 flex-col bg-[#1e293b]/50 backdrop-blur-xl border-r border-white/5">
-            <div class="p-6 pb-2 flex items-center gap-3">
-                <div
-                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <span class="text-white text-lg">🧬</span>
-                </div>
-                <h1 class="font-bold text-xl text-white tracking-tight">LottoQuant<span class="text-blue-400">AI</span>
-                </h1>
-            </div>
-
-            <!-- LOTTERY SELECTOR (Desktop Sidebar) -->
-            <div class="px-4 mb-6 mt-4">
-                <div class="relative group">
-                    <select id="lotterySelectDesktop" onchange="onLotteryChange(this.value)"
-                        class="w-full bg-[#0f172a] border border-blue-500/30 text-white text-sm font-bold rounded-xl px-4 py-3 appearance-none cursor-pointer hover:border-blue-400 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option value="korea_645">🇰🇷 Korea Lotto 6/45</option>
-                        <option value="usa_powerball">🇺🇸 USA Powerball</option>
-                        <option value="usa_megamillions">🇺🇸 USA Mega Millions</option>
-                        <option value="canada_649">🇨🇦 Canada 6/49</option>
-                        <option value="japan_loto6">🇯🇵 Japan Loto 6</option>
-                    </select>
-                    <span
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-blue-400 pointer-events-none">▼</span>
-                </div>
-            </div>
-
-            <nav class="flex-1 px-4 py-2 space-y-2">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all hover:bg-blue-600/20">
-                    <span class="text-lg">📊</span>
-                    <span class="font-medium">Dashboard</span>
-                </button>
-                <button onclick="switchTab('history')" id="nav-history"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                    <span class="text-lg">📂</span>
-                    <span class="font-medium">History Analysis</span>
-                </button>
-                <button onclick="switchTab('models')" id="nav-models"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                    <span class="text-lg">🤖</span>
-                    <span class="font-medium">Models</span>
-                </button>
-                <button onclick="switchTab('settings')" id="nav-settings"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                    <span class="text-lg">⚙️</span>
-                    <span class="font-medium">System</span>
-                </button>
-            </nav>
-
-            <div class="p-4 border-t border-white/5">
-                <div class="bg-black/20 rounded-xl p-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        <span class="text-xs font-bold text-green-400 uppercase">System Online</span>
-                    </div>
-                    <div class="text-[10px] text-gray-500">
-                        Engine: <span class="text-gray-300">v2.1.0 (ONNX)</span><br>
-                        Agent: <span class="text-gray-300">Connected</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- MAIN CONTENT AREA -->
-        <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-
-            <!-- TOP HEADER (Mobile Only) -->
-            <header
-                class="lg:hidden h-16 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-md flex items-center justify-between px-4 z-20">
-                <!-- Mobile Logo -->
-                <div class="flex items-center gap-2">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                        <span class="text-white">🧬</span>
-                    </div>
-                </div>
-
-                <!-- LOTTERY SELECTOR (Mobile) -->
-                <div class="flex-1 flex justify-center px-4">
-                    <div class="relative w-full max-w-[200px]">
-                        <select id="lotterySelectMobile" onchange="onLotteryChange(this.value)"
-                            class="w-full bg-[#1e293b] border border-blue-500/30 text-white text-sm font-bold rounded-xl px-4 py-2 appearance-none cursor-pointer focus:outline-none">
-                            <option value="korea_645">🇰🇷 Korea Lotto</option>
-                            <option value="usa_powerball">🇺🇸 Powerball</option>
-                            <option value="usa_megamillions">🇺🇸 Mega Millions</option>
-                            <option value="canada_649">🇨🇦 Canada 649</option>
-                            <option value="japan_loto6">🇯🇵 Japan Loto 6</option>
-                        </select>
-                        <span
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-400 pointer-events-none">▼</span>
-                    </div>
-                </div>
-
-                <!-- Right Actions -->
-                <div class="flex items-center gap-3">
-                    <button class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">🔔</button>
-                </div>
-            </header>
-
-            <!-- SCROLLABLE CONTENT -->
-            <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24 md:pb-8 scroll-smooth"
-                id="main-scroll">
-
-                <!-- DASHBOARD VIEW -->
-                <div id="view-dashboard" class="flex flex-col gap-6 max-w-[1600px] mx-auto">
-
-                    <!-- TOP ROW: VISUALIZATIONS (Charts) - Hidden on Mobile/Tablet, Visible on Desktop -->
-                    <div class="hidden lg:grid grid-cols-2 gap-6">
-                        <!-- Chart 1: Hot Numbers (Bar Chart Style) -->
-                        <div
-                            class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden group">
-                            <div class="flex justify-between items-start z-10">
-                                <div>
-                                    <h3 class="font-bold text-white text-sm tracking-wider flex items-center gap-2">
-                                        <div class="w-1 h-4 bg-green-500 rounded-full"></div>
-                                        HOT NUMBERS (LAST 52)
-                                    </h3>
-                                    <p class="text-[10px] text-gray-500 mt-1">Frequency distribution</p>
-                                </div>
-                                <span class="text-xs font-mono text-green-400 bg-green-900/20 px-2 py-1 rounded">Update:
-                                    Live</span>
-                            </div>
-                            <!-- Bar Chart Visualization -->
-                            <div id="hotNumbersChart" class="flex-1 flex items-end justify-between gap-1 mt-4 px-2">
-                                <!-- Bars injected by JS -->
-                                <div
-                                    class="w-full h-full flex items-center justify-center text-xs text-gray-600 animate-pulse">
-                                    Initializing Visualization...</div>
-                            </div>
-                            <!-- BG Decoration -->
-                            <div
-                                class="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none">
-                            </div>
-                        </div>
-
-                        <!-- Chart 2: Sum Distribution (Dynamic Bar Chart) -->
-                        <div
-                            class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden">
-                            <div class="flex justify-between items-start z-10">
-                                <div>
-                                    <h3 class="font-bold text-white text-sm tracking-wider flex items-center gap-2">
-                                        <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
-                                        SUM DISTRIBUTION
-                                    </h3>
-                                    <p class="text-[10px] text-gray-500 mt-1">합계 분포 (Last 52 draws)</p>
-                                </div>
-                            </div>
-
-                            <!-- Optimal Range Badge -->
-                            <div class="absolute top-6 right-6 z-20 flex gap-2">
-                                <span id="optimalRange"
-                                    class="text-[10px] text-gray-400 bg-black/20 px-2 py-1 rounded border border-white/5">100-175
-                                    (Optimal)</span>
-                            </div>
-
-                            <!-- Dynamic Chart Canvas -->
-                            <div class="flex-1 mt-4 relative w-full">
-                                <canvas id="sumDistributionChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CONFIG & RESULTS - Mobile: Results first, Desktop: Side-by-side -->
-                    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6">
-
-                        <!-- LEFT COL: CONFIGURATION (Span 5) - Mobile: Order 2 -->
-                        <div class="lg:col-span-5 xl:col-span-4 space-y-6 order-2 lg:order-1">
-
-                            <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
-                            <div class="mb-8">
-                                <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                                    <span class="text-pink-400 text-2xl">🧠</span>
-                                    AI Analysis Engine
-                                </h3>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <!-- Card 1: Transformer -->
-                                    <button onclick="selectModel('transformer'); playRipple(event)"
-                                        id="card-transformer-v3"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-blue-500/30 hover:border-blue-500 hover:bg-blue-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2">
-                                            ⚖️</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">Transformer</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Attention-based
-                                                Pattern Recognition</div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan">
-                                        </div>
-                                    </button>
-
-                                    <!-- Card 2: LSTM -->
-                                    <button onclick="selectModel('lstm'); playRipple(event)" id="card-lstm-v3"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2">
-                                            ⚡</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">LSTM</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Sequential
-                                                Time-Series Analysis</div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple">
-                                        </div>
-                                    </button>
-
-                                    <!-- Card 3: AI Vector (Legacy ID: physics-v3) -->
-                                    <button onclick="selectModel('vector'); playRipple(event)" id="card-physics-v3"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-indigo-500/30 hover:border-indigo-500 hover:bg-indigo-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg mb-2">
-                                            🌌</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">AI Vector</div>
-                                            <div class="text-[10px] text-gray-400 mt-1 leading-tight">High-Dimensional
-                                                Analysis</div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-indigo-500 rounded-full shadow-glow-indigo">
-                                        </div>
-                                    </button>
-
-                                    <!-- Card 4: Ensemble -->
-                                    <button onclick="selectModel('ensemble'); playRipple(event)" id="card-ensemble"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg mb-2">
-                                            🔗</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">Ensemble</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">
-                                                AI Fusion (Weighted Avg)</div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-orange-500 rounded-full shadow-glow-orange">
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 2. EXISTING: Statistical Models -->
-                            <div class="mb-8">
-                                <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                                    <span class="text-blue-400 text-2xl">📊</span>
-                                    Statistical Models
-                                </h3>
-
-                                <div class="grid grid-cols-2 gap-3">
-                                    <!-- Card 1: Balanced -->
-                                    <button onclick="selectModel('balanced_mix'); playRipple(event)"
-                                        id="card-transformer-stat"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2">
-                                            ⚖️</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">Balanced Mix</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Std. Deviation
-                                                Focus</div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan">
-                                        </div>
-                                    </button>
-
-                                    <!-- Card 2: Hot Trend -->
-                                    <button onclick="selectModel('hot_trend'); playRipple(event)" id="card-hot_trend"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-purple-500 hover:bg-purple-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2">
-                                            ⚡</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">Hot Trend</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Recent Frequency
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple">
-                                        </div>
-                                    </button>
-
-                                    <!-- Card 3: Cold Theory -->
-                                    <button onclick="selectModel('cold_theory');" id="card-cold-stat"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg mb-2">
-                                            🧊</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">Cold Theory</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Target Overdue
-                                            </div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-cyan-500 rounded-full shadow-glow-cyan">
-                                        </div>
-                                    </button>
-
-                                    <!-- Card 4: Physics Bias -->
-                                    <button onclick="selectModel('physics_bias');" id="card-physics-stat"
-                                        class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden">
-                                        <div
-                                            class="w-8 h-8 rounded bg-green-500/20 text-green-400 flex items-center justify-center text-lg mb-2">
-                                            🎱</div>
-                                        <div>
-                                            <div class="font-bold text-white text-sm">Physics Bias</div>
-                                            <div class="text-[10px] text-gray-500 leading-tight mt-1">Mechanical
-                                                Imperfections</div>
-                                        </div>
-                                        <div
-                                            class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-green-500 rounded-full shadow-glow-green">
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 3. Analysis Configuration -->
-                            <div
-                                class="mb-8 glass-panel p-5 bg-[#1e293b]/40 border border-white/5 rounded-2xl relative">
-                                <div class="flex items-center justify-between mb-4">
-                                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Analysis
-                                        Settings</h3>
-                                    <button onclick="toggleAdvancedSettings()" id="settingsToggleBtn"
-                                        class="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-blue-400 transition-all border border-transparent hover:border-white/10"
-                                        title="Toggle Advanced Filters">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                                            </path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                <div class="space-y-4">
-                                    <!-- Generation Count Row -->
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex flex-col">
-                                            <span class="text-sm font-medium text-gray-200">Generation Count</span>
-                                            <span class="text-[10px] text-gray-500">Number of combinations to
-                                                generate</span>
-                                        </div>
-                                        <div class="flex items-center bg-black/40 rounded-lg p-1 border border-white/5">
-                                            <button onclick="adjustCount(-1)"
-                                                class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M20 12H4"></path>
-                                                </svg>
-                                            </button>
-                                            <input type="number" id="countInput" value="5" readonly
-                                                class="w-8 bg-transparent text-center text-sm font-bold text-white border-none focus:ring-0">
-                                            <button onclick="adjustCount(1)"
-                                                class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Advanced Filters Panel (Toggleable) -->
-                                    <div id="advancedSettingsPanel"
-                                        class="hidden pt-4 border-t border-white/5 space-y-4 relative bg-black/20 -mx-5 px-5 -mb-5 pb-5 rounded-b-2xl">
-                                        <button onclick="toggleAdvancedSettings()"
-                                            class="absolute top-4 right-5 text-gray-500 hover:text-red-400 transition-colors"
-                                            title="Close Advanced Settings">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                        </button>
-
-                                        <h4 class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">
-                                            Theoretical Filters</h4>
-
-                                        <!-- AC Filter Row -->
-                                        <div class="flex items-center justify-between group">
-                                            <div class="flex flex-col">
-                                                <span class="text-xs font-medium text-gray-200">AC Theory Filter</span>
-                                                <span class="text-[10px] text-gray-500">Pattern complexity (AC ≥
-                                                    7)</span>
-                                            </div>
-                                            <label class="relative inline-flex items-center cursor-pointer scale-90">
-                                                <input type="checkbox" id="acFilter" class="sr-only peer" checked>
-                                                <div
-                                                    class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600">
-                                                </div>
-                                            </label>
-                                        </div>
-
-                                        <!-- Sum Filter Row -->
-                                        <div class="flex items-center justify-between group">
-                                            <div class="flex flex-col">
-                                                <span class="text-xs font-medium text-gray-200">Sum Range Filter</span>
-                                                <span class="text-[10px] text-gray-500">Target balance (100 ~
-                                                    175)</span>
-                                            </div>
-                                            <label class="relative inline-flex items-center cursor-pointer scale-90">
-                                                <input type="checkbox" id="sumFilter" class="sr-only peer">
-                                                <div
-                                                    class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600">
-                                                </div>
-                                            </label>
-                                        </div>
-
-                                        <!-- Consecutive Filter Row -->
-                                        <div class="flex items-center justify-between group">
-                                            <div class="flex flex-col">
-                                                <span class="text-xs font-medium text-gray-200">Consecutive
-                                                    Restriction</span>
-                                                <span class="text-[10px] text-gray-500">Exclude 3+ sequences</span>
-                                            </div>
-                                            <label class="relative inline-flex items-center cursor-pointer scale-90">
-                                                <input type="checkbox" id="consecutiveFilter" class="sr-only peer">
-                                                <div
-                                                    class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600">
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Start Button -->
-                            <button id="generateBtn"
-                                class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-3 active:scale-95">
-                                <span class="text-xl">▶</span>
-                                Start Multi-Layer Analysis
-                            </button>
-
-                            <!-- Frequency Map (Mini) -->
-                            <div class="glass-panel p-4 bg-[#1e293b]/30 border border-white/5 rounded-xl mt-4">
-                                <h4 class="text-xs font-bold text-gray-400 mb-3">FREQUENCY MAP</h4>
-                                <div id="frequencyBarChart" class="flex items-end gap-1 h-24 px-1">
-                                    <!-- Bars injected via JS -->
-                                    <div class="flex-1 bg-white/5 rounded-t h-[30%]"></div>
-                                    <div class="flex-1 bg-white/5 rounded-t h-[50%]"></div>
-                                    <div class="flex-1 bg-white/5 rounded-t h-[80%]"></div>
-                                    <div class="flex-1 bg-white/5 rounded-t h-[40%]"></div>
-                                    <div class="flex-1 bg-white/5 rounded-t h-[60%]"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- RIGHT COL: RESULTS (Span 8) - Mobile: Order 1 (First) -->
-                        <div class="lg:col-span-7 xl:col-span-8 order-1 lg:order-2">
-                            <div
-                                class="glass-panel h-full min-h-[600px] bg-[#0f172a] border border-white/5 rounded-3xl p-8 relative flex flex-col">
-                                <!-- Background Placeholder -->
-                                <div id="resultsPlaceholder"
-                                    class="absolute inset-0 flex flex-col items-center justify-center text-center opacity-40 pointer-events-none">
-                                    <div class="w-24 h-24 mb-6 text-gray-700">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-                                        </svg>
-                                    </div>
-                                    <h3 class="text-2xl font-bold text-gray-500 mb-2">Ready to Analyze</h3>
-                                    <p class="text-gray-600 max-w-xs">Select a strategy on the left and initialize
-                                        the
-                                        Multi-AI Pipeline.</p>
-                                </div>
-
-                                <!-- Results Content -->
-                                <div id="resultsArea" class="relative z-10 space-y-4"></div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- HISTORY VIEW (Tabbed: Draws Analysis + Generated History) -->
-                <div id="view-history" class="hidden max-w-7xl mx-auto p-4 md:p-8">
-                    <!-- Tab Navigation -->
-                    <div class="flex gap-2 mb-6 border-b border-white/10 pb-2">
-                        <button onclick="switchHistoryTab('draws')" id="history-tab-btn-draws"
-                            class="px-4 py-2 rounded-t-lg text-sm font-bold bg-blue-600/20 text-blue-400 border-b-2 border-blue-500 transition-all">
-                            📊 History Statistics
-                        </button>
-                        <button onclick="switchHistoryTab('generated')" id="history-tab-btn-generated"
-                            class="px-4 py-2 rounded-t-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-                            📂 Generated History
-                        </button>
-                    </div>
-
-                    <!-- Tab 1: Draws Analysis (from hisanal) -->
-                    <div id="history-tab-draws" class="space-y-6">
-                        <div>
-                            <h1 class="text-2xl font-bold mb-1 text-white" id="analysisTitle">📊 Statistics</h1>
-                            <div class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400">
-                                <p>최근 <span id="drawCount" class="text-blue-400 font-bold">0</span>회 데이터를 기반으로 한
-                                    통계입니다.</p>
-                                <span class="hidden sm:inline text-gray-600">|</span>
-                                <p class="font-medium text-blue-400">통계 기간: <span id="periodRange"
-                                        class="text-gray-300">-</span></p>
-                            </div>
-                        </div>
-
-                        <!-- Hot & Cold Numbers -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Hot Numbers -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <span class="text-xl">🔥</span>
-                                    <h2 class="font-bold text-red-400">Hot Numbers (최다 출현)</h2>
-                                </div>
-                                <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General
-                                    Numbers</div>
-                                <div id="hotNumbers" class="flex justify-between px-2 mb-4 text-white">
-                                    <div class="w-full text-center text-gray-500 py-4">로딩 중...</div>
-                                </div>
-                                <div
-                                    class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">
-                                    Bonus Ball</div>
-                                <div id="hotBonus" class="flex justify-start gap-4 px-2 text-white"></div>
-                            </div>
-                            <!-- Cold Numbers -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <span class="text-xl">🧊</span>
-                                    <h2 class="font-bold text-blue-400">Cold Numbers (최소 출현)</h2>
-                                </div>
-                                <div class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider">General
-                                    Numbers</div>
-                                <div id="coldNumbers" class="flex justify-between px-2 mb-4 text-white">
-                                    <div class="w-full text-center text-gray-500 py-4">로딩 중...</div>
-                                </div>
-                                <div
-                                    class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4">
-                                    Bonus Ball</div>
-                                <div id="coldBonus" class="flex justify-start gap-4 px-2 text-white"></div>
-                            </div>
-                        </div>
-
-                        <!-- Frequency Chart -->
-                        <div
-                            class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                            <h2 class="font-bold mb-6 text-white">📈 번호별 출현 빈도 (Top 20)</h2>
-                            <div class="h-64 relative w-full">
-                                <canvas id="freqChart"></canvas>
-                            </div>
-                            <p class="text-center text-xs text-gray-500 mt-4">* 상위 20개 번호만 표시됩니다.</p>
-                        </div>
-
-                        <!-- Ratios Row -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Odd/Even -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                                <h2 class="font-bold mb-4 text-white">🎯 홀짝 비율 (Odd/Even)</h2>
-                                <div class="h-64 flex items-center justify-center">
-                                    <canvas id="oddEvenChart"></canvas>
-                                </div>
-                            </div>
-                            <!-- Low/High -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                                <h2 class="font-bold mb-4 text-white">📊 고저 비율 (Low/High)</h2>
-                                <div class="h-64 flex items-center justify-center">
-                                    <canvas id="lowHighChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Trends Row -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Sum Trend -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                                <h2 class="font-bold mb-4 text-white">📉 합계 추이 (Sum Trend)</h2>
-                                <div class="h-64 w-full">
-                                    <canvas id="sumChart"></canvas>
-                                </div>
-                                <p class="text-center text-xs text-gray-500 mt-2">* 최근 30회차 데이터</p>
-                            </div>
-                            <!-- AC Trend -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                                <h2 class="font-bold mb-4 text-white">🔢 AC값 추이 (AC Value)</h2>
-                                <div class="h-64 w-full">
-                                    <canvas id="acChart"></canvas>
-                                </div>
-                                <p class="text-center text-xs text-gray-500 mt-2">* 산술적 복잡도 (숫자 간격의 불규칙성)</p>
-                            </div>
-                        </div>
-
-                        <!-- Distributions Row -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Sum Distribution -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                                <h2 class="font-bold mb-4 text-white">📊 합계 분포 (Sum Dist)</h2>
-                                <div class="h-64 w-full">
-                                    <canvas id="sumDistChart"></canvas>
-                                </div>
-                                <p class="text-center text-xs text-gray-500 mt-2">* 전체 기간 합계 빈도 (정규분포)</p>
-                            </div>
-                            <!-- End Digit -->
-                            <div
-                                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl">
-                                <h2 class="font-bold mb-4 text-white">🔢 끝수 분석 (End Digit)</h2>
-                                <div class="h-64 w-full">
-                                    <canvas id="endDigitChart"></canvas>
-                                </div>
-                                <p class="text-center text-xs text-gray-500 mt-2">* 번호의 1의 자리 (0~9) 출현 빈도</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tab 2: Generated History (existing) -->
-                    <div id="history-tab-generated" class="hidden">
-                        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                            <span>📂</span> Generated History
-                        </h2>
-                        <div id="historyArea" class="space-y-4"></div>
-                    </div>
-                </div>
-
-                <!-- MODELS GUIDE VIEW (Korean) -->
-                <div id="view-models" class="hidden max-w-4xl mx-auto p-4 md:p-8">
-                    <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <span>🤖</span> AI 분석 모델 가이드
-                    </h2>
-                    <p class="text-gray-400 mb-8">각 모델의 특징과 전략을 이해하고 자신에게 맞는 모델을 선택하세요.</p>
-
-                    <!-- AI Models Section -->
-                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6">
-                        <h3 class="text-lg font-bold text-purple-400 mb-4">🧠 딥러닝 모델</h3>
-
-                        <div class="space-y-4">
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-purple-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">⚡</span>
-                                    <span class="font-bold text-white">Transformer</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">Attention 메커니즘으로 과거 데이터의 "중요한 패턴"을 학습합니다.</p>
-                                <p class="text-yellow-400 text-xs">💡 "모든 과거 데이터를 분석해서 중요한 패턴만 골라낸다"</p>
-                            </div>
-
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-blue-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">🔄</span>
-                                    <span class="font-bold text-white">LSTM</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">시계열 순서를 기억하며 번호 흐름을 예측합니다.</p>
-                                <p class="text-yellow-400 text-xs">💡 "최근 회차의 흐름을 따라가며 다음 번호를 예측"</p>
-                            </div>
-
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-indigo-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">🌌</span>
-                                    <span class="font-bold text-white">AI Vector</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">번호들 사이의 숨겨진 관계를 고차원 공간(Vector)에서 입체적으로 분석합니다.</p>
-                                <p class="text-indigo-400 text-xs">💡 "숫자 사이의 보이지 않는 관계를 입체적으로 분석"</p>
-                            </div>
-
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-pink-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">🔗</span>
-                                    <span class="font-bold text-white">Ensemble</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">Transformer(45%), LSTM(35%), Physics(20%) 모델의 예측을
-                                    가중 평균하여 최적의 조합을 도출합니다.</p>
-                                <p class="text-pink-400 text-xs">💡 "여러 전문가 AI의 의견을 통합하여 판단"</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Statistical Models Section -->
-                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6">
-                        <h3 class="text-lg font-bold text-green-400 mb-4">📊 통계 분석 모델</h3>
-
-                        <div class="space-y-4">
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-orange-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">🔥</span>
-                                    <span class="font-bold text-white">Hot Trend</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">최근 30회차에서 자주 나온 "핫 번호"를 우선 선택합니다.</p>
-                                <p class="text-orange-400 text-xs">💡 "요즘 자주 나오는 번호가 계속 나온다" (추세 추종)</p>
-                            </div>
-
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-cyan-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">🧊</span>
-                                    <span class="font-bold text-white">Cold Theory</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">오랫동안 나오지 않은 "연체 번호"를 우선 선택합니다.</p>
-                                <p class="text-cyan-400 text-xs">💡 "오래 안 나왔으니 나올 때가 됐다" (역발상)</p>
-                            </div>
-
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-green-500">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">🎱</span>
-                                    <span class="font-bold text-white">Physics Bias</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">로또 기계의 물리적 편향(빈도, 위치)을 분석합니다.</p>
-                                <p class="text-green-400 text-xs">💡 "자주 나온 번호가 계속 나온다" (기계적 편향)</p>
-                            </div>
-
-                            <div class="bg-white/5 rounded-2xl p-4 border-l-4 border-blue-400">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-xl">⚖️</span>
-                                    <span class="font-bold text-white">Balanced Mix</span>
-                                </div>
-                                <p class="text-gray-300 text-sm mb-2">홀짝/고저/합계가 완벽하게 균형 잡힌 조합을 생성합니다.</p>
-                                <p class="text-blue-400 text-xs">💡 "극단을 피하고 평균에 가까운 안정적인 조합"</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Comparison Table -->
-                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6">
-                        <h3 class="text-lg font-bold text-yellow-400 mb-4">📋 모델 비교표</h3>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                    <tr class="border-b border-white/10">
-                                        <th class="text-left py-3 px-2 text-gray-400">모델</th>
-                                        <th class="text-left py-3 px-2 text-gray-400">전략</th>
-                                        <th class="text-left py-3 px-2 text-gray-400">추천 대상</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-gray-300">
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-purple-400">Transformer</span></td>
-                                        <td class="py-3 px-2">패턴 인식</td>
-                                        <td class="py-3 px-2">AI 추천을 원하는 분</td>
-                                    </tr>
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-blue-400">LSTM</span></td>
-                                        <td class="py-3 px-2">흐름 예측</td>
-                                        <td class="py-3 px-2">최근 추세를 믿는 분</td>
-                                    </tr>
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-indigo-400">AI Vector</span></td>
-                                        <td class="py-3 px-2">입체적 관계 분석</td>
-                                        <td class="py-3 px-2">데이터의 깊은 연결을 믿는 분</td>
-                                    </tr>
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-pink-400">Ensemble</span></td>
-                                        <td class="py-3 px-2">AI 융합</td>
-                                        <td class="py-3 px-2">안정적인 종합 추천을 원하는 분</td>
-                                    </tr>
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-orange-400">Hot Trend</span></td>
-                                        <td class="py-3 px-2">핫 번호</td>
-                                        <td class="py-3 px-2">"요즘 잘 나오는 번호" 선호</td>
-                                    </tr>
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-cyan-400">Cold Theory</span></td>
-                                        <td class="py-3 px-2">연체 번호</td>
-                                        <td class="py-3 px-2">"이제 나올 때 됐다" 역발상</td>
-                                    </tr>
-                                    <tr class="border-b border-white/5">
-                                        <td class="py-3 px-2"><span class="text-green-400">Physics Bias</span></td>
-                                        <td class="py-3 px-2">빈도 편향</td>
-                                        <td class="py-3 px-2">기계적 패턴을 믿는 분</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-3 px-2"><span class="text-blue-300">Balanced Mix</span></td>
-                                        <td class="py-3 px-2">완벽 균형</td>
-                                        <td class="py-3 px-2">안정적인 조합 선호</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Tip Box -->
-                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4">
-                        <div class="flex items-start gap-3">
-                            <span class="text-2xl">💡</span>
-                            <div>
-                                <p class="text-yellow-400 font-bold mb-1">팁: 다양한 전략을 조합하세요!</p>
-                                <p class="text-gray-300 text-sm">하나의 모델에만 의존하지 말고, 여러 모델의 결과를 비교해보세요.
-                                    예: Transformer 2게임 + Cold Theory 2게임 + Balanced Mix 1게임</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SYSTEM SETTINGS VIEW (Focused on engine details) -->
-                <div id="view-settings" class="hidden max-w-4xl mx-auto p-4 md:p-8">
-                    <div class="flex items-center justify-between mb-2">
-                        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
-                            <span>⚙️</span> System Configuration
-                        </h2>
-                        <button onclick="switchTab('dashboard')"
-                            class="p-2 rounded-full hover:bg-white/10 transition-colors" title="대시보드로 이동">
-                            <svg class="w-6 h-6 text-gray-400 hover:text-white" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <p class="text-gray-500 mb-8 text-sm">AI Analysis Engine and Animation Settings</p>
-
-                    <!-- Animation Selector -->
-                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6">
-                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span>🎬</span> Animation Style
-                        </h3>
-                        <p class="text-gray-500 text-sm mb-4">번호 생성 시 표시되는 애니메이션을 선택하세요</p>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="animationSelector">
-                            <!-- Lottery Ball -->
-                            <div class="animation-option cursor-pointer p-4 rounded-xl border-2 border-purple-500 bg-purple-500/10 transition-all hover:scale-105"
-                                data-type="lottery_ball" onclick="selectAnimation('lottery_ball')">
-                                <div class="flex items-center gap-3 mb-2">
-                                    <span class="text-3xl">🎱</span>
-                                    <div>
-                                        <h4 class="font-bold text-white">로또볼 추첨기</h4>
-                                        <p class="text-xs text-gray-400">공이 튀며 나오는 실제 추첨 효과</p>
-                                    </div>
-                                </div>
-                                <div class="selected-badge text-xs text-purple-400 font-medium">✓ 선택됨</div>
-                            </div>
-
-                            <!-- Slot Machine -->
-                            <div class="animation-option cursor-pointer p-4 rounded-xl border-2 border-gray-600 bg-gray-800/50 transition-all hover:scale-105 hover:border-purple-400"
-                                data-type="slot_machine" onclick="selectAnimation('slot_machine')">
-                                <div class="flex items-center gap-3 mb-2">
-                                    <span class="text-3xl">🎰</span>
-                                    <div>
-                                        <h4 class="font-bold text-white">슬롯머신</h4>
-                                        <p class="text-xs text-gray-400">카지노 스타일 릴 회전</p>
-                                    </div>
-                                </div>
-                                <div class="selected-badge hidden text-xs text-purple-400 font-medium">✓ 선택됨</div>
-                            </div>
-
-                            <!-- AI Scanner -->
-                            <div class="animation-option cursor-pointer p-4 rounded-xl border-2 border-gray-600 bg-gray-800/50 transition-all hover:scale-105 hover:border-purple-400"
-                                data-type="ai_scanner" onclick="selectAnimation('ai_scanner')">
-                                <div class="flex items-center gap-3 mb-2">
-                                    <span class="text-3xl">🔬</span>
-                                    <div>
-                                        <h4 class="font-bold text-white">AI 스캐너</h4>
-                                        <p class="text-xs text-gray-400">미래형 스캔 & 락인 효과</p>
-                                    </div>
-                                </div>
-                                <div class="selected-badge hidden text-xs text-purple-400 font-medium">✓ 선택됨</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sound Toggle -->
-                    <div class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl">
-                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span>🔊</span> Sound Effects
-                        </h3>
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-white">애니메이션 효과음</p>
-                                <p class="text-gray-500 text-sm">번호 생성 시 사운드 효과 재생</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="soundToggle" class="sr-only peer" checked
-                                    onchange="toggleAnimationSound(this.checked)">
-                                <div
-                                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500">
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
+      <!-- SIDEBAR (Desktop Only) -->
+      <aside
+        class="hidden lg:flex w-64 flex-col bg-[#1e293b]/50 backdrop-blur-xl border-r border-white/5"
+      >
+        <div class="p-6 pb-2 flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20"
+          >
+            <span class="text-white text-lg">🧬</span>
+          </div>
+          <h1 class="font-bold text-xl text-white tracking-tight">
+            LottoQuant<span class="text-blue-400">AI</span>
+          </h1>
         </div>
+
+        <!-- LOTTERY SELECTOR (Desktop Sidebar) -->
+        <div class="px-4 mb-6 mt-4">
+          <div class="relative group">
+            <select
+              id="lotterySelectDesktop"
+              onchange="onLotteryChange(this.value)"
+              class="w-full bg-[#0f172a] border border-blue-500/30 text-white text-sm font-bold rounded-xl px-4 py-3 appearance-none cursor-pointer hover:border-blue-400 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="korea_645">🇰🇷 Korea Lotto 6/45</option>
+              <option value="usa_powerball">🇺🇸 USA Powerball</option>
+              <option value="usa_megamillions">🇺🇸 USA Mega Millions</option>
+              <option value="canada_649">🇨🇦 Canada 6/49</option>
+              <option value="japan_loto6">🇯🇵 Japan Loto 6</option>
+            </select>
+            <span
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-blue-400 pointer-events-none"
+              >▼</span
+            >
+          </div>
+        </div>
+
+        <nav class="flex-1 px-4 py-2 space-y-2">
+          <button
+            onclick="switchTab('dashboard')"
+            id="nav-dashboard"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all hover:bg-blue-600/20"
+          >
+            <span class="text-lg">📊</span>
+            <span class="font-medium">Dashboard</span>
+          </button>
+          <button
+            onclick="switchTab('history')"
+            id="nav-history"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <span class="text-lg">📂</span>
+            <span class="font-medium">History Analysis</span>
+          </button>
+          <button
+            onclick="switchTab('models')"
+            id="nav-models"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <span class="text-lg">🤖</span>
+            <span class="font-medium">Models</span>
+          </button>
+          <button
+            onclick="switchTab('settings')"
+            id="nav-settings"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <span class="text-lg">⚙️</span>
+            <span class="font-medium">System</span>
+          </button>
+        </nav>
+
+        <div class="p-4 border-t border-white/5">
+          <div class="bg-black/20 rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div
+                class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
+              ></div>
+              <span class="text-xs font-bold text-green-400 uppercase"
+                >System Online</span
+              >
+            </div>
+            <div class="text-[10px] text-gray-500">
+              Engine: <span class="text-gray-300">v2.1.0 (ONNX)</span><br />
+              Agent: <span class="text-gray-300">Connected</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- TOP HEADER (Mobile Only) -->
+        <header
+          class="lg:hidden h-16 border-b border-white/5 bg-[#0f172a]/80 backdrop-blur-md flex items-center justify-between px-4 z-20"
+        >
+          <!-- Mobile Logo -->
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center"
+            >
+              <span class="text-white">🧬</span>
+            </div>
+          </div>
+
+          <!-- LOTTERY SELECTOR (Mobile) -->
+          <div class="flex-1 flex justify-center px-4">
+            <div class="relative w-full max-w-[200px]">
+              <select
+                id="lotterySelectMobile"
+                onchange="onLotteryChange(this.value)"
+                class="w-full bg-[#1e293b] border border-blue-500/30 text-white text-sm font-bold rounded-xl px-4 py-2 appearance-none cursor-pointer focus:outline-none"
+              >
+                <option value="korea_645">🇰🇷 Korea Lotto</option>
+                <option value="usa_powerball">🇺🇸 Powerball</option>
+                <option value="usa_megamillions">🇺🇸 Mega Millions</option>
+                <option value="canada_649">🇨🇦 Canada 649</option>
+                <option value="japan_loto6">🇯🇵 Japan Loto 6</option>
+              </select>
+              <span
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-400 pointer-events-none"
+                >▼</span
+              >
+            </div>
+          </div>
+
+          <!-- Right Actions -->
+          <div class="flex items-center gap-3">
+            <button
+              class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"
+            >
+              🔔
+            </button>
+          </div>
+        </header>
+
+        <!-- SCROLLABLE CONTENT -->
+        <main
+          class="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8 pb-24 md:pb-8 scroll-smooth"
+          id="main-scroll"
+        >
+          <!-- DASHBOARD VIEW -->
+          <div
+            id="view-dashboard"
+            class="flex flex-col gap-6 max-w-[1600px] mx-auto"
+          >
+            <!-- TOP ROW: VISUALIZATIONS (Charts) - Hidden on Mobile/Tablet, Visible on Desktop -->
+            <div class="hidden lg:grid grid-cols-2 gap-6">
+              <!-- Chart 1: Hot Numbers (Bar Chart Style) -->
+              <div
+                class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden group"
+              >
+                <div class="flex justify-between items-start z-10">
+                  <div>
+                    <h3
+                      class="font-bold text-white text-sm tracking-wider flex items-center gap-2"
+                    >
+                      <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+                      HOT NUMBERS (LAST 52)
+                    </h3>
+                    <p class="text-[10px] text-gray-500 mt-1">
+                      Frequency distribution
+                    </p>
+                  </div>
+                  <span
+                    class="text-xs font-mono text-green-400 bg-green-900/20 px-2 py-1 rounded"
+                    >Update: Live</span
+                  >
+                </div>
+                <!-- Bar Chart Visualization -->
+                <div
+                  id="hotNumbersChart"
+                  class="flex-1 flex items-end justify-between gap-1 mt-4 px-2"
+                >
+                  <!-- Bars injected by JS -->
+                  <div
+                    class="w-full h-full flex items-center justify-center text-xs text-gray-600 animate-pulse"
+                  >
+                    Initializing Visualization...
+                  </div>
+                </div>
+                <!-- BG Decoration -->
+                <div
+                  class="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"
+                ></div>
+              </div>
+
+              <!-- Chart 2: Sum Distribution (Dynamic Bar Chart) -->
+              <div
+                class="glass-panel p-6 bg-[#1e293b]/50 border border-white/5 rounded-2xl h-64 flex flex-col relative overflow-hidden"
+              >
+                <div class="flex justify-between items-start z-10">
+                  <div>
+                    <h3
+                      class="font-bold text-white text-sm tracking-wider flex items-center gap-2"
+                    >
+                      <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
+                      SUM DISTRIBUTION
+                    </h3>
+                    <p class="text-[10px] text-gray-500 mt-1">
+                      합계 분포 (Last 52 draws)
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Optimal Range Badge -->
+                <div class="absolute top-6 right-6 z-20 flex gap-2">
+                  <span
+                    id="optimalRange"
+                    class="text-[10px] text-gray-400 bg-black/20 px-2 py-1 rounded border border-white/5"
+                    >100-175 (Optimal)</span
+                  >
+                </div>
+
+                <!-- Dynamic Chart Canvas -->
+                <div class="flex-1 mt-4 relative w-full">
+                  <canvas id="sumDistributionChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- CONFIG & RESULTS - Mobile: Results first, Desktop: Side-by-side -->
+            <div class="flex flex-col lg:grid lg:grid-cols-12 gap-6">
+              <!-- LEFT COL: CONFIGURATION (Span 5) - Mobile: Order 2 -->
+              <div
+                class="lg:col-span-5 xl:col-span-4 space-y-6 order-2 lg:order-1"
+              >
+                <!-- 1. AI Analysis Engine (Unified 2x2 Grid) -->
+                <div class="mb-8">
+                  <h3
+                    class="text-lg font-bold text-white flex items-center gap-2 mb-4"
+                  >
+                    <span class="text-pink-400 text-2xl">🧠</span>
+                    AI Analysis Engine
+                  </h3>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <!-- Card 1: Transformer -->
+                    <button
+                      onclick="
+                        selectModel('transformer');
+                        playRipple(event);
+                      "
+                      id="card-transformer-v3"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-blue-500/30 hover:border-blue-500 hover:bg-blue-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        ⚖️
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">
+                          Transformer
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          Attention-based Pattern Recognition
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan"
+                      ></div>
+                    </button>
+
+                    <!-- Card 2: LSTM -->
+                    <button
+                      onclick="
+                        selectModel('lstm');
+                        playRipple(event);
+                      "
+                      id="card-lstm-v3"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-purple-500/30 hover:border-purple-500 hover:bg-purple-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        ⚡
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">LSTM</div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          Sequential Time-Series Analysis
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple"
+                      ></div>
+                    </button>
+
+                    <!-- Card 3: AI Vector (Legacy ID: physics-v3) -->
+                    <button
+                      onclick="
+                        selectModel('vector');
+                        playRipple(event);
+                      "
+                      id="card-physics-v3"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-indigo-500/30 hover:border-indigo-500 hover:bg-indigo-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        🌌
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">
+                          AI Vector
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-400 mt-1 leading-tight"
+                        >
+                          High-Dimensional Analysis
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-indigo-500 rounded-full shadow-glow-indigo"
+                      ></div>
+                    </button>
+
+                    <!-- Card 4: Ensemble -->
+                    <button
+                      onclick="
+                        selectModel('ensemble');
+                        playRipple(event);
+                      "
+                      id="card-ensemble"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-orange-500/30 hover:border-orange-500 hover:bg-orange-500/10 transition-all text-left flex flex-col justify-between h-36 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        🔗
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">Ensemble</div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          AI Fusion (Weighted Avg)
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-orange-500 rounded-full shadow-glow-orange"
+                      ></div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 2. EXISTING: Statistical Models -->
+                <div class="mb-8">
+                  <h3
+                    class="text-lg font-bold text-white flex items-center gap-2 mb-4"
+                  >
+                    <span class="text-blue-400 text-2xl">📊</span>
+                    Statistical Models
+                  </h3>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <!-- Card 1: Balanced -->
+                    <button
+                      onclick="
+                        selectModel('balanced_mix');
+                        playRipple(event);
+                      "
+                      id="card-transformer-stat"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        ⚖️
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">
+                          Balanced Mix
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          Std. Deviation Focus
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full shadow-glow-cyan"
+                      ></div>
+                    </button>
+
+                    <!-- Card 2: Hot Trend -->
+                    <button
+                      onclick="
+                        selectModel('hot_trend');
+                        playRipple(event);
+                      "
+                      id="card-hot_trend"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-purple-500 hover:bg-purple-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        ⚡
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">
+                          Hot Trend
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          Recent Frequency
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-glow-purple"
+                      ></div>
+                    </button>
+
+                    <!-- Card 3: Cold Theory -->
+                    <button
+                      onclick="selectModel('cold_theory')"
+                      id="card-cold-stat"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-cyan-500 hover:bg-cyan-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        🧊
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">
+                          Cold Theory
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          Target Overdue
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-cyan-500 rounded-full shadow-glow-cyan"
+                      ></div>
+                    </button>
+
+                    <!-- Card 4: Physics Bias -->
+                    <button
+                      onclick="selectModel('physics_bias')"
+                      id="card-physics-stat"
+                      class="model-card p-4 rounded-xl bg-[#1e293b] border border-white/10 hover:border-green-500 hover:bg-green-500/10 transition-all text-left flex flex-col justify-between h-32 group relative overflow-hidden"
+                    >
+                      <div
+                        class="w-8 h-8 rounded bg-green-500/20 text-green-400 flex items-center justify-center text-lg mb-2"
+                      >
+                        🎱
+                      </div>
+                      <div>
+                        <div class="font-bold text-white text-sm">
+                          Physics Bias
+                        </div>
+                        <div
+                          class="text-[10px] text-gray-500 leading-tight mt-1"
+                        >
+                          Mechanical Imperfections
+                        </div>
+                      </div>
+                      <div
+                        class="active-dot hidden absolute top-3 right-3 w-2 h-2 bg-green-500 rounded-full shadow-glow-green"
+                      ></div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3. Analysis Configuration -->
+                <div
+                  class="mb-8 glass-panel p-5 bg-[#1e293b]/40 border border-white/5 rounded-2xl relative"
+                >
+                  <div class="flex items-center justify-between mb-4">
+                    <h3
+                      class="text-xs font-bold text-gray-500 uppercase tracking-widest"
+                    >
+                      Analysis Settings
+                    </h3>
+                    <button
+                      onclick="toggleAdvancedSettings()"
+                      id="settingsToggleBtn"
+                      class="p-1.5 rounded-lg hover:bg-white/5 text-gray-400 hover:text-blue-400 transition-all border border-transparent hover:border-white/10"
+                      title="Toggle Advanced Filters"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                        ></path>
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div class="space-y-4">
+                    <!-- Generation Count Row -->
+                    <div class="flex items-center justify-between">
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-200"
+                          >Generation Count</span
+                        >
+                        <span class="text-[10px] text-gray-500"
+                          >Number of combinations to generate</span
+                        >
+                      </div>
+                      <div
+                        class="flex items-center bg-black/40 rounded-lg p-1 border border-white/5"
+                      >
+                        <button
+                          onclick="adjustCount(-1)"
+                          class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M20 12H4"
+                            ></path>
+                          </svg>
+                        </button>
+                        <input
+                          type="number"
+                          id="countInput"
+                          value="5"
+                          readonly
+                          class="w-8 bg-transparent text-center text-sm font-bold text-white border-none focus:ring-0"
+                        />
+                        <button
+                          onclick="adjustCount(1)"
+                          class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 text-gray-400 transition-colors"
+                        >
+                          <svg
+                            class="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 4v16m8-8H4"
+                            ></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Advanced Filters Panel (Toggleable) -->
+                    <div
+                      id="advancedSettingsPanel"
+                      class="hidden pt-4 border-t border-white/5 space-y-4 relative bg-black/20 -mx-5 px-5 -mb-5 pb-5 rounded-b-2xl"
+                    >
+                      <button
+                        onclick="toggleAdvancedSettings()"
+                        class="absolute top-4 right-5 text-gray-500 hover:text-red-400 transition-colors"
+                        title="Close Advanced Settings"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          ></path>
+                        </svg>
+                      </button>
+
+                      <h4
+                        class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1"
+                      >
+                        Theoretical Filters
+                      </h4>
+
+                      <!-- AC Filter Row -->
+                      <div class="flex items-center justify-between group">
+                        <div class="flex flex-col">
+                          <span class="text-xs font-medium text-gray-200"
+                            >AC Theory Filter</span
+                          >
+                          <span class="text-[10px] text-gray-500"
+                            >Pattern complexity (AC ≥ 7)</span
+                          >
+                        </div>
+                        <label
+                          class="relative inline-flex items-center cursor-pointer scale-90"
+                        >
+                          <input
+                            type="checkbox"
+                            id="acFilter"
+                            class="sr-only peer"
+                            checked
+                          />
+                          <div
+                            class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"
+                          ></div>
+                        </label>
+                      </div>
+
+                      <!-- Sum Filter Row -->
+                      <div class="flex items-center justify-between group">
+                        <div class="flex flex-col">
+                          <span class="text-xs font-medium text-gray-200"
+                            >Sum Range Filter</span
+                          >
+                          <span class="text-[10px] text-gray-500"
+                            >Target balance (100 ~ 175)</span
+                          >
+                        </div>
+                        <label
+                          class="relative inline-flex items-center cursor-pointer scale-90"
+                        >
+                          <input
+                            type="checkbox"
+                            id="sumFilter"
+                            class="sr-only peer"
+                          />
+                          <div
+                            class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"
+                          ></div>
+                        </label>
+                      </div>
+
+                      <!-- Consecutive Filter Row -->
+                      <div class="flex items-center justify-between group">
+                        <div class="flex flex-col">
+                          <span class="text-xs font-medium text-gray-200"
+                            >Consecutive Restriction</span
+                          >
+                          <span class="text-[10px] text-gray-500"
+                            >Exclude 3+ sequences</span
+                          >
+                        </div>
+                        <label
+                          class="relative inline-flex items-center cursor-pointer scale-90"
+                        >
+                          <input
+                            type="checkbox"
+                            id="consecutiveFilter"
+                            class="sr-only peer"
+                          />
+                          <div
+                            class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"
+                          ></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Start Button -->
+                <button
+                  id="generateBtn"
+                  class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-3 active:scale-95"
+                >
+                  <span class="text-xl">▶</span>
+                  Start Multi-Layer Analysis
+                </button>
+
+                <!-- Frequency Map (Mini) -->
+                <div
+                  class="glass-panel p-4 bg-[#1e293b]/30 border border-white/5 rounded-xl mt-4"
+                >
+                  <h4 class="text-xs font-bold text-gray-400 mb-3">
+                    FREQUENCY MAP
+                  </h4>
+                  <div
+                    id="frequencyBarChart"
+                    class="flex items-end gap-1 h-24 px-1"
+                  >
+                    <!-- Bars injected via JS -->
+                    <div class="flex-1 bg-white/5 rounded-t h-[30%]"></div>
+                    <div class="flex-1 bg-white/5 rounded-t h-[50%]"></div>
+                    <div class="flex-1 bg-white/5 rounded-t h-[80%]"></div>
+                    <div class="flex-1 bg-white/5 rounded-t h-[40%]"></div>
+                    <div class="flex-1 bg-white/5 rounded-t h-[60%]"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT COL: RESULTS (Span 8) - Mobile: Order 1 (First) -->
+              <div class="lg:col-span-7 xl:col-span-8 order-1 lg:order-2">
+                <div
+                  class="glass-panel h-full min-h-[600px] bg-[#0f172a] border border-white/5 rounded-3xl p-8 relative flex flex-col"
+                >
+                  <!-- Background Placeholder -->
+                  <div
+                    id="resultsPlaceholder"
+                    class="absolute inset-0 flex flex-col items-center justify-center text-center opacity-40 pointer-events-none"
+                  >
+                    <div class="w-24 h-24 mb-6 text-gray-700">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1"
+                      >
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                      </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-500 mb-2">
+                      Ready to Analyze
+                    </h3>
+                    <p class="text-gray-600 max-w-xs">
+                      Select a strategy on the left and initialize the Multi-AI
+                      Pipeline.
+                    </p>
+                  </div>
+
+                  <!-- Results Content -->
+                  <div id="resultsArea" class="relative z-10 space-y-4"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTORY VIEW (Tabbed: Draws Analysis + Generated History) -->
+          <div id="view-history" class="hidden max-w-7xl mx-auto p-4 md:p-8">
+            <!-- Tab Navigation -->
+            <div class="flex gap-2 mb-6 border-b border-white/10 pb-2">
+              <button
+                onclick="switchHistoryTab('draws')"
+                id="history-tab-btn-draws"
+                class="px-4 py-2 rounded-t-lg text-sm font-bold bg-blue-600/20 text-blue-400 border-b-2 border-blue-500 transition-all"
+              >
+                📊 History Statistics
+              </button>
+              <button
+                onclick="switchHistoryTab('generated')"
+                id="history-tab-btn-generated"
+                class="px-4 py-2 rounded-t-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+              >
+                📂 Generated History
+              </button>
+            </div>
+
+            <!-- Tab 1: Draws Analysis (from hisanal) -->
+            <div id="history-tab-draws" class="space-y-6">
+              <div>
+                <h1
+                  class="text-2xl font-bold mb-1 text-white"
+                  id="analysisTitle"
+                >
+                  📊 Statistics
+                </h1>
+                <div
+                  class="flex flex-col sm:flex-row gap-2 text-sm text-gray-400"
+                >
+                  <p>
+                    최근
+                    <span id="drawCount" class="text-blue-400 font-bold">0</span
+                    >회 데이터를 기반으로 한 통계입니다.
+                  </p>
+                  <span class="hidden sm:inline text-gray-600">|</span>
+                  <p class="font-medium text-blue-400">
+                    통계 기간:
+                    <span id="periodRange" class="text-gray-300">-</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Hot & Cold Numbers -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Hot Numbers -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg"
+                >
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xl">🔥</span>
+                    <h2 class="font-bold text-red-400">
+                      Hot Numbers (최다 출현)
+                    </h2>
+                  </div>
+                  <div
+                    class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider"
+                  >
+                    General Numbers
+                  </div>
+                  <div
+                    id="hotNumbers"
+                    class="flex justify-between px-2 mb-4 text-white"
+                  >
+                    <div class="w-full text-center text-gray-500 py-4">
+                      로딩 중...
+                    </div>
+                  </div>
+                  <div
+                    class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4"
+                  >
+                    Bonus Ball
+                  </div>
+                  <div
+                    id="hotBonus"
+                    class="flex justify-start gap-4 px-2 text-white"
+                  ></div>
+                </div>
+                <!-- Cold Numbers -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg"
+                >
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="text-xl">🧊</span>
+                    <h2 class="font-bold text-blue-400">
+                      Cold Numbers (최소 출현)
+                    </h2>
+                  </div>
+                  <div
+                    class="mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider"
+                  >
+                    General Numbers
+                  </div>
+                  <div
+                    id="coldNumbers"
+                    class="flex justify-between px-2 mb-4 text-white"
+                  >
+                    <div class="w-full text-center text-gray-500 py-4">
+                      로딩 중...
+                    </div>
+                  </div>
+                  <div
+                    class="bonus-label mb-2 text-xs text-gray-500 font-bold uppercase tracking-wider border-t border-white/5 pt-4"
+                  >
+                    Bonus Ball
+                  </div>
+                  <div
+                    id="coldBonus"
+                    class="flex justify-start gap-4 px-2 text-white"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Frequency Chart -->
+              <div
+                class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+              >
+                <h2 class="font-bold mb-6 text-white">
+                  📈 번호별 출현 빈도 (Top 20)
+                </h2>
+                <div class="h-64 relative w-full">
+                  <canvas id="freqChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-4">
+                  * 상위 20개 번호만 표시됩니다.
+                </p>
+              </div>
+
+              <!-- Ratios Row -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Odd/Even -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                >
+                  <h2 class="font-bold mb-4 text-white">
+                    🎯 홀짝 비율 (Odd/Even)
+                  </h2>
+                  <div class="h-64 flex items-center justify-center">
+                    <canvas id="oddEvenChart"></canvas>
+                  </div>
+                </div>
+                <!-- Low/High -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                >
+                  <h2 class="font-bold mb-4 text-white">
+                    📊 고저 비율 (Low/High)
+                  </h2>
+                  <div class="h-64 flex items-center justify-center">
+                    <canvas id="lowHighChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Trends Row -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Sum Trend -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                >
+                  <h2 class="font-bold mb-4 text-white">
+                    📉 합계 추이 (Sum Trend)
+                  </h2>
+                  <div class="h-64 w-full">
+                    <canvas id="sumChart"></canvas>
+                  </div>
+                  <p class="text-center text-xs text-gray-500 mt-2">
+                    * 최근 30회차 데이터
+                  </p>
+                </div>
+                <!-- AC Trend -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                >
+                  <h2 class="font-bold mb-4 text-white">
+                    🔢 AC값 추이 (AC Value)
+                  </h2>
+                  <div class="h-64 w-full">
+                    <canvas id="acChart"></canvas>
+                  </div>
+                  <p class="text-center text-xs text-gray-500 mt-2">
+                    * 산술적 복잡도 (숫자 간격의 불규칙성)
+                  </p>
+                </div>
+              </div>
+
+              <!-- Distributions Row -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Sum Distribution -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                >
+                  <h2 class="font-bold mb-4 text-white">
+                    📊 합계 분포 (Sum Dist)
+                  </h2>
+                  <div class="h-64 w-full">
+                    <canvas id="sumDistChart"></canvas>
+                  </div>
+                  <p class="text-center text-xs text-gray-500 mt-2">
+                    * 전체 기간 합계 빈도 (정규분포)
+                  </p>
+                </div>
+                <!-- End Digit -->
+                <div
+                  class="glass-panel bg-[#1e293b]/50 border border-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                >
+                  <h2 class="font-bold mb-4 text-white">
+                    🔢 끝수 분석 (End Digit)
+                  </h2>
+                  <div class="h-64 w-full">
+                    <canvas id="endDigitChart"></canvas>
+                  </div>
+                  <p class="text-center text-xs text-gray-500 mt-2">
+                    * 번호의 1의 자리 (0~9) 출현 빈도
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Generated History (existing) -->
+            <div id="history-tab-generated" class="hidden">
+              <h2
+                class="text-2xl font-bold text-white mb-6 flex items-center gap-3"
+              >
+                <span>📂</span> Generated History
+              </h2>
+              <div id="historyArea" class="space-y-4"></div>
+            </div>
+          </div>
+
+          <!-- MODELS GUIDE VIEW (Korean) -->
+          <div id="view-models" class="hidden max-w-4xl mx-auto p-4 md:p-8">
+            <h2
+              class="text-2xl font-bold text-white mb-6 flex items-center gap-3"
+            >
+              <span>🤖</span> AI 분석 모델 가이드
+            </h2>
+            <p class="text-gray-400 mb-8">
+              각 모델의 특징과 전략을 이해하고 자신에게 맞는 모델을 선택하세요.
+            </p>
+
+            <!-- AI Models Section -->
+            <div
+              class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6"
+            >
+              <h3 class="text-lg font-bold text-purple-400 mb-4">
+                🧠 딥러닝 모델
+              </h3>
+
+              <div class="space-y-4">
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-purple-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">⚡</span>
+                    <span class="font-bold text-white">Transformer</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    Attention 메커니즘으로 과거 데이터의 "중요한 패턴"을
+                    학습합니다.
+                  </p>
+                  <p class="text-yellow-400 text-xs">
+                    💡 "모든 과거 데이터를 분석해서 중요한 패턴만 골라낸다"
+                  </p>
+                </div>
+
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-blue-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🔄</span>
+                    <span class="font-bold text-white">LSTM</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    시계열 순서를 기억하며 번호 흐름을 예측합니다.
+                  </p>
+                  <p class="text-yellow-400 text-xs">
+                    💡 "최근 회차의 흐름을 따라가며 다음 번호를 예측"
+                  </p>
+                </div>
+
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-indigo-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🌌</span>
+                    <span class="font-bold text-white">AI Vector</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    번호들 사이의 숨겨진 관계를 고차원 공간(Vector)에서
+                    입체적으로 분석합니다.
+                  </p>
+                  <p class="text-indigo-400 text-xs">
+                    💡 "숫자 사이의 보이지 않는 관계를 입체적으로 분석"
+                  </p>
+                </div>
+
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-pink-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🔗</span>
+                    <span class="font-bold text-white">Ensemble</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    Transformer(45%), LSTM(35%), Physics(20%) 모델의 예측을 가중
+                    평균하여 최적의 조합을 도출합니다.
+                  </p>
+                  <p class="text-pink-400 text-xs">
+                    💡 "여러 전문가 AI의 의견을 통합하여 판단"
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistical Models Section -->
+            <div
+              class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6"
+            >
+              <h3 class="text-lg font-bold text-green-400 mb-4">
+                📊 통계 분석 모델
+              </h3>
+
+              <div class="space-y-4">
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-orange-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🔥</span>
+                    <span class="font-bold text-white">Hot Trend</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    최근 30회차에서 자주 나온 "핫 번호"를 우선 선택합니다.
+                  </p>
+                  <p class="text-orange-400 text-xs">
+                    💡 "요즘 자주 나오는 번호가 계속 나온다" (추세 추종)
+                  </p>
+                </div>
+
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-cyan-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🧊</span>
+                    <span class="font-bold text-white">Cold Theory</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    오랫동안 나오지 않은 "연체 번호"를 우선 선택합니다.
+                  </p>
+                  <p class="text-cyan-400 text-xs">
+                    💡 "오래 안 나왔으니 나올 때가 됐다" (역발상)
+                  </p>
+                </div>
+
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-green-500"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">🎱</span>
+                    <span class="font-bold text-white">Physics Bias</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    로또 기계의 물리적 편향(빈도, 위치)을 분석합니다.
+                  </p>
+                  <p class="text-green-400 text-xs">
+                    💡 "자주 나온 번호가 계속 나온다" (기계적 편향)
+                  </p>
+                </div>
+
+                <div
+                  class="bg-white/5 rounded-2xl p-4 border-l-4 border-blue-400"
+                >
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xl">⚖️</span>
+                    <span class="font-bold text-white">Balanced Mix</span>
+                  </div>
+                  <p class="text-gray-300 text-sm mb-2">
+                    홀짝/고저/합계가 완벽하게 균형 잡힌 조합을 생성합니다.
+                  </p>
+                  <p class="text-blue-400 text-xs">
+                    💡 "극단을 피하고 평균에 가까운 안정적인 조합"
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div
+              class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6"
+            >
+              <h3 class="text-lg font-bold text-yellow-400 mb-4">
+                📋 모델 비교표
+              </h3>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead>
+                    <tr class="border-b border-white/10">
+                      <th class="text-left py-3 px-2 text-gray-400">모델</th>
+                      <th class="text-left py-3 px-2 text-gray-400">전략</th>
+                      <th class="text-left py-3 px-2 text-gray-400">
+                        추천 대상
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-gray-300">
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-purple-400">Transformer</span>
+                      </td>
+                      <td class="py-3 px-2">패턴 인식</td>
+                      <td class="py-3 px-2">AI 추천을 원하는 분</td>
+                    </tr>
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-blue-400">LSTM</span>
+                      </td>
+                      <td class="py-3 px-2">흐름 예측</td>
+                      <td class="py-3 px-2">최근 추세를 믿는 분</td>
+                    </tr>
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-indigo-400">AI Vector</span>
+                      </td>
+                      <td class="py-3 px-2">입체적 관계 분석</td>
+                      <td class="py-3 px-2">데이터의 깊은 연결을 믿는 분</td>
+                    </tr>
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-pink-400">Ensemble</span>
+                      </td>
+                      <td class="py-3 px-2">AI 융합</td>
+                      <td class="py-3 px-2">안정적인 종합 추천을 원하는 분</td>
+                    </tr>
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-orange-400">Hot Trend</span>
+                      </td>
+                      <td class="py-3 px-2">핫 번호</td>
+                      <td class="py-3 px-2">"요즘 잘 나오는 번호" 선호</td>
+                    </tr>
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-cyan-400">Cold Theory</span>
+                      </td>
+                      <td class="py-3 px-2">연체 번호</td>
+                      <td class="py-3 px-2">"이제 나올 때 됐다" 역발상</td>
+                    </tr>
+                    <tr class="border-b border-white/5">
+                      <td class="py-3 px-2">
+                        <span class="text-green-400">Physics Bias</span>
+                      </td>
+                      <td class="py-3 px-2">빈도 편향</td>
+                      <td class="py-3 px-2">기계적 패턴을 믿는 분</td>
+                    </tr>
+                    <tr>
+                      <td class="py-3 px-2">
+                        <span class="text-blue-300">Balanced Mix</span>
+                      </td>
+                      <td class="py-3 px-2">완벽 균형</td>
+                      <td class="py-3 px-2">안정적인 조합 선호</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Tip Box -->
+            <div
+              class="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4"
+            >
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">💡</span>
+                <div>
+                  <p class="text-yellow-400 font-bold mb-1">
+                    팁: 다양한 전략을 조합하세요!
+                  </p>
+                  <p class="text-gray-300 text-sm">
+                    하나의 모델에만 의존하지 말고, 여러 모델의 결과를
+                    비교해보세요. 예: Transformer 2게임 + Cold Theory 2게임 +
+                    Balanced Mix 1게임
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SYSTEM SETTINGS VIEW (Focused on engine details) -->
+          <div id="view-settings" class="hidden max-w-4xl mx-auto p-4 md:p-8">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                <span>⚙️</span> System Configuration
+              </h2>
+              <button
+                onclick="switchTab('dashboard')"
+                class="p-2 rounded-full hover:bg-white/10 transition-colors"
+                title="대시보드로 이동"
+              >
+                <svg
+                  class="w-6 h-6 text-gray-400 hover:text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p class="text-gray-500 mb-8 text-sm">
+              AI Analysis Engine and Animation Settings
+            </p>
+
+            <!-- Animation Selector -->
+            <div
+              class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl mb-6"
+            >
+              <h3
+                class="text-lg font-bold text-white mb-4 flex items-center gap-2"
+              >
+                <span>🎬</span> Animation Style
+              </h3>
+              <p class="text-gray-500 text-sm mb-4">
+                번호 생성 시 표시되는 애니메이션을 선택하세요
+              </p>
+
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                id="animationSelector"
+              >
+                <!-- Lottery Ball -->
+                <div
+                  class="animation-option cursor-pointer p-4 rounded-xl border-2 border-purple-500 bg-purple-500/10 transition-all hover:scale-105"
+                  data-type="lottery_ball"
+                  onclick="selectAnimation('lottery_ball')"
+                >
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🎱</span>
+                    <div>
+                      <h4 class="font-bold text-white">로또볼 추첨기</h4>
+                      <p class="text-xs text-gray-400">
+                        공이 튀며 나오는 실제 추첨 효과
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="selected-badge text-xs text-purple-400 font-medium"
+                  >
+                    ✓ 선택됨
+                  </div>
+                </div>
+
+                <!-- Slot Machine -->
+                <div
+                  class="animation-option cursor-pointer p-4 rounded-xl border-2 border-gray-600 bg-gray-800/50 transition-all hover:scale-105 hover:border-purple-400"
+                  data-type="slot_machine"
+                  onclick="selectAnimation('slot_machine')"
+                >
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🎰</span>
+                    <div>
+                      <h4 class="font-bold text-white">슬롯머신</h4>
+                      <p class="text-xs text-gray-400">카지노 스타일 릴 회전</p>
+                    </div>
+                  </div>
+                  <div
+                    class="selected-badge hidden text-xs text-purple-400 font-medium"
+                  >
+                    ✓ 선택됨
+                  </div>
+                </div>
+
+                <!-- AI Scanner -->
+                <div
+                  class="animation-option cursor-pointer p-4 rounded-xl border-2 border-gray-600 bg-gray-800/50 transition-all hover:scale-105 hover:border-purple-400"
+                  data-type="ai_scanner"
+                  onclick="selectAnimation('ai_scanner')"
+                >
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🔬</span>
+                    <div>
+                      <h4 class="font-bold text-white">AI 스캐너</h4>
+                      <p class="text-xs text-gray-400">
+                        미래형 스캔 & 락인 효과
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="selected-badge hidden text-xs text-purple-400 font-medium"
+                  >
+                    ✓ 선택됨
+                  </div>
+                </div>
+
+                <!-- Quantum Shuffle -->
+                <div
+                  class="animation-option cursor-pointer p-4 rounded-xl border-2 border-gray-600 bg-gray-800/50 transition-all hover:scale-105 hover:border-purple-400"
+                  data-type="quantum_shuffle"
+                  onclick="selectAnimation('quantum_shuffle')"
+                >
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🌀</span>
+                    <div>
+                      <h4 class="font-bold text-white">퀀텀 셔플</h4>
+                      <p class="text-xs text-gray-400">
+                        양자 확률 기반 셔플 락인
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="selected-badge hidden text-xs text-purple-400 font-medium"
+                  >
+                    ✓ 선택됨
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sound Toggle -->
+            <div
+              class="glass-panel p-6 bg-[#1e293b]/40 border border-white/10 rounded-3xl"
+            >
+              <h3
+                class="text-lg font-bold text-white mb-4 flex items-center gap-2"
+              >
+                <span>🔊</span> Sound Effects
+              </h3>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-white">애니메이션 효과음</p>
+                  <p class="text-gray-500 text-sm">
+                    번호 생성 시 사운드 효과 재생
+                  </p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="soundToggle"
+                    class="sr-only peer"
+                    checked
+                    onchange="toggleAnimationSound(this.checked)"
+                  />
+                  <div
+                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"
+                  ></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
 
     <!-- MOBILE/TABLET BOTTOM NAVIGATION (Fixed) -->
-    <nav id="bottom-nav"
-        class="lg:hidden fixed bottom-0 left-0 w-full bg-[#1e293b]/95 backdrop-blur-xl border-t border-white/10 flex justify-around py-2 z-50">
-        <button onclick="switchTab('dashboard')" id="bnav-dashboard"
-            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-blue-400">
-            <span class="text-xl">📊</span>
-            <span class="text-[10px] font-medium">Dashboard</span>
-        </button>
-        <button onclick="switchTab('history')" id="bnav-history"
-            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500">
-            <span class="text-xl">📂</span>
-            <span class="text-[10px] font-medium">History</span>
-        </button>
-        <button onclick="switchTab('models')" id="bnav-models"
-            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500">
-            <span class="text-xl">🤖</span>
-            <span class="text-[10px] font-medium">Models</span>
-        </button>
-        <button onclick="switchTab('settings')" id="bnav-settings"
-            class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500">
-            <span class="text-xl">⚙️</span>
-            <span class="text-[10px] font-medium">System</span>
-        </button>
+    <nav
+      id="bottom-nav"
+      class="lg:hidden fixed bottom-0 left-0 w-full bg-[#1e293b]/95 backdrop-blur-xl border-t border-white/10 flex justify-around py-2 z-50"
+    >
+      <button
+        onclick="switchTab('dashboard')"
+        id="bnav-dashboard"
+        class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-blue-400"
+      >
+        <span class="text-xl">📊</span>
+        <span class="text-[10px] font-medium">Dashboard</span>
+      </button>
+      <button
+        onclick="switchTab('history')"
+        id="bnav-history"
+        class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500"
+      >
+        <span class="text-xl">📂</span>
+        <span class="text-[10px] font-medium">History</span>
+      </button>
+      <button
+        onclick="switchTab('models')"
+        id="bnav-models"
+        class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500"
+      >
+        <span class="text-xl">🤖</span>
+        <span class="text-[10px] font-medium">Models</span>
+      </button>
+      <button
+        onclick="switchTab('settings')"
+        id="bnav-settings"
+        class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg text-gray-500"
+      >
+        <span class="text-xl">⚙️</span>
+        <span class="text-[10px] font-medium">System</span>
+      </button>
     </nav>
 
     <!-- Animation Module -->
-    <link rel="stylesheet" href="css/animation.css">
+    <link rel="stylesheet" href="css/animation.css" />
     <script src="js/animation.js"></script>
 
     <!-- Scripts (Using extracted UI logic + App Logic) -->
@@ -1127,568 +1675,773 @@
     <script src="js/ui.js"></script>
     <!-- Inline UI Controller for New Layout -->
     <script>
-        // Tab Switcher for New Layout
-        function switchTab(tabId) {
-            // Hide all views
-            document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+      // Tab Switcher for New Layout
+      function switchTab(tabId) {
+        // Hide all views
+        document
+          .querySelectorAll('[id^="view-"]')
+          .forEach((el) => el.classList.add("hidden"));
 
-            // Show selected
-            const view = document.getElementById(`view-${tabId}`);
-            if (view) view.classList.remove('hidden');
+        // Show selected
+        const view = document.getElementById(`view-${tabId}`);
+        if (view) view.classList.remove("hidden");
 
-            // Update Desktop Nav
-            document.querySelectorAll('aside nav button').forEach(b => {
-                b.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all";
-            });
-            const activeBtn = document.getElementById(`nav-${tabId}`);
-            if (activeBtn) activeBtn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all";
+        // Update Desktop Nav
+        document.querySelectorAll("aside nav button").forEach((b) => {
+          b.className =
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all";
+        });
+        const activeBtn = document.getElementById(`nav-${tabId}`);
+        if (activeBtn)
+          activeBtn.className =
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 transition-all";
 
-            // Update Bottom Nav (Mobile/Tablet)
-            document.querySelectorAll('#bottom-nav button').forEach(b => {
-                b.classList.remove('text-blue-400');
-                b.classList.add('text-gray-500');
-            });
-            const activeBtnBottom = document.getElementById(`bnav-${tabId}`);
-            if (activeBtnBottom) {
-                activeBtnBottom.classList.remove('text-gray-500');
-                activeBtnBottom.classList.add('text-blue-400');
-            }
-
-            // Trigger Loaders
-            if (tabId === 'history') {
-                if (typeof loadHistory === 'function') loadHistory();
-                // Also load draws analysis if it's the visible tab
-                if (!document.getElementById('history-tab-draws')?.classList.contains('hidden')) {
-                    if (typeof loadDrawsAnalysis === 'function') loadDrawsAnalysis();
-                }
-            }
+        // Update Bottom Nav (Mobile/Tablet)
+        document.querySelectorAll("#bottom-nav button").forEach((b) => {
+          b.classList.remove("text-blue-400");
+          b.classList.add("text-gray-500");
+        });
+        const activeBtnBottom = document.getElementById(`bnav-${tabId}`);
+        if (activeBtnBottom) {
+          activeBtnBottom.classList.remove("text-gray-500");
+          activeBtnBottom.classList.add("text-blue-400");
         }
 
-        // Toggle Advanced Settings UI
-        function toggleAdvancedSettings() {
-            const panel = document.getElementById('advancedSettingsPanel');
-            const btn = document.getElementById('settingsToggleBtn');
-            if (panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                btn.classList.add('text-blue-400', 'bg-blue-500/10', 'border-blue-500/20');
-            } else {
-                panel.classList.add('hidden');
-                btn.classList.remove('text-blue-400', 'bg-blue-500/10', 'border-blue-500/20');
-            }
+        // Trigger Loaders
+        if (tabId === "history") {
+          if (typeof loadHistory === "function") loadHistory();
+          // Also load draws analysis if it's the visible tab
+          if (
+            !document
+              .getElementById("history-tab-draws")
+              ?.classList.contains("hidden")
+          ) {
+            if (typeof loadDrawsAnalysis === "function") loadDrawsAnalysis();
+          }
+        }
+      }
+
+      // Toggle Advanced Settings UI
+      function toggleAdvancedSettings() {
+        const panel = document.getElementById("advancedSettingsPanel");
+        const btn = document.getElementById("settingsToggleBtn");
+        if (panel.classList.contains("hidden")) {
+          panel.classList.remove("hidden");
+          btn.classList.add(
+            "text-blue-400",
+            "bg-blue-500/10",
+            "border-blue-500/20",
+          );
+        } else {
+          panel.classList.add("hidden");
+          btn.classList.remove(
+            "text-blue-400",
+            "bg-blue-500/10",
+            "border-blue-500/20",
+          );
+        }
+      }
+
+      // Model Selection UI Handler
+      const originalSelectModelUI = window.selectModel;
+      window.selectModel = async function (model, isInit = false) {
+        // [Lock] 생성 중이면 클릭 무시
+        if (window.isGenerating && window.isGenerating() && !isInit) {
+          console.log("⏳ [UI] Generation in progress, ignoring click");
+          return;
         }
 
-        // Model Selection UI Handler
-        const originalSelectModelUI = window.selectModel;
-        window.selectModel = async function (model, isInit = false) {
-            // [Lock] 생성 중이면 클릭 무시
-            if (window.isGenerating && window.isGenerating() && !isInit) {
-                console.log('⏳ [UI] Generation in progress, ignoring click');
-                return;
-            }
-
-            // Visual Update for Cards
-            document.querySelectorAll('.model-card').forEach(el => {
-                el.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/20');
-                el.classList.add('border-white/5');
-            });
-
-            const targetCard = document.getElementById(`card-${model}`);
-            if (targetCard) {
-                targetCard.classList.remove('border-white/5');
-                targetCard.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/20');
-            }
-
-            // Call logic
-            if (typeof appSelectModel === 'function') await appSelectModel(model, isInit);
-            else if (typeof originalSelectModelUI === 'function') await originalSelectModelUI(model, isInit);
-        }
-
-        // Ripple Effect
-        function playRipple(event) {
-            const button = event.currentTarget;
-            const circle = document.createElement("span");
-            const diameter = Math.max(button.clientWidth, button.clientHeight);
-            const radius = diameter / 2;
-            circle.style.width = circle.style.height = `${diameter}px`;
-            circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
-            circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
-            circle.classList.add("ripple");
-            const ripple = button.getElementsByClassName("ripple")[0];
-            if (ripple) {
-                ripple.remove();
-            }
-            button.appendChild(circle);
-        }
-
-        // Confidence Bar Animation Hook
-        setInterval(() => {
-            const valSpan = document.getElementById('confidenceValueDisplay');
-            if (valSpan && valSpan.innerText !== '--') {
-                const val = parseInt(valSpan.innerText);
-                const bar = document.getElementById('confidenceBar');
-                if (bar) bar.style.width = val + '%';
-            }
-        }, 1000);
-
-        // ===== Animation Selector Functions =====
-        function selectAnimation(type) {
-            if (!window.animationManager) return;
-
-            window.animationManager.setType(type);
-            updateAnimationUI(type);
-        }
-
-        function updateAnimationUI(selectedType) {
-            const options = document.querySelectorAll('.animation-option');
-            options.forEach(opt => {
-                const isSelected = opt.dataset.type === selectedType;
-                const badge = opt.querySelector('.selected-badge');
-
-                if (isSelected) {
-                    opt.classList.remove('border-gray-600', 'bg-gray-800/50');
-                    opt.classList.add('border-purple-500', 'bg-purple-500/10');
-                    if (badge) badge.classList.remove('hidden');
-                } else {
-                    opt.classList.remove('border-purple-500', 'bg-purple-500/10');
-                    opt.classList.add('border-gray-600', 'bg-gray-800/50');
-                    if (badge) badge.classList.add('hidden');
-                }
-            });
-        }
-
-        function toggleAnimationSound(enabled) {
-            if (window.animationManager) {
-                window.animationManager.toggleSound(enabled);
-            }
-        }
-
-        // Initialize animation UI on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.animationManager) {
-                const currentType = window.animationManager.getType();
-                updateAnimationUI(currentType);
-
-                const soundToggle = document.getElementById('soundToggle');
-                if (soundToggle && window.animationManager.soundEnabled !== undefined) {
-                    soundToggle.checked = window.animationManager.soundEnabled;
-                }
-            }
+        // Visual Update for Cards
+        document.querySelectorAll(".model-card").forEach((el) => {
+          el.classList.remove("ring-2", "ring-blue-500", "bg-blue-900/20");
+          el.classList.add("border-white/5");
         });
 
-        // ============================================
-        // HISTORY TAB SWITCHING & DRAWS ANALYSIS
-        // ============================================
-        let analysisCharts = {};
-        let analysisLoaded = false;
-
-        // Lottery configurations - Fallback (will be replaced by dynamic fetch)
-        window.lotteryConfigs = {
-            "korea_645": { ball_count: 6, ball_range: [1, 45], name: "Korea Lotto 6/45" },
-            "usa_powerball": { ball_count: 5, ball_range: [1, 69], name: "USA Powerball" },
-            "usa_megamillions": { ball_count: 5, ball_range: [1, 70], name: "USA Mega Millions" },
-            "canada_649": { ball_count: 6, ball_range: [1, 49], name: "Canada 6/49" },
-            "japan_loto6": { ball_count: 6, ball_range: [1, 43], name: "Japan Loto 6" }
-        };
-
-        // Dynamic load from config/lotteries.json (Single Source of Truth)
-        (async function loadLotteryConfigs() {
-            try {
-                let res = await fetch('/config/lotteries.json');
-                if (!res.ok) res = await fetch('config/lotteries.json');
-                if (!res.ok) res = await fetch('../config/lotteries.json');
-
-                if (res.ok) {
-                    const json = await res.json();
-                    window.lotteryConfigs = json;
-                    console.log('✅ Lottery configs loaded from config/lotteries.json');
-                }
-            } catch (e) {
-                console.warn('⚠️ Using fallback lotteryConfigs:', e);
-            }
-        })();
-
-        const lotteryConfigs = window.lotteryConfigs; // Reference for local use
-
-        // Hook into lottery change event
-        (function () {
-            const desktopSelect = document.getElementById('lotterySelectDesktop');
-            const mobileSelect = document.getElementById('lotterySelectMobile');
-
-            function handleLotteryChange(lotteryId) {
-                window.currentLotteryId = lotteryId;
-                analysisLoaded = false; // Reset so it reloads on next view
-
-                // If currently viewing analysis tab, reload it
-                const drawsTab = document.getElementById('history-tab-draws');
-                if (drawsTab && !drawsTab.classList.contains('hidden')) {
-                    loadDrawsAnalysis();
-                }
-            }
-
-            if (desktopSelect) {
-                desktopSelect.addEventListener('change', (e) => handleLotteryChange(e.target.value));
-            }
-            if (mobileSelect) {
-                mobileSelect.addEventListener('change', (e) => handleLotteryChange(e.target.value));
-            }
-        })();
-
-        function switchHistoryTab(tab) {
-            const drawsTab = document.getElementById('history-tab-draws');
-            const generatedTab = document.getElementById('history-tab-generated');
-            const drawsBtn = document.getElementById('history-tab-btn-draws');
-            const generatedBtn = document.getElementById('history-tab-btn-generated');
-
-            if (tab === 'draws') {
-                drawsTab.classList.remove('hidden');
-                generatedTab.classList.add('hidden');
-                drawsBtn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
-                drawsBtn.classList.remove('text-gray-400', 'font-medium');
-                generatedBtn.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
-                generatedBtn.classList.add('text-gray-400', 'font-medium');
-
-                // Load analysis data if not loaded
-                if (!analysisLoaded) {
-                    loadDrawsAnalysis();
-                }
-            } else {
-                drawsTab.classList.add('hidden');
-                generatedTab.classList.remove('hidden');
-                generatedBtn.classList.add('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
-                generatedBtn.classList.remove('text-gray-400', 'font-medium');
-                drawsBtn.classList.remove('bg-blue-600/20', 'text-blue-400', 'border-b-2', 'border-blue-500', 'font-bold');
-                drawsBtn.classList.add('text-gray-400', 'font-medium');
-            }
+        const targetCard = document.getElementById(`card-${model}`);
+        if (targetCard) {
+          targetCard.classList.remove("border-white/5");
+          targetCard.classList.add("ring-2", "ring-blue-500", "bg-blue-900/20");
         }
 
-        async function loadDrawsAnalysis() {
-            try {
-                const lotteryId = window.currentLotteryId || 'korea_645';
-                const config = lotteryConfigs[lotteryId] || { ball_count: 6 };
+        // Call logic
+        if (typeof appSelectModel === "function")
+          await appSelectModel(model, isInit);
+        else if (typeof originalSelectModelUI === "function")
+          await originalSelectModelUI(model, isInit);
+      };
 
-                // [Supabase First] Primary: Supabase, Fallback: JSON
-                let allDraws = [];
+      // Ripple Effect
+      function playRipple(event) {
+        const button = event.currentTarget;
+        const circle = document.createElement("span");
+        const diameter = Math.max(button.clientWidth, button.clientHeight);
+        const radius = diameter / 2;
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+        circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+        circle.classList.add("ripple");
+        const ripple = button.getElementsByClassName("ripple")[0];
+        if (ripple) {
+          ripple.remove();
+        }
+        button.appendChild(circle);
+      }
 
-                // 1. Try Supabase first
-                if (supabaseClient) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('lotto_draws')
-                            .select('*')
-                            .eq('lottery_type', lotteryId)
-                            .order('draw_date', { ascending: false })
-                            .limit(52);
+      // Confidence Bar Animation Hook
+      setInterval(() => {
+        const valSpan = document.getElementById("confidenceValueDisplay");
+        if (valSpan && valSpan.innerText !== "--") {
+          const val = parseInt(valSpan.innerText);
+          const bar = document.getElementById("confidenceBar");
+          if (bar) bar.style.width = val + "%";
+        }
+      }, 1000);
 
-                        if (!error && data && data.length > 0) {
-                            console.log(`✅ [History] Supabase loaded: ${data.length} draws`);
-                            allDraws = data.map(d => ({
-                                draw_no: d.draw_number,
-                                draw_date: d.draw_date,
-                                numbers: d.numbers,
-                                bonus: d.bonus_number
-                            }));
-                        }
-                    } catch (e) {
-                        console.warn('⚠️ Supabase fetch failed, using JSON fallback:', e);
-                    }
-                }
+      // ===== Animation Selector Functions =====
+      function selectAnimation(type) {
+        if (!window.animationManager) return;
 
-                // 2. Fallback to JSON if Supabase failed
-                if (allDraws.length === 0) {
-                    console.log('📁 [History] Using JSON fallback');
-                    let res = await fetch(`/data/${lotteryId}/draws.json`);
-                    if (!res.ok) res = await fetch(`../data/${lotteryId}/draws.json`);
-                    if (!res.ok) throw new Error('Data fetch failed');
+        window.animationManager.setType(type);
+        updateAnimationUI(type);
+      }
 
-                    const json = await res.json();
-                    allDraws = json.draws || json;
-                }
+      function updateAnimationUI(selectedType) {
+        const options = document.querySelectorAll(".animation-option");
+        options.forEach((opt) => {
+          const isSelected = opt.dataset.type === selectedType;
+          const badge = opt.querySelector(".selected-badge");
 
-                const oneYearDraws = allDraws.slice(-52);
+          if (isSelected) {
+            opt.classList.remove("border-gray-600", "bg-gray-800/50");
+            opt.classList.add("border-purple-500", "bg-purple-500/10");
+            if (badge) badge.classList.remove("hidden");
+          } else {
+            opt.classList.remove("border-purple-500", "bg-purple-500/10");
+            opt.classList.add("border-gray-600", "bg-gray-800/50");
+            if (badge) badge.classList.add("hidden");
+          }
+        });
+      }
 
-                document.getElementById('drawCount').innerText = oneYearDraws.length;
+      function toggleAnimationSound(enabled) {
+        if (window.animationManager) {
+          window.animationManager.toggleSound(enabled);
+        }
+      }
 
-                if (oneYearDraws.length > 0) {
-                    const start = oneYearDraws[0].draw_date || 'Unknown';
-                    const end = oneYearDraws[oneYearDraws.length - 1].draw_date || 'Unknown';
-                    document.getElementById('periodRange').innerText = `${start} ~ ${end}`;
-                }
+      // Initialize animation UI on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        if (window.animationManager) {
+          const currentType = window.animationManager.getType();
+          updateAnimationUI(currentType);
 
-                analyzeDraws(oneYearDraws, config.ball_count, lotteryId);
-                analysisLoaded = true;
-            } catch (e) {
-                console.error('Analysis load failed:', e);
-                document.getElementById('hotNumbers').innerHTML = '<div class="text-red-400">데이터 로드 실패</div>';
-            }
+          const soundToggle = document.getElementById("soundToggle");
+          if (
+            soundToggle &&
+            window.animationManager.soundEnabled !== undefined
+          ) {
+            soundToggle.checked = window.animationManager.soundEnabled;
+          }
+        }
+      });
+
+      // ============================================
+      // HISTORY TAB SWITCHING & DRAWS ANALYSIS
+      // ============================================
+      let analysisCharts = {};
+      let analysisLoaded = false;
+
+      // Lottery configurations - Fallback (will be replaced by dynamic fetch)
+      window.lotteryConfigs = {
+        korea_645: {
+          ball_count: 6,
+          ball_range: [1, 45],
+          name: "Korea Lotto 6/45",
+        },
+        usa_powerball: {
+          ball_count: 5,
+          ball_range: [1, 69],
+          name: "USA Powerball",
+        },
+        usa_megamillions: {
+          ball_count: 5,
+          ball_range: [1, 70],
+          name: "USA Mega Millions",
+        },
+        canada_649: { ball_count: 6, ball_range: [1, 49], name: "Canada 6/49" },
+        japan_loto6: {
+          ball_count: 6,
+          ball_range: [1, 43],
+          name: "Japan Loto 6",
+        },
+      };
+
+      // Dynamic load from config/lotteries.json (Single Source of Truth)
+      (async function loadLotteryConfigs() {
+        try {
+          let res = await fetch("/config/lotteries.json");
+          if (!res.ok) res = await fetch("config/lotteries.json");
+          if (!res.ok) res = await fetch("../config/lotteries.json");
+
+          if (res.ok) {
+            const json = await res.json();
+            window.lotteryConfigs = json;
+            console.log("✅ Lottery configs loaded from config/lotteries.json");
+          }
+        } catch (e) {
+          console.warn("⚠️ Using fallback lotteryConfigs:", e);
+        }
+      })();
+
+      const lotteryConfigs = window.lotteryConfigs; // Reference for local use
+
+      // Hook into lottery change event
+      (function () {
+        const desktopSelect = document.getElementById("lotterySelectDesktop");
+        const mobileSelect = document.getElementById("lotterySelectMobile");
+
+        function handleLotteryChange(lotteryId) {
+          window.currentLotteryId = lotteryId;
+          analysisLoaded = false; // Reset so it reloads on next view
+
+          // If currently viewing analysis tab, reload it
+          const drawsTab = document.getElementById("history-tab-draws");
+          if (drawsTab && !drawsTab.classList.contains("hidden")) {
+            loadDrawsAnalysis();
+          }
         }
 
-        function analyzeDraws(draws, ballCount, lotteryId) {
-            const freq = new Array(80).fill(0);
-            const bonusFreq = new Array(80).fill(0);
-            let maxNum = 0, maxBonus = 0;
+        if (desktopSelect) {
+          desktopSelect.addEventListener("change", (e) =>
+            handleLotteryChange(e.target.value),
+          );
+        }
+        if (mobileSelect) {
+          mobileSelect.addEventListener("change", (e) =>
+            handleLotteryChange(e.target.value),
+          );
+        }
+      })();
 
-            draws.forEach(d => {
-                if (d.numbers) {
-                    d.numbers.forEach(n => { freq[n]++; if (n > maxNum) maxNum = n; });
-                }
-                if (d.bonus !== undefined) {
-                    bonusFreq[d.bonus]++;
-                    if (d.bonus > maxBonus) maxBonus = d.bonus;
-                }
+      function switchHistoryTab(tab) {
+        const drawsTab = document.getElementById("history-tab-draws");
+        const generatedTab = document.getElementById("history-tab-generated");
+        const drawsBtn = document.getElementById("history-tab-btn-draws");
+        const generatedBtn = document.getElementById(
+          "history-tab-btn-generated",
+        );
+
+        if (tab === "draws") {
+          drawsTab.classList.remove("hidden");
+          generatedTab.classList.add("hidden");
+          drawsBtn.classList.add(
+            "bg-blue-600/20",
+            "text-blue-400",
+            "border-b-2",
+            "border-blue-500",
+            "font-bold",
+          );
+          drawsBtn.classList.remove("text-gray-400", "font-medium");
+          generatedBtn.classList.remove(
+            "bg-blue-600/20",
+            "text-blue-400",
+            "border-b-2",
+            "border-blue-500",
+            "font-bold",
+          );
+          generatedBtn.classList.add("text-gray-400", "font-medium");
+
+          // Load analysis data if not loaded
+          if (!analysisLoaded) {
+            loadDrawsAnalysis();
+          }
+        } else {
+          drawsTab.classList.add("hidden");
+          generatedTab.classList.remove("hidden");
+          generatedBtn.classList.add(
+            "bg-blue-600/20",
+            "text-blue-400",
+            "border-b-2",
+            "border-blue-500",
+            "font-bold",
+          );
+          generatedBtn.classList.remove("text-gray-400", "font-medium");
+          drawsBtn.classList.remove(
+            "bg-blue-600/20",
+            "text-blue-400",
+            "border-b-2",
+            "border-blue-500",
+            "font-bold",
+          );
+          drawsBtn.classList.add("text-gray-400", "font-medium");
+        }
+      }
+
+      async function loadDrawsAnalysis() {
+        try {
+          const lotteryId = window.currentLotteryId || "korea_645";
+          const config = lotteryConfigs[lotteryId] || { ball_count: 6 };
+
+          // [Supabase First] Primary: Supabase, Fallback: JSON
+          let allDraws = [];
+
+          // 1. Try Supabase first
+          if (supabaseClient) {
+            try {
+              const { data, error } = await supabaseClient
+                .from("lotto_draws")
+                .select("*")
+                .eq("lottery_type", lotteryId)
+                .order("draw_date", { ascending: false })
+                .limit(52);
+
+              if (!error && data && data.length > 0) {
+                console.log(
+                  `✅ [History] Supabase loaded: ${data.length} draws`,
+                );
+                allDraws = data.map((d) => ({
+                  draw_no: d.draw_number,
+                  draw_date: d.draw_date,
+                  numbers: d.numbers,
+                  bonus: d.bonus_number,
+                }));
+              }
+            } catch (e) {
+              console.warn("⚠️ Supabase fetch failed, using JSON fallback:", e);
+            }
+          }
+
+          // 2. Fallback to JSON if Supabase failed
+          if (allDraws.length === 0) {
+            console.log("📁 [History] Using JSON fallback");
+            let res = await fetch(`/data/${lotteryId}/draws.json`);
+            if (!res.ok) res = await fetch(`../data/${lotteryId}/draws.json`);
+            if (!res.ok) throw new Error("Data fetch failed");
+
+            const json = await res.json();
+            allDraws = json.draws || json;
+          }
+
+          const oneYearDraws = allDraws.slice(-52);
+
+          document.getElementById("drawCount").innerText = oneYearDraws.length;
+
+          if (oneYearDraws.length > 0) {
+            const start = oneYearDraws[0].draw_date || "Unknown";
+            const end =
+              oneYearDraws[oneYearDraws.length - 1].draw_date || "Unknown";
+            document.getElementById("periodRange").innerText =
+              `${start} ~ ${end}`;
+          }
+
+          analyzeDraws(oneYearDraws, config.ball_count, lotteryId);
+          analysisLoaded = true;
+        } catch (e) {
+          console.error("Analysis load failed:", e);
+          document.getElementById("hotNumbers").innerHTML =
+            '<div class="text-red-400">데이터 로드 실패</div>';
+        }
+      }
+
+      function analyzeDraws(draws, ballCount, lotteryId) {
+        const freq = new Array(80).fill(0);
+        const bonusFreq = new Array(80).fill(0);
+        let maxNum = 0,
+          maxBonus = 0;
+
+        draws.forEach((d) => {
+          if (d.numbers) {
+            d.numbers.forEach((n) => {
+              freq[n]++;
+              if (n > maxNum) maxNum = n;
             });
+          }
+          if (d.bonus !== undefined) {
+            bonusFreq[d.bonus]++;
+            if (d.bonus > maxBonus) maxBonus = d.bonus;
+          }
+        });
 
-            // Ranked
-            const ranked = [];
-            for (let i = 1; i <= maxNum; i++) ranked.push({ num: i, count: freq[i] });
-            ranked.sort((a, b) => b.count - a.count);
+        // Ranked
+        const ranked = [];
+        for (let i = 1; i <= maxNum; i++)
+          ranked.push({ num: i, count: freq[i] });
+        ranked.sort((a, b) => b.count - a.count);
 
-            const hot = ranked.slice(0, ballCount);
-            const cold = ranked.slice(-ballCount).reverse();
+        const hot = ranked.slice(0, ballCount);
+        const cold = ranked.slice(-ballCount).reverse();
 
-            renderAnalysisBalls('hotNumbers', hot);
-            renderAnalysisBalls('coldNumbers', cold);
+        renderAnalysisBalls("hotNumbers", hot);
+        renderAnalysisBalls("coldNumbers", cold);
 
-            // Bonus
-            if (maxBonus > 0) {
-                const bonusRanked = [];
-                for (let i = 1; i <= maxBonus; i++) bonusRanked.push({ num: i, count: bonusFreq[i] });
-                bonusRanked.sort((a, b) => b.count - a.count);
-                renderAnalysisBalls('hotBonus', bonusRanked.slice(0, 3));
-                renderAnalysisBalls('coldBonus', bonusRanked.slice(-3).reverse());
-            } else {
-                document.getElementById('hotBonus').innerHTML = '<span class="text-xs text-gray-500">데이터 없음</span>';
-                document.getElementById('coldBonus').innerHTML = '<span class="text-xs text-gray-500">데이터 없음</span>';
-            }
-
-            // Charts
-            renderAnalysisFreqChart(ranked.slice(0, 20));
-
-            let odd = 0, even = 0;
-            draws.forEach(d => d.numbers?.forEach(n => n % 2 === 0 ? even++ : odd++));
-            renderAnalysisOddEvenChart(odd, even);
-
-            const midPoint = maxNum / 2;
-            let lowCount = 0, highCount = 0;
-            draws.forEach(d => d.numbers?.forEach(n => n <= midPoint ? lowCount++ : highCount++));
-            renderAnalysisLowHighChart(lowCount, highCount);
-
-            const last30 = draws.slice(-30);
-            const sums = last30.map(d => d.numbers?.reduce((a, b) => a + b, 0) || 0);
-            const labels = last30.map(d => d.draw_no || '');
-            renderAnalysisSumChart(labels, sums);
-
-            const acValues = last30.map(d => calculateAC(d.numbers));
-            renderAnalysisACChart(labels, acValues);
-
-            const allSums = draws.map(d => d.numbers?.reduce((a, b) => a + b, 0) || 0);
-            renderAnalysisSumDistChart(allSums);
-
-            const endDigitFreq = new Array(10).fill(0);
-            draws.forEach(d => d.numbers?.forEach(n => endDigitFreq[n % 10]++));
-            renderAnalysisEndDigitChart(endDigitFreq);
+        // Bonus
+        if (maxBonus > 0) {
+          const bonusRanked = [];
+          for (let i = 1; i <= maxBonus; i++)
+            bonusRanked.push({ num: i, count: bonusFreq[i] });
+          bonusRanked.sort((a, b) => b.count - a.count);
+          renderAnalysisBalls("hotBonus", bonusRanked.slice(0, 3));
+          renderAnalysisBalls("coldBonus", bonusRanked.slice(-3).reverse());
+        } else {
+          document.getElementById("hotBonus").innerHTML =
+            '<span class="text-xs text-gray-500">데이터 없음</span>';
+          document.getElementById("coldBonus").innerHTML =
+            '<span class="text-xs text-gray-500">데이터 없음</span>';
         }
 
-        function calculateAC(numbers) {
-            if (!numbers || numbers.length < 2) return 0;
-            const diffs = new Set();
-            for (let i = 0; i < numbers.length; i++) {
-                for (let j = i + 1; j < numbers.length; j++) {
-                    diffs.add(Math.abs(numbers[i] - numbers[j]));
-                }
-            }
-            return diffs.size - (numbers.length - 1);
-        }
+        // Charts
+        renderAnalysisFreqChart(ranked.slice(0, 20));
 
-        function renderAnalysisBalls(id, list) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.innerHTML = list.map(item => `
+        let odd = 0,
+          even = 0;
+        draws.forEach((d) =>
+          d.numbers?.forEach((n) => (n % 2 === 0 ? even++ : odd++)),
+        );
+        renderAnalysisOddEvenChart(odd, even);
+
+        const midPoint = maxNum / 2;
+        let lowCount = 0,
+          highCount = 0;
+        draws.forEach((d) =>
+          d.numbers?.forEach((n) => (n <= midPoint ? lowCount++ : highCount++)),
+        );
+        renderAnalysisLowHighChart(lowCount, highCount);
+
+        const last30 = draws.slice(-30);
+        const sums = last30.map(
+          (d) => d.numbers?.reduce((a, b) => a + b, 0) || 0,
+        );
+        const labels = last30.map((d) => d.draw_no || "");
+        renderAnalysisSumChart(labels, sums);
+
+        const acValues = last30.map((d) => calculateAC(d.numbers));
+        renderAnalysisACChart(labels, acValues);
+
+        const allSums = draws.map(
+          (d) => d.numbers?.reduce((a, b) => a + b, 0) || 0,
+        );
+        renderAnalysisSumDistChart(allSums);
+
+        const endDigitFreq = new Array(10).fill(0);
+        draws.forEach((d) => d.numbers?.forEach((n) => endDigitFreq[n % 10]++));
+        renderAnalysisEndDigitChart(endDigitFreq);
+      }
+
+      function calculateAC(numbers) {
+        if (!numbers || numbers.length < 2) return 0;
+        const diffs = new Set();
+        for (let i = 0; i < numbers.length; i++) {
+          for (let j = i + 1; j < numbers.length; j++) {
+            diffs.add(Math.abs(numbers[i] - numbers[j]));
+          }
+        }
+        return diffs.size - (numbers.length - 1);
+      }
+
+      function renderAnalysisBalls(id, list) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = list
+          .map(
+            (item) => `
                 <div class="flex flex-col items-center gap-1">
                     <div class="lotto-ball-v2 ${getAnalysisBallColor(item.num)} text-sm shadow-md">${item.num}</div>
                     <span class="text-xs font-bold text-gray-400">${item.count}회</span>
                 </div>
-            `).join('');
-        }
+            `,
+          )
+          .join("");
+      }
 
-        function getAnalysisBallColor(n) {
-            if (n <= 10) return 'ball-1-10';
-            if (n <= 20) return 'ball-11-20';
-            if (n <= 30) return 'ball-21-30';
-            if (n <= 40) return 'ball-31-40';
-            return 'ball-41-45';
-        }
+      function getAnalysisBallColor(n) {
+        if (n <= 10) return "ball-1-10";
+        if (n <= 20) return "ball-11-20";
+        if (n <= 30) return "ball-21-30";
+        if (n <= 40) return "ball-31-40";
+        return "ball-41-45";
+      }
 
-        function renderAnalysisFreqChart(data) {
-            const ctx = document.getElementById('freqChart')?.getContext('2d');
-            if (!ctx) return;
-            if (analysisCharts.freq) analysisCharts.freq.destroy();
-            analysisCharts.freq = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: data.map(d => d.num), datasets: [{ label: '출현 횟수', data: data.map(d => d.count), backgroundColor: '#6366f1', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function renderAnalysisOddEvenChart(odd, even) {
-            const ctx = document.getElementById('oddEvenChart')?.getContext('2d');
-            if (!ctx) return;
-            if (analysisCharts.oddEven) analysisCharts.oddEven.destroy();
-            const total = odd + even;
-            const oddPct = ((odd / total) * 100).toFixed(1);
-            const evenPct = ((even / total) * 100).toFixed(1);
-            analysisCharts.oddEven = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Odd (홀)', 'Even (짝)'],
-                    datasets: [{ data: [odd, even], backgroundColor: ['#818cf8', '#34d399'], borderWidth: 0 }]
-                },
-                plugins: [ChartDataLabels],
-                options: {
-                    cutout: '55%',
-                    rotation: 180,  // Odd starts at left (9 o'clock)
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#9ca3af' } },
-                        datalabels: {
-                            color: '#fff',
-                            font: { weight: 'bold', size: 14 },
-                            formatter: (value, ctx) => {
-                                const pct = ((value / total) * 100).toFixed(0) + '%';
-                                return pct;
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderAnalysisLowHighChart(low, high) {
-            const ctx = document.getElementById('lowHighChart')?.getContext('2d');
-            if (!ctx) return;
-            if (analysisCharts.lowHigh) analysisCharts.lowHigh.destroy();
-            const total = low + high;
-            const highPct = ((high / total) * 100).toFixed(1);
-            const lowPct = ((low / total) * 100).toFixed(1);
-            analysisCharts.lowHigh = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['High (고)', 'Low (저)'],
-                    datasets: [{ data: [high, low], backgroundColor: ['#f87171', '#60a5fa'], borderWidth: 0 }]
-                },
-                plugins: [ChartDataLabels],
-                options: {
-                    cutout: '55%',
-                    rotation: -90,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#9ca3af' } },
-                        datalabels: {
-                            color: '#fff',
-                            font: { weight: 'bold', size: 14 },
-                            formatter: (value) => ((value / total) * 100).toFixed(0) + '%'
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderAnalysisSumChart(labels, data) {
-            const ctx = document.getElementById('sumChart')?.getContext('2d');
-            if (!ctx) return;
-            if (analysisCharts.sum) analysisCharts.sum.destroy();
-            analysisCharts.sum = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets: [{ label: '합계', data, borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, tension: 0.4, pointRadius: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
-            });
-        }
-
-        function renderAnalysisACChart(labels, data) {
-            const ctx = document.getElementById('acChart')?.getContext('2d');
-            if (!ctx) return;
-            if (analysisCharts.ac) analysisCharts.ac.destroy();
-            analysisCharts.ac = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets: [{ label: 'AC Value', data, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', borderWidth: 2, tension: 0.1, pointRadius: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { suggestedMin: 0, suggestedMax: 10 }, x: { display: false } } }
-            });
-        }
-
-        function renderAnalysisSumDistChart(allSums) {
-            const ctx = document.getElementById('sumDistChart')?.getContext('2d');
-            if (!ctx || allSums.length === 0) return;
-            if (analysisCharts.sumDist) analysisCharts.sumDist.destroy();
-
-            const binSize = 10;
-            const minSum = Math.floor(Math.min(...allSums) / binSize) * binSize;
-            const maxSum = Math.ceil(Math.max(...allSums) / binSize) * binSize;
-            const labels = [], distData = [];
-            for (let i = minSum; i < maxSum; i += binSize) {
-                labels.push(`${i}~${i + binSize - 1}`);
-                distData.push(allSums.filter(s => s >= i && s < i + binSize).length);
-            }
-
-            analysisCharts.sumDist = new Chart(ctx, {
-                type: 'bar',
-                data: { labels, datasets: [{ label: '빈도수', data: distData, backgroundColor: '#a78bfa', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function renderAnalysisEndDigitChart(data) {
-            const ctx = document.getElementById('endDigitChart')?.getContext('2d');
-            if (!ctx) return;
-            if (analysisCharts.endDigit) analysisCharts.endDigit.destroy();
-            analysisCharts.endDigit = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], datasets: [{ label: '빈도', data, backgroundColor: '#60a5fa', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
-            });
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadHistory();
+      function renderAnalysisFreqChart(data) {
+        const ctx = document.getElementById("freqChart")?.getContext("2d");
+        if (!ctx) return;
+        if (analysisCharts.freq) analysisCharts.freq.destroy();
+        analysisCharts.freq = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: data.map((d) => d.num),
+            datasets: [
+              {
+                label: "출현 횟수",
+                data: data.map((d) => d.count),
+                backgroundColor: "#6366f1",
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true },
+              x: { grid: { display: false } },
+            },
+          },
         });
-        // Reload analysis when lottery changes
-        const originalOnLotteryChange = window.onLotteryChange;
-        window.onLotteryChange = function (id) {
-            if (originalOnLotteryChange) originalOnLotteryChange(id);
-            analysisLoaded = false;
-            if (!document.getElementById('history-tab-draws')?.classList.contains('hidden')) {
-                loadDrawsAnalysis();
-            }
-        };
+      }
 
+      function renderAnalysisOddEvenChart(odd, even) {
+        const ctx = document.getElementById("oddEvenChart")?.getContext("2d");
+        if (!ctx) return;
+        if (analysisCharts.oddEven) analysisCharts.oddEven.destroy();
+        const total = odd + even;
+        const oddPct = ((odd / total) * 100).toFixed(1);
+        const evenPct = ((even / total) * 100).toFixed(1);
+        analysisCharts.oddEven = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Odd (홀)", "Even (짝)"],
+            datasets: [
+              {
+                data: [odd, even],
+                backgroundColor: ["#818cf8", "#34d399"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          plugins: [ChartDataLabels],
+          options: {
+            cutout: "55%",
+            rotation: 180, // Odd starts at left (9 o'clock)
+            plugins: {
+              legend: { position: "bottom", labels: { color: "#9ca3af" } },
+              datalabels: {
+                color: "#fff",
+                font: { weight: "bold", size: 14 },
+                formatter: (value, ctx) => {
+                  const pct = ((value / total) * 100).toFixed(0) + "%";
+                  return pct;
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function renderAnalysisLowHighChart(low, high) {
+        const ctx = document.getElementById("lowHighChart")?.getContext("2d");
+        if (!ctx) return;
+        if (analysisCharts.lowHigh) analysisCharts.lowHigh.destroy();
+        const total = low + high;
+        const highPct = ((high / total) * 100).toFixed(1);
+        const lowPct = ((low / total) * 100).toFixed(1);
+        analysisCharts.lowHigh = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["High (고)", "Low (저)"],
+            datasets: [
+              {
+                data: [high, low],
+                backgroundColor: ["#f87171", "#60a5fa"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          plugins: [ChartDataLabels],
+          options: {
+            cutout: "55%",
+            rotation: -90,
+            plugins: {
+              legend: { position: "bottom", labels: { color: "#9ca3af" } },
+              datalabels: {
+                color: "#fff",
+                font: { weight: "bold", size: 14 },
+                formatter: (value) => ((value / total) * 100).toFixed(0) + "%",
+              },
+            },
+          },
+        });
+      }
+
+      function renderAnalysisSumChart(labels, data) {
+        const ctx = document.getElementById("sumChart")?.getContext("2d");
+        if (!ctx) return;
+        if (analysisCharts.sum) analysisCharts.sum.destroy();
+        analysisCharts.sum = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "합계",
+                data,
+                borderColor: "#34d399",
+                backgroundColor: "rgba(52, 211, 153, 0.1)",
+                fill: true,
+                tension: 0.4,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false } },
+          },
+        });
+      }
+
+      function renderAnalysisACChart(labels, data) {
+        const ctx = document.getElementById("acChart")?.getContext("2d");
+        if (!ctx) return;
+        if (analysisCharts.ac) analysisCharts.ac.destroy();
+        analysisCharts.ac = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "AC Value",
+                data,
+                borderColor: "#ec4899",
+                backgroundColor: "rgba(236, 72, 153, 0.1)",
+                borderWidth: 2,
+                tension: 0.1,
+                pointRadius: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { suggestedMin: 0, suggestedMax: 10 },
+              x: { display: false },
+            },
+          },
+        });
+      }
+
+      function renderAnalysisSumDistChart(allSums) {
+        const ctx = document.getElementById("sumDistChart")?.getContext("2d");
+        if (!ctx || allSums.length === 0) return;
+        if (analysisCharts.sumDist) analysisCharts.sumDist.destroy();
+
+        const binSize = 10;
+        const minSum = Math.floor(Math.min(...allSums) / binSize) * binSize;
+        const maxSum = Math.ceil(Math.max(...allSums) / binSize) * binSize;
+        const labels = [],
+          distData = [];
+        for (let i = minSum; i < maxSum; i += binSize) {
+          labels.push(`${i}~${i + binSize - 1}`);
+          distData.push(
+            allSums.filter((s) => s >= i && s < i + binSize).length,
+          );
+        }
+
+        analysisCharts.sumDist = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "빈도수",
+                data: distData,
+                backgroundColor: "#a78bfa",
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true },
+              x: { grid: { display: false } },
+            },
+          },
+        });
+      }
+
+      function renderAnalysisEndDigitChart(data) {
+        const ctx = document.getElementById("endDigitChart")?.getContext("2d");
+        if (!ctx) return;
+        if (analysisCharts.endDigit) analysisCharts.endDigit.destroy();
+        analysisCharts.endDigit = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            datasets: [
+              {
+                label: "빈도",
+                data,
+                backgroundColor: "#60a5fa",
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true },
+              x: { grid: { display: false } },
+            },
+          },
+        });
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        loadHistory();
+      });
+      // Reload analysis when lottery changes
+      const originalOnLotteryChange = window.onLotteryChange;
+      window.onLotteryChange = function (id) {
+        if (originalOnLotteryChange) originalOnLotteryChange(id);
+        analysisLoaded = false;
+        if (
+          !document
+            .getElementById("history-tab-draws")
+            ?.classList.contains("hidden")
+        ) {
+          loadDrawsAnalysis();
+        }
+      };
     </script>
     <style>
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
+      .ripple {
+        position: absolute;
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        background-color: rgba(255, 255, 255, 0.1);
+      }
 
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
+      @keyframes ripple {
+        to {
+          transform: scale(4);
+          opacity: 0;
         }
+      }
 
-        /* Scrollbar Hide */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
+      /* Scrollbar Hide */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
 
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
 
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 3px;
+      }
     </style>
-</body>
-
+  </body>
 </html>
