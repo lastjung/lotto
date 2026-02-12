@@ -13,7 +13,7 @@ class LotteryAnimation {
         this.container = null;
         this.options = {
             ballCount: 45,           // Total balls in the machine
-            revealDelay: 400,        // ms between each ball reveal
+            revealDelay: 300,        // ms between each ball reveal (0.3s)
             mixDuration: 2000,       // ms for mixing animation
             soundEnabled: true,
             onComplete: null,        // Callback when animation completes
@@ -860,12 +860,15 @@ class QuantumShuffleAnimation {
             <div class="quantum-shuffle">
                 <div class="quantum-scan-line scanning"></div>
                 <div class="quantum-balls">
-                    ${numbers.map((_, i) => `
-                        <div class="quantum-ball shuffling" 
+                    ${numbers.map((_, i) => {
+                        const n = Math.floor(Math.random() * 45) + 1;
+                        const colorClass = this.getBallColorClass(n);
+                        return `
+                        <div class="quantum-ball shuffling ${colorClass}" 
                              id="qball-${i}" data-index="${i}">
-                            ${Math.floor(Math.random() * 45) + 1}
+                            ${n}
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
                 <!-- Stats Visible initially with placeholders -->
                 <div class="quantum-stats" id="quantumStats">
@@ -897,7 +900,11 @@ class QuantumShuffleAnimation {
             for (let i = 0; i < ballCount; i++) {
                 const ball = document.getElementById(`qball-${i}`);
                 if (ball && !ball.classList.contains('locked')) {
-                    ball.textContent = Math.floor(Math.random() * 45) + 1;
+                    const n = Math.floor(Math.random() * 45) + 1;
+                    ball.textContent = n;
+                    // Dynamic color during shuffle
+                    const colorClass = this.getBallColorClass(n);
+                    ball.className = `quantum-ball shuffling ${colorClass}`;
                 }
             }
         }, 60);
@@ -905,8 +912,8 @@ class QuantumShuffleAnimation {
         // Wait for scan animation (3.0s) -- Increased for user capture
         await this.delay(3000);
 
-        // Lock one by one - Adjusted to 0.5s
-        const processDelay = 500; 
+        // Lock one by one - Adjusted to 0.3s
+        const processDelay = 300; 
 
         for (let i = 0; i < ballCount; i++) {
             if (!this.isPlaying) break;
@@ -914,7 +921,9 @@ class QuantumShuffleAnimation {
             const ball = document.getElementById(`qball-${i}`);
             if (ball) {
                 ball.textContent = numbers[i];
-                ball.className = 'quantum-ball locked';
+                // Apply the correct color class from Utils
+                const colorClass = this.getBallColorClass(numbers[i]);
+                ball.className = `quantum-ball locked ${colorClass}`;
                 this.playSound('lock'); // 'Tak!' sound
             }
 

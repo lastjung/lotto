@@ -713,9 +713,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 320px; /* Fixed height to prevent shift */
   position: relative;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem 0.5rem 1rem; /* Reduced bottom padding */
 }
 
 .quantum-balls {
@@ -723,12 +722,13 @@
   gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem; /* Reduced margin from 2rem */
   /* Fixed position */
   transform: none;
   opacity: 1;
 }
 
+/* Base styling for quantum balls - removed background to allow color classes to show */
 .quantum-ball {
   width: 64px;
   height: 64px;
@@ -740,17 +740,22 @@
   font-size: 24px;
   color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
   box-shadow:
     inset -4px -4px 10px rgba(0, 0, 0, 0.3),
-    inset 4px 4px 10px rgba(255, 255, 255, 0.3),
-    0 0 20px rgba(147, 51, 234, 0.5);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy spring effect */
-  opacity: 0.6; /* Dimmed initially */
-  transform: scale(0.95);
-  position: relative; /* For beam positioning relative to ball if needed */
+    inset 4px 4px 10px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0.9;
+  position: relative;
   z-index: 2;
+  background-color: #334155; /* Fallback dark grey */
 }
+
+/* Color Classes for Quantum Balls (Matching index.html) */
+.quantum-ball.ball-1-10 { background: radial-gradient(circle at 30% 30%, #fcd34d, #f59e0b); }
+.quantum-ball.ball-11-20 { background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb); }
+.quantum-ball.ball-21-30 { background: radial-gradient(circle at 30% 30%, #f87171, #dc2626); }
+.quantum-ball.ball-31-40 { background: radial-gradient(circle at 30% 30%, #94a3b8, #475569); }
+.quantum-ball.ball-41-45 { background: radial-gradient(circle at 30% 30%, #34d399, #059669); }
 
 .quantum-ball.shuffling {
   /* No shake, just rapid number change */
@@ -767,7 +772,7 @@
 .quantum-ball.locked {
   opacity: 1;
   transform: scale(1.1); /* Slightly larger */
-  box-shadow: 0 0 30px rgba(147, 51, 234, 0.8);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.3); /* Generic glow */
   z-index: 10;
 }
 
@@ -808,7 +813,7 @@
   gap: 12px;
   width: 100%;
   max-width: 480px;
-  margin-top: 2rem;
+  margin-top: 1rem; /* Reduced from 2rem */
   opacity: 0.3;
   transition: opacity 0.5s ease;
 }

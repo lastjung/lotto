@@ -865,7 +865,7 @@ function displayResults(data) {
     }
 
     area.innerHTML = `
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-2">
             <div class="text-base md:text-lg text-gray-300">
                 <span class="text-blue-400 font-bold mr-1">
                     ${Utils.getSelectedLotteryLabel()}
@@ -875,7 +875,7 @@ function displayResults(data) {
             </div>
             <span class="text-xs text-gray-600">${new Date().toLocaleTimeString()}</span>
         </div>
-        <div class="space-y-3">
+        <div class="space-y-2">
         ${data.numbers.map((item, i) => {
             const nums = item.numbers;
             const analysis = item.analysis || {};
