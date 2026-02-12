@@ -53,6 +53,10 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <!-- Shared Utilities -->
+    <script src="js/utils.js"></script>
+    <!-- Analysis & Charts Logic -->
+    <script src="js/analysis.js"></script>
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -1716,7 +1720,7 @@
               .getElementById("history-tab-draws")
               ?.classList.contains("hidden")
           ) {
-            if (typeof loadDrawsAnalysis === "function") loadDrawsAnalysis();
+            if (typeof refreshAnalysis === "function") refreshAnalysis();
           }
         }
       }
@@ -1846,572 +1850,56 @@
       });
 
       // ============================================
-      // HISTORY TAB SWITCHING & DRAWS ANALYSIS
+      // EVENT LISTENERS & INITIALIZATION
       // ============================================
-      let analysisCharts = {};
-      let analysisLoaded = false;
-
-      // Lottery configurations - Fallback (will be replaced by dynamic fetch)
-      window.lotteryConfigs = {
-        korea_645: {
-          ball_count: 6,
-          ball_range: [1, 45],
-          name: "Korea Lotto 6/45",
-        },
-        usa_powerball: {
-          ball_count: 5,
-          ball_range: [1, 69],
-          name: "USA Powerball",
-        },
-        usa_megamillions: {
-          ball_count: 5,
-          ball_range: [1, 70],
-          name: "USA Mega Millions",
-        },
-        canada_649: { ball_count: 6, ball_range: [1, 49], name: "Canada 6/49" },
-        japan_loto6: {
-          ball_count: 6,
-          ball_range: [1, 43],
-          name: "Japan Loto 6",
-        },
-      };
-
-      // Dynamic load from config/lotteries.json (Single Source of Truth)
-      (async function loadLotteryConfigs() {
-        try {
-          let res = await fetch("/config/lotteries.json");
-          if (!res.ok) res = await fetch("config/lotteries.json");
-          if (!res.ok) res = await fetch("../config/lotteries.json");
-
-          if (res.ok) {
-            const json = await res.json();
-            window.lotteryConfigs = json;
-            console.log("✅ Lottery configs loaded from config/lotteries.json");
-          }
-        } catch (e) {
-          console.warn("⚠️ Using fallback lotteryConfigs:", e);
-        }
-      })();
-
-      const lotteryConfigs = window.lotteryConfigs; // Reference for local use
-
-      // Hook into lottery change event
       (function () {
         const desktopSelect = document.getElementById("lotterySelectDesktop");
         const mobileSelect = document.getElementById("lotterySelectMobile");
 
-        function handleLotteryChange(lotteryId) {
-          window.currentLotteryId = lotteryId;
-          analysisLoaded = false; // Reset so it reloads on next view
-
-          // If currently viewing analysis tab, reload it
-          const drawsTab = document.getElementById("history-tab-draws");
-          if (drawsTab && !drawsTab.classList.contains("hidden")) {
-            loadDrawsAnalysis();
+        async function syncAndChange(val) {
+          // Sync selectors
+          if (desktopSelect && desktopSelect.value !== val) desktopSelect.value = val;
+          if (mobileSelect && mobileSelect.value !== val) mobileSelect.value = val;
+          
+          window.currentLotteryId = val;
+          
+          // Trigger App Logic (app.js)
+          if (typeof window.onLotteryChange === 'function') {
+            await window.onLotteryChange(val);
+          }
+          
+          // Trigger Analysis Refresh (analysis.js)
+          if (typeof window.refreshAnalysis === 'function') {
+            window.refreshAnalysis(val);
           }
         }
 
-        if (desktopSelect) {
-          desktopSelect.addEventListener("change", (e) =>
-            handleLotteryChange(e.target.value),
-          );
-        }
-        if (mobileSelect) {
-          mobileSelect.addEventListener("change", (e) =>
-            handleLotteryChange(e.target.value),
-          );
-        }
+        if (desktopSelect) desktopSelect.addEventListener("change", (e) => syncAndChange(e.target.value));
+        if (mobileSelect) mobileSelect.addEventListener("change", (e) => syncAndChange(e.target.value));
       })();
 
-      function switchHistoryTab(tab) {
-        const drawsTab = document.getElementById("history-tab-draws");
-        const generatedTab = document.getElementById("history-tab-generated");
-        const drawsBtn = document.getElementById("history-tab-btn-draws");
-        const generatedBtn = document.getElementById(
-          "history-tab-btn-generated",
-        );
-
-        if (tab === "draws") {
-          drawsTab.classList.remove("hidden");
-          generatedTab.classList.add("hidden");
-          drawsBtn.classList.add(
-            "bg-blue-600/20",
-            "text-blue-400",
-            "border-b-2",
-            "border-blue-500",
-            "font-bold",
-          );
-          drawsBtn.classList.remove("text-gray-400", "font-medium");
-          generatedBtn.classList.remove(
-            "bg-blue-600/20",
-            "text-blue-400",
-            "border-b-2",
-            "border-blue-500",
-            "font-bold",
-          );
-          generatedBtn.classList.add("text-gray-400", "font-medium");
-
-          // Load analysis data if not loaded
-          if (!analysisLoaded) {
-            loadDrawsAnalysis();
-          }
-        } else {
-          drawsTab.classList.add("hidden");
-          generatedTab.classList.remove("hidden");
-          generatedBtn.classList.add(
-            "bg-blue-600/20",
-            "text-blue-400",
-            "border-b-2",
-            "border-blue-500",
-            "font-bold",
-          );
-          generatedBtn.classList.remove("text-gray-400", "font-medium");
-          drawsBtn.classList.remove(
-            "bg-blue-600/20",
-            "text-blue-400",
-            "border-b-2",
-            "border-blue-500",
-            "font-bold",
-          );
-          drawsBtn.classList.add("text-gray-400", "font-medium");
+      // Confidence Bar Animation Hook
+      setInterval(() => {
+        const valSpan = document.getElementById("confidenceValueDisplay");
+        if (valSpan && valSpan.innerText !== "--") {
+          const val = parseInt(valSpan.innerText);
+          const bar = document.getElementById("confidenceBar");
+          if (bar) bar.style.width = val + "%";
         }
-      }
+      }, 1000);
 
-      async function loadDrawsAnalysis() {
-        try {
-          const lotteryId = window.currentLotteryId || "korea_645";
-          const config = lotteryConfigs[lotteryId] || { ball_count: 6 };
-
-          // [Supabase First] Primary: Supabase, Fallback: JSON
-          let allDraws = [];
-
-          // 1. Try Supabase first
-          if (supabaseClient) {
-            try {
-              const { data, error } = await supabaseClient
-                .from("lotto_draws")
-                .select("*")
-                .eq("lottery_type", lotteryId)
-                .order("draw_date", { ascending: false })
-                .limit(52);
-
-              if (!error && data && data.length > 0) {
-                console.log(
-                  `✅ [History] Supabase loaded: ${data.length} draws`,
-                );
-                allDraws = data.map((d) => ({
-                  draw_no: d.draw_number,
-                  draw_date: d.draw_date,
-                  numbers: d.numbers,
-                  bonus: d.bonus_number,
-                }));
-              }
-            } catch (e) {
-              console.warn("⚠️ Supabase fetch failed, using JSON fallback:", e);
-            }
-          }
-
-          // 2. Fallback to JSON if Supabase failed
-          if (allDraws.length === 0) {
-            console.log("📁 [History] Using JSON fallback");
-            let res = await fetch(`/data/${lotteryId}/draws.json`);
-            if (!res.ok) res = await fetch(`../data/${lotteryId}/draws.json`);
-            if (!res.ok) throw new Error("Data fetch failed");
-
-            const json = await res.json();
-            allDraws = json.draws || json;
-          }
-
-          const oneYearDraws = allDraws.slice(-52);
-
-          document.getElementById("drawCount").innerText = oneYearDraws.length;
-
-          if (oneYearDraws.length > 0) {
-            const start = oneYearDraws[0].draw_date || "Unknown";
-            const end =
-              oneYearDraws[oneYearDraws.length - 1].draw_date || "Unknown";
-            document.getElementById("periodRange").innerText =
-              `${start} ~ ${end}`;
-          }
-
-          analyzeDraws(oneYearDraws, config.ball_count, lotteryId);
-          analysisLoaded = true;
-        } catch (e) {
-          console.error("Analysis load failed:", e);
-          document.getElementById("hotNumbers").innerHTML =
-            '<div class="text-red-400">데이터 로드 실패</div>';
-        }
-      }
-
-      function analyzeDraws(draws, ballCount, lotteryId) {
-        const freq = new Array(80).fill(0);
-        const bonusFreq = new Array(80).fill(0);
-        let maxNum = 0,
-          maxBonus = 0;
-
-        draws.forEach((d) => {
-          if (d.numbers) {
-            d.numbers.forEach((n) => {
-              freq[n]++;
-              if (n > maxNum) maxNum = n;
-            });
-          }
-          if (d.bonus !== undefined) {
-            bonusFreq[d.bonus]++;
-            if (d.bonus > maxBonus) maxBonus = d.bonus;
-          }
-        });
-
-        // Ranked
-        const ranked = [];
-        for (let i = 1; i <= maxNum; i++)
-          ranked.push({ num: i, count: freq[i] });
-        ranked.sort((a, b) => b.count - a.count);
-
-        const hot = ranked.slice(0, ballCount);
-        const cold = ranked.slice(-ballCount).reverse();
-
-        renderAnalysisBalls("hotNumbers", hot);
-        renderAnalysisBalls("coldNumbers", cold);
-
-        // Bonus
-        if (maxBonus > 0) {
-          const bonusRanked = [];
-          for (let i = 1; i <= maxBonus; i++)
-            bonusRanked.push({ num: i, count: bonusFreq[i] });
-          bonusRanked.sort((a, b) => b.count - a.count);
-          renderAnalysisBalls("hotBonus", bonusRanked.slice(0, 3));
-          renderAnalysisBalls("coldBonus", bonusRanked.slice(-3).reverse());
-        } else {
-          document.getElementById("hotBonus").innerHTML =
-            '<span class="text-xs text-gray-500">데이터 없음</span>';
-          document.getElementById("coldBonus").innerHTML =
-            '<span class="text-xs text-gray-500">데이터 없음</span>';
-        }
-
-        // Charts
-        renderAnalysisFreqChart(ranked.slice(0, 20));
-
-        let odd = 0,
-          even = 0;
-        draws.forEach((d) =>
-          d.numbers?.forEach((n) => (n % 2 === 0 ? even++ : odd++)),
-        );
-        renderAnalysisOddEvenChart(odd, even);
-
-        const midPoint = maxNum / 2;
-        let lowCount = 0,
-          highCount = 0;
-        draws.forEach((d) =>
-          d.numbers?.forEach((n) => (n <= midPoint ? lowCount++ : highCount++)),
-        );
-        renderAnalysisLowHighChart(lowCount, highCount);
-
-        const last30 = draws.slice(-30);
-        const sums = last30.map(
-          (d) => d.numbers?.reduce((a, b) => a + b, 0) || 0,
-        );
-        const labels = last30.map((d) => d.draw_no || "");
-        renderAnalysisSumChart(labels, sums);
-
-        const acValues = last30.map((d) => calculateAC(d.numbers));
-        renderAnalysisACChart(labels, acValues);
-
-        const allSums = draws.map(
-          (d) => d.numbers?.reduce((a, b) => a + b, 0) || 0,
-        );
-        renderAnalysisSumDistChart(allSums);
-
-        const endDigitFreq = new Array(10).fill(0);
-        draws.forEach((d) => d.numbers?.forEach((n) => endDigitFreq[n % 10]++));
-        renderAnalysisEndDigitChart(endDigitFreq);
-      }
-
-      function calculateAC(numbers) {
-        if (!numbers || numbers.length < 2) return 0;
-        const diffs = new Set();
-        for (let i = 0; i < numbers.length; i++) {
-          for (let j = i + 1; j < numbers.length; j++) {
-            diffs.add(Math.abs(numbers[i] - numbers[j]));
-          }
-        }
-        return diffs.size - (numbers.length - 1);
-      }
-
-      function renderAnalysisBalls(id, list) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.innerHTML = list
-          .map(
-            (item) => `
-                <div class="flex flex-col items-center gap-1">
-                    <div class="lotto-ball-v2 ${getAnalysisBallColor(item.num)} text-sm shadow-md">${item.num}</div>
-                    <span class="text-xs font-bold text-gray-400">${item.count}회</span>
-                </div>
-            `,
-          )
-          .join("");
-      }
-
-      function getAnalysisBallColor(n) {
-        if (n <= 10) return "ball-1-10";
-        if (n <= 20) return "ball-11-20";
-        if (n <= 30) return "ball-21-30";
-        if (n <= 40) return "ball-31-40";
-        return "ball-41-45";
-      }
-
-      function renderAnalysisFreqChart(data) {
-        const ctx = document.getElementById("freqChart")?.getContext("2d");
-        if (!ctx) return;
-        if (analysisCharts.freq) analysisCharts.freq.destroy();
-        analysisCharts.freq = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: data.map((d) => d.num),
-            datasets: [
-              {
-                label: "출현 횟수",
-                data: data.map((d) => d.count),
-                backgroundColor: "#6366f1",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true },
-              x: { grid: { display: false } },
-            },
-          },
-        });
-      }
-
-      function renderAnalysisOddEvenChart(odd, even) {
-        const ctx = document.getElementById("oddEvenChart")?.getContext("2d");
-        if (!ctx) return;
-        if (analysisCharts.oddEven) analysisCharts.oddEven.destroy();
-        const total = odd + even;
-        const oddPct = ((odd / total) * 100).toFixed(1);
-        const evenPct = ((even / total) * 100).toFixed(1);
-        analysisCharts.oddEven = new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: ["Odd (홀)", "Even (짝)"],
-            datasets: [
-              {
-                data: [odd, even],
-                backgroundColor: ["#818cf8", "#34d399"],
-                borderWidth: 0,
-              },
-            ],
-          },
-          plugins: [ChartDataLabels],
-          options: {
-            cutout: "55%",
-            rotation: 180, // Odd starts at left (9 o'clock)
-            plugins: {
-              legend: { position: "bottom", labels: { color: "#9ca3af" } },
-              datalabels: {
-                color: "#fff",
-                font: { weight: "bold", size: 14 },
-                formatter: (value, ctx) => {
-                  const pct = ((value / total) * 100).toFixed(0) + "%";
-                  return pct;
-                },
-              },
-            },
-          },
-        });
-      }
-
-      function renderAnalysisLowHighChart(low, high) {
-        const ctx = document.getElementById("lowHighChart")?.getContext("2d");
-        if (!ctx) return;
-        if (analysisCharts.lowHigh) analysisCharts.lowHigh.destroy();
-        const total = low + high;
-        const highPct = ((high / total) * 100).toFixed(1);
-        const lowPct = ((low / total) * 100).toFixed(1);
-        analysisCharts.lowHigh = new Chart(ctx, {
-          type: "doughnut",
-          data: {
-            labels: ["High (고)", "Low (저)"],
-            datasets: [
-              {
-                data: [high, low],
-                backgroundColor: ["#f87171", "#60a5fa"],
-                borderWidth: 0,
-              },
-            ],
-          },
-          plugins: [ChartDataLabels],
-          options: {
-            cutout: "55%",
-            rotation: -90,
-            plugins: {
-              legend: { position: "bottom", labels: { color: "#9ca3af" } },
-              datalabels: {
-                color: "#fff",
-                font: { weight: "bold", size: 14 },
-                formatter: (value) => ((value / total) * 100).toFixed(0) + "%",
-              },
-            },
-          },
-        });
-      }
-
-      function renderAnalysisSumChart(labels, data) {
-        const ctx = document.getElementById("sumChart")?.getContext("2d");
-        if (!ctx) return;
-        if (analysisCharts.sum) analysisCharts.sum.destroy();
-        analysisCharts.sum = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "합계",
-                data,
-                borderColor: "#34d399",
-                backgroundColor: "rgba(52, 211, 153, 0.1)",
-                fill: true,
-                tension: 0.4,
-                pointRadius: 2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false } },
-          },
-        });
-      }
-
-      function renderAnalysisACChart(labels, data) {
-        const ctx = document.getElementById("acChart")?.getContext("2d");
-        if (!ctx) return;
-        if (analysisCharts.ac) analysisCharts.ac.destroy();
-        analysisCharts.ac = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "AC Value",
-                data,
-                borderColor: "#ec4899",
-                backgroundColor: "rgba(236, 72, 153, 0.1)",
-                borderWidth: 2,
-                tension: 0.1,
-                pointRadius: 2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { suggestedMin: 0, suggestedMax: 10 },
-              x: { display: false },
-            },
-          },
-        });
-      }
-
-      function renderAnalysisSumDistChart(allSums) {
-        const ctx = document.getElementById("sumDistChart")?.getContext("2d");
-        if (!ctx || allSums.length === 0) return;
-        if (analysisCharts.sumDist) analysisCharts.sumDist.destroy();
-
-        const binSize = 10;
-        const minSum = Math.floor(Math.min(...allSums) / binSize) * binSize;
-        const maxSum = Math.ceil(Math.max(...allSums) / binSize) * binSize;
-        const labels = [],
-          distData = [];
-        for (let i = minSum; i < maxSum; i += binSize) {
-          labels.push(`${i}~${i + binSize - 1}`);
-          distData.push(
-            allSums.filter((s) => s >= i && s < i + binSize).length,
-          );
-        }
-
-        analysisCharts.sumDist = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "빈도수",
-                data: distData,
-                backgroundColor: "#a78bfa",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true },
-              x: { grid: { display: false } },
-            },
-          },
-        });
-      }
-
-      function renderAnalysisEndDigitChart(data) {
-        const ctx = document.getElementById("endDigitChart")?.getContext("2d");
-        if (!ctx) return;
-        if (analysisCharts.endDigit) analysisCharts.endDigit.destroy();
-        analysisCharts.endDigit = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-            datasets: [
-              {
-                label: "빈도",
-                data,
-                backgroundColor: "#60a5fa",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true },
-              x: { grid: { display: false } },
-            },
-          },
-        });
-      }
-
-      // Initialize
+      // Initialize animation UI on page load
       document.addEventListener("DOMContentLoaded", () => {
-        loadHistory();
-      });
-      // Reload analysis when lottery changes
-      const originalOnLotteryChange = window.onLotteryChange;
-      window.onLotteryChange = function (id) {
-        if (originalOnLotteryChange) originalOnLotteryChange(id);
-        analysisLoaded = false;
-        if (
-          !document
-            .getElementById("history-tab-draws")
-            ?.classList.contains("hidden")
-        ) {
-          loadDrawsAnalysis();
+        if (window.animationManager) {
+          const currentType = window.animationManager.getType();
+          if (typeof updateAnimationUI === 'function') updateAnimationUI(currentType);
+
+          const soundToggle = document.getElementById("soundToggle");
+          if (soundToggle && window.animationManager.soundEnabled !== undefined) {
+            soundToggle.checked = window.animationManager.soundEnabled;
+          }
         }
-      };
+      });
     </script>
     <style>
       .ripple {

@@ -230,21 +230,18 @@ function getLotteryValue() {
 }
 
 // 복권 종류 변경 처리
-async function onLotteryChange() {
-    const lotteryId = getLotteryValue(); // [FIX] Use helper
+window.onLotteryChange = async function (lotteryId) {
+    if (!lotteryId) lotteryId = getLotteryValue(); // Fallback if no arg
 
     // [Persistence] 1. LocalStorage 저장
     localStorage.setItem('s_lottery', lotteryId);
 
     await loadLottoData(lotteryId);
 
-    // [Persistence] 2. Config 저장 (모델 변경 시와 동일하게)
-    // 현재는 모델 변경 시에만 config 저장이 트리거되므로, 
-    // 여기서는 간단히 로컬 변수 업데이트만 하고, 실제 저장은 selectModel이나 생성 시점에 될 수 있음
-    // 하지만 "두 군데 저장" 요구사항에 맞춰 즉시 저장 시도
+    // [Persistence] 2. Config 저장
     saveConfigToServer(lotteryId, currentModel);
 
-    // 모델도 해당 복권에 맞춰 다시 로딩 (나중에 국가별 모델이 다를 경우 대비)
+    // 모델도 해당 복권에 맞춰 다시 로딩
     await loadModel(currentModel);
 }
 
@@ -397,7 +394,7 @@ async function generateNumbers() {
                     numbers: nums,
                     analysis: {
                         sum: nums.reduce((a, b) => a + b, 0),
-                        ac_value: calculateAC(nums)
+                        ac_value: Utils.calculateAC(nums)
                     }
                 })),
                 lottery_id: getLotteryValue(), // [FIX] Use helper
@@ -429,10 +426,7 @@ async function generateNumbers() {
         const animationContainer = document.getElementById('resultsArea') || document.getElementById('numbersArea');
 
         // [Title] 애니메이션 중에도 소제목 표시
-        const lotteryLabel = (function () {
-            const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
-            return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.trim() : 'Korea Lotto 6/45';
-        })();
+        const lotteryLabel = Utils.getSelectedLotteryLabel();
         const titleHTML = `<div class="flex items-center justify-between mb-4">
             <div class="text-base md:text-lg text-gray-300">
                 <span class="text-blue-400 font-bold mr-1">${lotteryLabel}</span>
@@ -775,7 +769,7 @@ function applyFilters(numbersList) {
 
     return numbersList.filter(numbers => {
         // AC 필터
-        if (acFilter && calculateAC(numbers) < 7) return false;
+        if (acFilter && Utils.calculateAC(numbers) < 7) return false;
 
         // 합계 필터
         if (sumFilter) {
@@ -784,41 +778,13 @@ function applyFilters(numbersList) {
         }
 
         // 연속번호 필터
-        if (consecutiveFilter && hasConsecutive(numbers)) return false;
+        if (consecutiveFilter && Utils.hasConsecutive(numbers)) return false;
 
         return true;
     });
 }
 
-// AC값 계산
-function calculateAC(numbers) {
-    const sorted = [...numbers].sort((a, b) => a - b);
-    const diffs = new Set();
 
-    for (let i = 0; i < sorted.length; i++) {
-        for (let j = i + 1; j < sorted.length; j++) {
-            diffs.add(sorted[j] - sorted[i]);
-        }
-    }
-
-    return diffs.size - (numbers.length - 1);
-}
-
-// 연속번호 검사
-function hasConsecutive(numbers, minCount = 3) {
-    const sorted = [...numbers].sort((a, b) => a - b);
-    let consecutive = 1;
-
-    for (let i = 1; i < sorted.length; i++) {
-        if (sorted[i] - sorted[i - 1] === 1) {
-            consecutive++;
-            if (consecutive >= minCount) return true;
-        } else {
-            consecutive = 1;
-        }
-    }
-    return false;
-}
 
 // 추가 세트를 애니메이션 영역 아래에 append (순차적 등장 효과 + 사운드)
 function appendAdditionalSets(data, container) {
@@ -849,7 +815,7 @@ function appendAdditionalSets(data, container) {
                         <span class="text-xs font-mono text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded whitespace-nowrap">SET #${i + 2}</span>
                         <div class="flex gap-2 sm:gap-3 justify-center">
                             ${nums.map(n => `
-                                <span class="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full text-sm sm:text-base font-bold text-white shadow-lg ${getBallClass(n)}">
+                                <span class="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full text-sm sm:text-base font-bold text-white shadow-lg ${Utils.getBallClass(n)}">
                                     ${n}
                                 </span>
                             `).join('')}
@@ -902,10 +868,7 @@ function displayResults(data) {
         <div class="flex items-center justify-between mb-4">
             <div class="text-base md:text-lg text-gray-300">
                 <span class="text-blue-400 font-bold mr-1">
-                    ${(function () {
-            const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
-            return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.trim() : 'Korea Lotto 6/45';
-        })()}
+                    ${Utils.getSelectedLotteryLabel()}
                 </span>
                 | <span class="text-purple-400 font-bold">${data.model ? data.model.toUpperCase() : 'AI'}</span>
                 | Next Draw
@@ -928,7 +891,7 @@ function displayResults(data) {
                 </div>
                 <div class="flex gap-2 justify-center">
                     ${nums.map(n => `
-                        <span class="lotto-ball-v2 ${getBallClass(n)} pop-in" style="animation-delay: ${i * 0.1}s">
+                        <span class="lotto-ball-v2 ${Utils.getBallClass(n)} pop-in" style="animation-delay: ${i * 0.1}s">
                             ${n}
                         </span>
                     `).join('')}
@@ -975,10 +938,7 @@ function saveHistoryEntry(data) {
             date: new Date().toISOString(),
             model: data.model || currentModel,
             lottery_type: getLotteryValue(),
-            lottery_name: (function () {
-                const sel = document.getElementById('lotterySelectDesktop') || document.getElementById('lotterySelectMobile') || document.getElementById('lotterySelect');
-                return sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.trim() : 'Korea Lotto 6/45';
-            })(),
+            lottery_name: Utils.getSelectedLotteryLabel(),
             numbers: data.numbers || [],
             generated_at: new Date().toISOString()
         };
@@ -1044,7 +1004,7 @@ function loadHistory() {
             if (nums.length === 0) return '';
             return `
                     <div class="flex gap-1.5 flex-wrap justify-center sm:justify-start">
-                        ${nums.map(n => `<span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${getBallColor(n)}">${n}</span>`).join('')}
+                        ${nums.map(n => `<span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${Utils.getBallColorLegacy(n)}">${n}</span>`).join('')}
                     </div>
                     `;
         }).join('')}
@@ -1060,23 +1020,6 @@ function clearHistory() {
     }
 }
 
-// 공 색상 클래스 (V2 대응)
-function getBallClass(num) {
-    if (num <= 10) return 'ball-1-10';
-    if (num <= 20) return 'ball-11-20';
-    if (num <= 30) return 'ball-21-30';
-    if (num <= 40) return 'ball-31-40';
-    return 'ball-41-45';
-}
-
-function getBallColor(n) {
-    // Fallback for missing CSS classes or history view
-    if (n <= 10) return 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20';
-    if (n <= 20) return 'bg-blue-500 text-white shadow-lg shadow-blue-500/20';
-    if (n <= 30) return 'bg-red-500 text-white shadow-lg shadow-red-500/20';
-    if (n <= 40) return 'bg-gray-600 text-white shadow-lg shadow-gray-500/20';
-    return 'bg-green-500 text-white shadow-lg shadow-green-500/20';
-}
 
 
 // [Generation Count] 개수 조절

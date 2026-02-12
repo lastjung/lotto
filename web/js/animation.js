@@ -126,11 +126,7 @@ class LotteryAnimation {
 
     // Get ball color class based on number
     getBallColorClass(num) {
-        if (num <= 10) return 'ball-yellow';
-        if (num <= 20) return 'ball-blue';
-        if (num <= 30) return 'ball-red';
-        if (num <= 40) return 'ball-gray';
-        return 'ball-green';
+        return Utils.getBallClass(num);
     }
 
     // Create the animation container HTML
@@ -352,11 +348,7 @@ class SlotMachineAnimation {
 
     // Get ball color class
     getBallColorClass(num) {
-        if (num <= 10) return 'ball-yellow';
-        if (num <= 20) return 'ball-blue';
-        if (num <= 30) return 'ball-red';
-        if (num <= 40) return 'ball-gray';
-        return 'ball-green';
+        return Utils.getBallClass(num);
     }
 
     // Create slot machine HTML
@@ -587,11 +579,7 @@ class AIScannerAnimation {
     }
 
     getBallColorClass(num) {
-        if (num <= 10) return 'ball-yellow';
-        if (num <= 20) return 'ball-blue';
-        if (num <= 30) return 'ball-red';
-        if (num <= 40) return 'ball-gray';
-        return 'ball-green';
+        return Utils.getBallClass(num);
     }
 
     createScannerHTML(numbers) {
@@ -720,11 +708,7 @@ class QuantumShuffleAnimation {
     }
 
     getBallColorClass(n) {
-        if (n <= 10) return 'ball-yellow';
-        if (n <= 20) return 'ball-blue';
-        if (n <= 30) return 'ball-red';
-        if (n <= 40) return 'ball-gray';
-        return 'ball-green';
+        return Utils.getBallClass(n);
     }
 
     getAudioContext() {
