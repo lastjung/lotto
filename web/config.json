@@ -1,5 +1,5 @@
 {
-    "default_lottery": "korea_645",
-    "default_model": "vector",
-    "updated_at": "2026-02-12T02:33:02.421Z"
+    "default_lottery": "usa_megamillions",
+    "default_model": "transformer",
+    "updated_at": "2026-02-12T02:50:13.240Z"
 }

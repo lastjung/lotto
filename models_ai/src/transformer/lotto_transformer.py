@@ -160,6 +160,8 @@ def create_model(config: dict = None) -> LottoTransformer:
             config["ball_ranges"] = config.pop("num_numbers")
         if "seq_length" in config and "draw_length" not in config:
             config["draw_length"] = config.pop("seq_length")
+        if "history_length" in config and "draw_length" not in config:
+            config["draw_length"] = config.pop("history_length")
 
     
     default_config = {

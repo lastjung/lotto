@@ -2071,5 +2071,944 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 29,
+    "generated_at": "2026-02-11T21:42:17.986989",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "lstm",
+    "requested_model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          16,
+          18,
+          32,
+          35,
+          66
+        ],
+        "analysis": {
+          "sum": 167,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 4,
+          "high_count": 1,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          19,
+          25,
+          38,
+          41,
+          65
+        ],
+        "analysis": {
+          "sum": 188,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          10,
+          15,
+          31,
+          51,
+          70
+        ],
+        "analysis": {
+          "sum": 177,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          3,
+          20,
+          28,
+          55,
+          57
+        ],
+        "analysis": {
+          "sum": 163,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          9,
+          35,
+          38,
+          56,
+          60
+        ],
+        "analysis": {
+          "sum": 198,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 30,
+    "generated_at": "2026-02-11T21:42:28.406770",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "vector",
+    "requested_model": "vector",
+    "numbers": [
+      {
+        "numbers": [
+          1,
+          10,
+          43,
+          49,
+          62
+        ],
+        "analysis": {
+          "sum": 165,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.902,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          9,
+          29,
+          43,
+          46,
+          64
+        ],
+        "analysis": {
+          "sum": 191,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.893,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          18,
+          23,
+          25,
+          40,
+          51
+        ],
+        "analysis": {
+          "sum": 157,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.909,
+          "cluster": 1
+        }
+      },
+      {
+        "numbers": [
+          1,
+          11,
+          60,
+          63,
+          65
+        ],
+        "analysis": {
+          "sum": 200,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.933,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          1,
+          4,
+          41,
+          58,
+          68
+        ],
+        "analysis": {
+          "sum": 172,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.913,
+          "cluster": 0
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 31,
+    "generated_at": "2026-02-11T21:42:52.896093",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "lstm",
+    "requested_model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          2,
+          9,
+          59,
+          60,
+          68
+        ],
+        "analysis": {
+          "sum": 198,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          18,
+          20,
+          22,
+          62,
+          70
+        ],
+        "analysis": {
+          "sum": 192,
+          "odd_count": 0,
+          "even_count": 5,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 5,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          4,
+          19,
+          40,
+          46,
+          70
+        ],
+        "analysis": {
+          "sum": 179,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          11,
+          19,
+          32,
+          42,
+          60
+        ],
+        "analysis": {
+          "sum": 164,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          11,
+          42,
+          44,
+          61,
+          69
+        ],
+        "analysis": {
+          "sum": 227,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 1,
+          "high_count": 4,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 32,
+    "generated_at": "2026-02-11T21:43:12.547385",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "lstm",
+    "requested_model": "lstm",
+    "numbers": [
+      {
+        "numbers": [
+          17,
+          35,
+          39,
+          44,
+          70
+        ],
+        "analysis": {
+          "sum": 205,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          2,
+          24,
+          53,
+          61,
+          63
+        ],
+        "analysis": {
+          "sum": 203,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          15,
+          16,
+          40,
+          50,
+          69
+        ],
+        "analysis": {
+          "sum": 190,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          9,
+          10,
+          29,
+          50,
+          56
+        ],
+        "analysis": {
+          "sum": 154,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          11,
+          22,
+          50,
+          51,
+          58
+        ],
+        "analysis": {
+          "sum": 192,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 33,
+    "generated_at": "2026-02-11T21:43:22.741641",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "vector",
+    "requested_model": "vector",
+    "numbers": [
+      {
+        "numbers": [
+          3,
+          18,
+          29,
+          36,
+          70
+        ],
+        "analysis": {
+          "sum": 156,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.941,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          10,
+          27,
+          33,
+          54,
+          64
+        ],
+        "analysis": {
+          "sum": 188,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.926,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          3,
+          6,
+          25,
+          33,
+          69
+        ],
+        "analysis": {
+          "sum": 136,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 4,
+          "high_count": 1,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.942,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          5,
+          22,
+          25,
+          36,
+          69
+        ],
+        "analysis": {
+          "sum": 157,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.947,
+          "cluster": 0
+        }
+      },
+      {
+        "numbers": [
+          5,
+          11,
+          17,
+          49,
+          58
+        ],
+        "analysis": {
+          "sum": 140,
+          "odd_count": 4,
+          "even_count": 1,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 5,
+          "ac_rating": "낮음 (비추천)",
+          "similarity": 0.817,
+          "cluster": 0
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 34,
+    "generated_at": "2026-02-11T21:43:32.988474",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "balanced_mix",
+    "requested_model": "balanced_mix",
+    "numbers": [
+      {
+        "numbers": [
+          1,
+          30,
+          43,
+          50,
+          51
+        ],
+        "analysis": {
+          "sum": 175,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "balanced_mix"
+        }
+      },
+      {
+        "numbers": [
+          1,
+          30,
+          40,
+          44,
+          50
+        ],
+        "analysis": {
+          "sum": 165,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 5,
+          "ac_rating": "낮음 (비추천)",
+          "model": "balanced_mix"
+        }
+      },
+      {
+        "numbers": [
+          15,
+          30,
+          36,
+          40,
+          58
+        ],
+        "analysis": {
+          "sum": 179,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "balanced_mix"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          32,
+          43,
+          56,
+          57
+        ],
+        "analysis": {
+          "sum": 195,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 5,
+          "ac_rating": "낮음 (비추천)",
+          "model": "balanced_mix"
+        }
+      },
+      {
+        "numbers": [
+          6,
+          34,
+          39,
+          51,
+          69
+        ],
+        "analysis": {
+          "sum": 199,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "balanced_mix"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 35,
+    "generated_at": "2026-02-11T21:43:43.194770",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "cold_theory",
+    "requested_model": "cold_theory",
+    "numbers": [
+      {
+        "numbers": [
+          20,
+          28,
+          39,
+          57,
+          62
+        ],
+        "analysis": {
+          "sum": 206,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "cold_theory"
+        }
+      },
+      {
+        "numbers": [
+          28,
+          45,
+          54,
+          66,
+          67
+        ],
+        "analysis": {
+          "sum": 260,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 1,
+          "high_count": 4,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "cold_theory"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          14,
+          28,
+          36,
+          62
+        ],
+        "analysis": {
+          "sum": 145,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "cold_theory"
+        }
+      },
+      {
+        "numbers": [
+          8,
+          14,
+          22,
+          26,
+          57
+        ],
+        "analysis": {
+          "sum": 127,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 4,
+          "high_count": 1,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "cold_theory"
+        }
+      },
+      {
+        "numbers": [
+          28,
+          45,
+          48,
+          57,
+          61
+        ],
+        "analysis": {
+          "sum": 239,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 1,
+          "high_count": 4,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)",
+          "model": "cold_theory"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 36,
+    "generated_at": "2026-02-11T21:49:51.029920",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "transformer",
+    "requested_model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          14,
+          16,
+          33,
+          44,
+          59
+        ],
+        "analysis": {
+          "sum": 166,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          6,
+          11,
+          51,
+          60,
+          66
+        ],
+        "analysis": {
+          "sum": 194,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          10,
+          20,
+          33,
+          63,
+          65
+        ],
+        "analysis": {
+          "sum": 191,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          9,
+          20,
+          27,
+          48,
+          57
+        ],
+        "analysis": {
+          "sum": 161,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          14,
+          17,
+          29,
+          58,
+          63
+        ],
+        "analysis": {
+          "sum": 181,
+          "odd_count": 3,
+          "even_count": 2,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
+  },
+  {
+    "id": 37,
+    "generated_at": "2026-02-11T21:50:13.324151",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "transformer",
+    "requested_model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          6,
+          14,
+          41,
+          61,
+          70
+        ],
+        "analysis": {
+          "sum": 192,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          6,
+          26,
+          50,
+          53,
+          69
+        ],
+        "analysis": {
+          "sum": 204,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          4,
+          26,
+          31,
+          40,
+          63
+        ],
+        "analysis": {
+          "sum": 164,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          5,
+          23,
+          29,
+          63,
+          65
+        ],
+        "analysis": {
+          "sum": 185,
+          "odd_count": 5,
+          "even_count": 0,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          8,
+          20,
+          53,
+          59,
+          62
+        ],
+        "analysis": {
+          "sum": 202,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]
