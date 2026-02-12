@@ -851,12 +851,13 @@
   color: white;
 }
 
+/* Analysis Score - Colors neutralized to match other stats as requested */
 .quantum-stat-card.analysis-score .quantum-stat-label {
-  color: rgba(34, 211, 238, 0.7); /* Cyan */
+  color: #6b7280; 
 }
 
 .quantum-stat-card.analysis-score .quantum-stat-value {
-  color: #22d3ee; /* Cyan */
+  color: white;
 }
 
 @media (max-width: 640px) {
