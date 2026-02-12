@@ -3010,5 +3010,106 @@
       }
     ],
     "result": null
+  },
+  {
+    "id": 38,
+    "generated_at": "2026-02-11T22:05:57.931505",
+    "lottery_id": "usa_megamillions",
+    "target_draw": 2465,
+    "model": "transformer",
+    "requested_model": "transformer",
+    "numbers": [
+      {
+        "numbers": [
+          4,
+          15,
+          38,
+          44,
+          57
+        ],
+        "analysis": {
+          "sum": 158,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          16,
+          20,
+          51,
+          56,
+          67
+        ],
+        "analysis": {
+          "sum": 210,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          7,
+          24,
+          31,
+          40,
+          58
+        ],
+        "analysis": {
+          "sum": 160,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 3,
+          "high_count": 2,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          17,
+          20,
+          52,
+          63,
+          64
+        ],
+        "analysis": {
+          "sum": 216,
+          "odd_count": 2,
+          "even_count": 3,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      },
+      {
+        "numbers": [
+          4,
+          26,
+          37,
+          58,
+          60
+        ],
+        "analysis": {
+          "sum": 185,
+          "odd_count": 1,
+          "even_count": 4,
+          "low_count": 2,
+          "high_count": 3,
+          "ac_value": 6,
+          "ac_rating": "낮음 (비추천)"
+        }
+      }
+    ],
+    "result": null
   }
 ]

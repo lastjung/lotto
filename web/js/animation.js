@@ -884,8 +884,8 @@ class QuantumShuffleAnimation {
                         <span class="quantum-stat-label">Odd:Even</span>
                         <div class="quantum-stat-value" id="stat-oe">-:-</div>
                     </div>
-                    <div class="quantum-stat-card confidence">
-                        <span class="quantum-stat-label">Confidence</span>
+                    <div class="quantum-stat-card analysis-score">
+                        <span class="quantum-stat-label">Analysis Score</span>
                         <div class="quantum-stat-value" id="stat-conf">-</div>
                     </div>
                 </div>
@@ -941,7 +941,8 @@ class QuantumShuffleAnimation {
         // ... (Stats calculation code omitted for brevity as unchanged) ...
         const oddCount = numbers.filter(n => n % 2 !== 0).length;
         const evenCount = numbers.length - oddCount;
-        const confidence = (95 + Math.random() * 4.5).toFixed(1);
+        // Adjusted range: 84.0 ~ 97.0 for a more realistic "Analysis Score"
+        const confidence = (84 + Math.random() * 13).toFixed(1);
         
         // AC value calculation
         const sorted = [...numbers].sort((a, b) => a - b);
